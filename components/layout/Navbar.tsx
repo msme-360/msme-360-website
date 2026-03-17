@@ -1,15 +1,28 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
+import { useParams } from "next/navigation";
 import { Menu, X, Rocket } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
+import LocaleSwitcher from "./LocaleSwitcher";
 
 export function Navbar() {
+  const t = useTranslations("Navigation");
+  const tNav = useTranslations("Navbar");
+  const params = useParams();
+  const locale = (params?.locale as string) || "en";
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+
+  const navLinks = useMemo(() => [
+    { name: t("formalize"), href: `/${locale}/dashboard/formalize` },
+    { name: t("operate"), href: `/${locale}/dashboard/operate` },
+    { name: t("grow"), href: `/${locale}/dashboard/grow` },
+  ], [t, locale]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -18,12 +31,6 @@ export function Navbar() {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
-
-  const navLinks = [
-    { name: "Formalize", href: "/dashboard/formalize" },
-    { name: "Operate", href: "/dashboard/operate" },
-    { name: "Grow with AI", href: "/dashboard/grow" },
-  ];
 
   return (
     <header 
@@ -39,7 +46,7 @@ export function Navbar() {
         )}
       >
         <div className="flex items-center gap-6">
-          <Link href="/" className="flex items-center gap-2 group shrink-0">
+          <Link href={`/${locale}`} className="flex items-center gap-2 group shrink-0">
             <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center shadow-glow group-hover:scale-110 transition-transform">
               <Rocket className="w-4 h-4 text-primary-foreground" />
             </div>
@@ -63,14 +70,15 @@ export function Navbar() {
 
         <div className="flex items-center gap-3">
           <div className="hidden md:flex items-center gap-3">
+            <LocaleSwitcher />
             <Link 
-              href="/login" 
+              href={`/${locale}/login`} 
               className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
             >
-              Login
+              {tNav("links.login")}
             </Link>
             <Button size="sm" className="rounded-full px-6 font-semibold shadow-glow">
-              Join Now
+              {tNav("links.join")}
             </Button>
           </div>
 
@@ -104,16 +112,20 @@ export function Navbar() {
                 {link.name}
               </Link>
             ))}
+            <div className="flex items-center justify-between py-2 border-b border-white/5">
+              <span className="text-sm font-medium text-muted-foreground">Language / भाषा</span>
+              <LocaleSwitcher />
+            </div>
             <div className="flex flex-col gap-3 mt-4">
               <Link 
-                href="/login"
+                href={`/${locale}/login`}
                 onClick={() => setIsOpen(false)}
                 className="text-center py-2 text-muted-foreground"
               >
-                Login
+                {tNav("links.login")}
               </Link>
               <Button className="w-full rounded-2xl h-12 text-base font-bold">
-                Join Now
+                {tNav("links.join")}
               </Button>
             </div>
           </motion.div>

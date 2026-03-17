@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { getProgress, updateProgress as updateProgressAction } from "@/app/dashboard/actions";
+import { getProgress, updateProgress as updateProgressAction } from "@/app/[locale]/dashboard/actions";
 
 type ProgressState = {
   udyam: boolean;
@@ -27,7 +27,6 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
     bank: false,
   });
   const [isLoading, setIsLoading] = useState(true);
-  const [isMounted, setIsMounted] = useState(false);
 
   // Mock user ID for demonstration (In production, use auth session)
   const MOCK_USER_ID = "00000000-0000-0000-0000-000000000000";
@@ -46,7 +45,6 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
-    setIsMounted(true);
     async function hydrate() {
       setIsLoading(true);
       

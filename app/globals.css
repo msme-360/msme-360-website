@@ -55,6 +55,9 @@
   h1, h2, h3, h4, h5, h6 {
     @apply font-display font-bold tracking-tight text-balance;
   }
+  h1 {
+    @apply pb-2; /* Extra space for Hindi diacritics */
+  }
 }
 
 @utility glass {

@@ -1,10 +1,15 @@
-"use client";
-
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { Rocket, Twitter, Linkedin, Github } from "lucide-react";
 
 export function Footer() {
-  const currentYear = new Date().getFullYear();
+  const t = useTranslations("Footer");
+  const [currentYear, setCurrentYear] = useState<number | string>("...");
+
+  useEffect(() => {
+    setCurrentYear(new Date().getFullYear());
+  }, []);
 
   return (
     <footer className="bg-background border-t border-white/5 py-12 px-4 selection:bg-primary/20">
@@ -21,20 +26,18 @@ export function Footer() {
               </span>
             </Link>
             <p className="text-muted-foreground text-sm max-w-sm leading-relaxed">
-              India&apos;s first modular enablement platform for micro-entrepreneurs. 
-              Bridging the gap between traditional operations and AI-driven scale.
-              Trusted By 10k MSMEs.
+              {t("description")}
             </p>
           </div>
 
           {/* Links */}
           <div>
-            <h4 className="font-bold text-sm uppercase tracking-widest mb-6 text-foreground/50">Platform</h4>
+            <h4 className="font-bold text-sm uppercase tracking-widest mb-6 text-foreground/50">{t("links.platform")}</h4>
             <ul className="space-y-4">
-              {["Formalize", "Operations", "AI Hub", "Pricing"].map((link) => (
-                <li key={link}>
+              {["formalize", "operations", "aiHub", "pricing"].map((key) => (
+                <li key={key}>
                   <Link href="#" className="text-sm text-muted-foreground hover:text-primary transition-colors">
-                    {link}
+                    {t(`links.items.${key}`)}
                   </Link>
                 </li>
               ))}
@@ -43,7 +46,7 @@ export function Footer() {
 
           {/* Social */}
           <div>
-            <h4 className="font-bold text-sm uppercase tracking-widest mb-6 text-foreground/50">Connect</h4>
+            <h4 className="font-bold text-sm uppercase tracking-widest mb-6 text-foreground/50">{t("links.connect")}</h4>
             <div className="flex gap-4">
               {[Twitter, Linkedin, Github].map((Icon, i) => (
                 <Link 
@@ -56,18 +59,18 @@ export function Footer() {
               ))}
             </div>
             <p className="mt-6 text-xs text-muted-foreground">
-              Contact us: support@msme360.in
+              {t("contact.label")} support@msme360.in
             </p>
           </div>
         </div>
 
         <div className="pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-xs text-muted-foreground">
-            © {currentYear} MSME 360 Enablement Pvt Ltd. All rights reserved.
+            {t("copyright", { year: currentYear })}
           </p>
           <div className="flex gap-6">
-            <Link href="#" className="text-xs text-muted-foreground hover:text-foreground">Privacy Policy</Link>
-            <Link href="#" className="text-xs text-muted-foreground hover:text-foreground">Terms of Service</Link>
+            <Link href="#" className="text-xs text-muted-foreground hover:text-foreground">{t("links.items.privacy")}</Link>
+            <Link href="#" className="text-xs text-muted-foreground hover:text-foreground">{t("links.items.terms")}</Link>
           </div>
         </div>
       </div>

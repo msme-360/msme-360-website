@@ -6,7 +6,7 @@ import { Footer } from "./Footer";
 
 export function ConditionalNavigation({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const isDashboard = pathname?.startsWith("/dashboard");
+  const isDashboard = pathname?.split('/').includes("dashboard");
 
   return (
     <>

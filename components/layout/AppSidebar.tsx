@@ -21,29 +21,36 @@ import {
   UserCircle 
 } from "lucide-react";
 import Link from "next/link";
-
-const navItems = [
-  { group: "Business", items: [
-    { title: "Dashboard", icon: LayoutDashboard, url: "/dashboard" },
-    { title: "Formalize", icon: ShieldCheck, url: "/dashboard/formalize" },
-    { title: "Operate", icon: Briefcase, url: "/dashboard/operate" },
-  ]},
-  { group: "Innovation", items: [
-    { title: "MicroAI Hub", icon: Cpu, url: "/dashboard/grow" },
-    { title: "Go-to-Market", icon: Rocket, url: "/dashboard/gtm" },
-  ]},
-  { group: "Account", items: [
-    { title: "Profile", icon: UserCircle, url: "/dashboard/profile" },
-    { title: "Settings", icon: Settings, url: "/dashboard/settings" },
-  ]}
-];
+import { useTranslations } from "next-intl";
+import { useParams } from "next/navigation";
 
 export function AppSidebar() {
+  const t = useTranslations("Navigation");
+  const params = useParams();
+  const locale = params.locale as string;
+
+  const navItems = [
+    { group: t("groups.business"), items: [
+      { title: t("dashboard"), icon: LayoutDashboard, url: `/${locale}/dashboard` },
+      { title: t("formalize"), icon: ShieldCheck, url: `/${locale}/dashboard/formalize` },
+      { title: t("operate"), icon: Briefcase, url: `/${locale}/dashboard/operate` },
+    ]},
+    { group: t("groups.innovation"), items: [
+      { title: t("grow"), icon: Cpu, url: `/${locale}/dashboard/grow` },
+      { title: t("gtm"), icon: Rocket, url: `/${locale}/dashboard/gtm` },
+      { title: t("connect"), icon: Briefcase, url: `/${locale}/dashboard/connect` },
+    ]},
+    { group: t("groups.account"), items: [
+      { title: t("profile"), icon: UserCircle, url: `/${locale}/dashboard/profile` },
+      { title: t("settings"), icon: Settings, url: `/${locale}/dashboard/settings` },
+    ]}
+  ];
+
   return (
     <Sidebar collapsible="icon" variant="inset" className="border-r border-border/50">
       <SidebarHeader className="p-4 group-data-[collapsible=icon]:p-2 transition-all border-b border-border/50 mb-2">
         <div className="flex items-center justify-between gap-1 overflow-hidden group-data-[collapsible=icon]:justify-center">
-          <Link href="/" className="flex items-center gap-2 px-2 group shrink-0 group-data-[collapsible=icon]:hidden">
+          <Link href={`/${locale}`} className="flex items-center gap-2 px-2 group shrink-0 group-data-[collapsible=icon]:hidden">
             <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center shadow-glow group-hover:scale-110 transition-transform shrink-0">
               <Rocket className="w-4 h-4 text-primary-foreground" />
             </div>
@@ -81,8 +88,8 @@ export function AppSidebar() {
 
       <SidebarFooter className="p-4 group-data-[collapsible=icon]:p-2">
         <div className="glass-card p-4 border-primary/10 group-data-[collapsible=icon]:hidden">
-          <p className="text-[10px] font-bold text-primary mb-1 uppercase tracking-widest">Growth Plan</p>
-          <p className="text-sm font-bold font-display">Free Forever</p>
+          <p className="text-[10px] font-bold text-primary mb-1 uppercase tracking-widest">{t("footer.plan")}</p>
+          <p className="text-sm font-bold font-display">{t("footer.status")}</p>
         </div>
         <div className="hidden group-data-[collapsible=icon]:flex items-center justify-center py-2 h-10">
           <div className="w-6 h-1 bg-primary/20 rounded-full" />
