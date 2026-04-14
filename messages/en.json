@@ -22,7 +22,10 @@
     "notifications": "Notifications",
     "language": "Language",
     "theme": "Theme",
-    "unauthorized": "Unauthorized Access"
+    "unauthorized": "Unauthorized Access",
+    "more": "More",
+    "previousSlide": "Previous slide",
+    "nextSlide": "Next slide"
   },
   "Dashboard": {
     "badge": "Central Command",

@@ -5,10 +5,10 @@ export default getRequestConfig(async ({ requestLocale }) => {
   const locale = await requestLocale;
 
   // Ensure we have a valid locale string
-  const currentLocale = (locale && locales.includes(locale as any)) ? (locale as string) : (defaultLocale as string);
+  const currentLocale = (locale && locales.includes(locale as (typeof locales)[number])) ? (locale as string) : (defaultLocale as string);
 
   // Static mapping for reliability in build/production environments
-  const messageImports: Record<string, () => Promise<any>> = {
+  const messageImports: Record<string, () => Promise<{ default: Record<string, unknown> }>> = {
     en: () => import('../messages/en.json'),
     hi: () => import('../messages/hi.json'),
   };
