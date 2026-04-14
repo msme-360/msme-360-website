@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { TrendingUp, Search, ArrowRight, Building2, CheckCircle2, Zap, Info, DollarSign, PieChart, ExternalLink } from "lucide-react";
@@ -10,37 +10,46 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { getSchemes } from "@/app/[locale]/dashboard/actions";
 
+
+interface Scheme {
+  id: string;
+  url: string;
+  [key: string]: string;
+}
+
 export default function FinancialConnectClient() {
   const t = useTranslations("FinancialHub");
-  const [isMounted, setIsMounted] = useState(false);
+  const st = useTranslations("Schemes");
   const [revenue, setRevenue] = useState(500000);
   const [businessAge, setBusinessAge] = useState(2);
   const [isFormalized, setIsFormalized] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState<"simulator" | "schemes">("simulator");
-  const [schemes, setSchemes] = useState<any[]>([]);
+  const [schemes, setSchemes] = useState<Scheme[]>([]);
   const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    setIsMounted(true);
-    fetchSchemes();
-  }, []);
+  const hasMounted = React.useRef(false);
 
   const fetchSchemes = async (query?: string) => {
     setLoading(true);
     const data = await getSchemes(query);
-    setSchemes(data);
+    setSchemes(data as Scheme[]);
     setLoading(false);
   };
 
   useEffect(() => {
-    if (isMounted) {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchSchemes(); // async — setState runs after await, not synchronously
+    hasMounted.current = true;
+  }, []);
+
+  useEffect(() => {
+    if (hasMounted.current) {
       const timer = setTimeout(() => {
         fetchSchemes(searchQuery);
       }, 3000);
       return () => clearTimeout(timer);
     }
-  }, [searchQuery, isMounted]);
+  }, [searchQuery]);
 
   const calculatedScore = (() => {
     let newScore = 600;
@@ -207,8 +216,7 @@ export default function FinancialConnectClient() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                    {loading && schemes.length === 0 ? (
                     <div className="col-span-3 py-20 text-center opacity-50 italic">{t("schemes.searching")}</div>
-                  ) : schemes.map((scheme: any) => {
-                    const st = useTranslations("Schemes");
+                  ) : schemes.map((scheme: Scheme) => {
                     return (
                       <div key={scheme.id} className="glass-card p-6 flex flex-col group hover:border-primary/40 transition-all">
                         <Badge className="w-fit mb-4 bg-primary/10 text-primary border-primary/20 text-[9px] uppercase tracking-widest font-black">

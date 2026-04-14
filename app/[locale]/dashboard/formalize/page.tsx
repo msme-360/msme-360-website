@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -34,7 +34,7 @@ export default function FormalizeWizard() {
   const [checkerResult, setCheckerResult] = useState<{ eligible: boolean, reason?: string } | null>(null);
   const [checkerAnswers, setCheckerAnswers] = useState<Record<string, string>>({});
 
-  const steps = [
+  const steps = useMemo(() => [
     {
       id: "prep",
       title: t("steps.prep.title"),
@@ -83,7 +83,7 @@ export default function FormalizeWizard() {
       tip: t("steps.bank.tip"),
       resources: t.raw("steps.bank.resources") as { name: string; url: string }[]
     }
-  ];
+  ], [t]);
 
   // In a real app, this would come from auth. Using a placeholder for now.
   const userId = "placeholder-user-id";
@@ -93,7 +93,7 @@ export default function FormalizeWizard() {
       setIsLoading(true);
       try {
         const progress = await getProgress(userId);
-        const completed = progress.filter((p: any) => p.completed).map((p: any) => p.id);
+        const completed = progress.filter((p: { completed: boolean; id: string }) => p.completed).map((p: { id: string }) => p.id);
         setCompletedSteps(completed);
         
         // Auto-navigate to first uncompleted step
@@ -108,7 +108,7 @@ export default function FormalizeWizard() {
       }
     }
     loadProgress();
-  }, []);
+  }, [userId, steps]);
 
   const handleComplete = async (stepId: string) => {
     setIsUpdating(true);
@@ -170,7 +170,7 @@ export default function FormalizeWizard() {
           <p className="text-muted-foreground text-lg max-w-xl leading-relaxed">{t("description")}</p>
         </div>
         <div className="flex gap-2">
-          {steps.map((step, idx) => (
+          {steps.map((step: { id: string }, idx: number) => (
             <div 
               key={idx}
               className={`h-2 w-8 rounded-full transition-colors ${
@@ -216,11 +216,11 @@ export default function FormalizeWizard() {
                   </div>
                 </div>
                 
-                <ul className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {steps[currentStep].items.map((item, idx) => {
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {steps[currentStep].items.map((item: string, idx: number) => {
                     const isChecked = checkedItems[steps[currentStep].id]?.includes(item);
                     return (
-                      <li 
+                      <div 
                         key={idx} 
                         className={cn(
                           "flex items-start gap-3 p-4 rounded-xl border transition-all cursor-pointer",
@@ -239,19 +239,19 @@ export default function FormalizeWizard() {
                           "text-sm font-medium leading-tight",
                           isChecked && "text-primary ml-1"
                         )}>{item}</span>
-                      </li>
+                      </div>
                     );
                   })}
-                </ul>
+                </div>
 
-                {(steps[currentStep] as any).resources && (
+                {('resources' in steps[currentStep]) && (steps[currentStep] as { resources?: { url: string; name: string }[] }).resources && (
                   <div className="p-6 bg-primary/5 rounded-2xl border border-primary/20 space-y-4">
                     <div className="flex items-center gap-2">
                        <Info className="w-4 h-4 text-primary" />
                        <h4 className="text-sm font-bold uppercase tracking-wider opacity-60">{t("resourcesTitle")}</h4>
                     </div>
                     <div className="flex flex-wrap gap-4">
-                      {(steps[currentStep] as any).resources.map((res: any, idx: number) => (
+                      {((steps[currentStep] as { resources?: { url: string; name: string }[] }).resources ?? []).map((res: { url: string; name: string }, idx: number) => (
                         <a 
                           key={idx}
                           href={res.url} 
@@ -266,7 +266,7 @@ export default function FormalizeWizard() {
                   </div>
                 )}
 
-                {(steps[currentStep] as any).hasChecker && (
+                {('hasChecker' in steps[currentStep]) && (steps[currentStep] as { hasChecker?: boolean }).hasChecker && (
                   <div className="p-6 bg-accent/5 rounded-2xl border border-accent/20 flex flex-col md:flex-row items-center justify-between gap-4">
                     <div className="flex items-center gap-3">
                        <div className="p-2 bg-accent/10 rounded-lg">

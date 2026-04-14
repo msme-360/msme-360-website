@@ -22,7 +22,7 @@ import { Badge } from "@/components/ui/badge";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 
-const iconMap: Record<string, any> = {
+const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   Trophy: Trophy,
   Sparkles: Sparkles,
   Zap: Zap
@@ -31,13 +31,23 @@ const iconMap: Record<string, any> = {
 import { getAvailableMentorshipSlots } from "@/app/[locale]/dashboard/actions";
 import { toast } from "sonner";
 
+export interface FounderUpdate {
+  id: string;
+  founder: string;
+  company: string;
+  update: string;
+  type: string;
+  time: string;
+  category: string;
+}
+
 interface CommunityClientProps {
-  initialUpdates: any[];
+  initialUpdates: FounderUpdate[];
 }
 
 export default function CommunityClient({ initialUpdates }: CommunityClientProps) {
   const t = useTranslations("CommunityHub");
-  const [updates] = useState<any[]>(initialUpdates);
+  const [updates] = useState<FounderUpdate[]>(initialUpdates);
 
   const COMMUNITY_GROUPS = useMemo(() => [
     {
@@ -221,9 +231,17 @@ export default function CommunityClient({ initialUpdates }: CommunityClientProps
   );
 }
 
+interface MentorshipSlot {
+  id: string;
+  mentor: string;
+  expertise: string;
+  time: string;
+  date: string;
+}
+
 function MentorshipSection() {
   const t = useTranslations("CommunityHub.mentorship");
-  const [slots, setSlots] = useState<any[]>([]);
+  const [slots, setSlots] = useState<MentorshipSlot[]>([]);
   const [loading, setLoading] = useState(true);
   const [bookedId, setBookedId] = useState<string | null>(null);
 

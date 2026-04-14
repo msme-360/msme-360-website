@@ -25,9 +25,12 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useTranslations } from "next-intl";
+import { 
+  getTenders, 
+  getGTMTemplates} from "@/app/[locale]/dashboard/actions";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function GoToMarketHub() {
   const t = useTranslations("GTMHub");
@@ -38,20 +41,12 @@ export default function GoToMarketHub() {
   const [marketReach, setMarketReach] = useState(125000);
   const [tenderSector, setTenderSector] = useState("all");
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  
+  const [tenders, setTenders] = useState<Record<string, string>[]>([]);
+  const [outreachTemplates, setOutreachTemplates] = useState<Record<string, string>[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const tenders = [
-    { id: 1, title: "Solar Panel Installation - Municipal Corp", sector: "IT/Tech", location: "Maharashtra", value: "₹2.5 Cr", agency: "MREDA" },
-    { id: 2, title: "Digitization of Land Records", sector: "IT/Tech", location: "Pan-India", value: "₹5.8 Cr", agency: "NIC" },
-    { id: 3, title: "Uniform Supply for State Schools", sector: "Manufacturing", location: "Karnataka", value: "₹85 L", agency: "KSEEB" },
-    { id: 4, title: "Waste Management System Upgrade", sector: "Services", location: "Delhi-NCR", value: "₹1.2 Cr", agency: "NDMC" }
-  ];
-
-  const filteredTenders = tenders.filter(t => tenderSector === "all" || t.sector === tenderSector);
-
-  const outreachTemplates = [
-    { id: "wa", type: "whatsapp", title: t("outreach.whatsapp"), content: "Hi [Name], I'm [Founder] from [Company]. We saw your recent interest in [Topic] and..." },
-    { id: "li", type: "linkedin", title: t("outreach.linkedin"), content: "Dear [Name], I noticed your work at [Company] and would love to connect..." }
-  ];
+  const filteredTenders = tenders.filter((t: Record<string, string>) => tenderSector === "all" || t.sector === tenderSector);
 
   const copyToClipboard = (id: string, text: string) => {
     navigator.clipboard.writeText(text);
@@ -67,6 +62,28 @@ export default function GoToMarketHub() {
   ];
 
   useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true);
+      try {
+        const [tList, tplList]: [Record<string, string>[], Record<string, string>[]] = await Promise.all([
+          getTenders(),
+          getGTMTemplates()
+        ]);
+        setTenders(tList);
+        setOutreachTemplates(tplList.map(tpl => ({
+          id: tpl.id,
+          type: tpl.type,
+          title: t(tpl.title_key),
+          content: tpl.content_template
+        })));
+      } catch (err) {
+        console.error("Failed to fetch GTM data", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchData();
+
     const timer = setTimeout(() => setIsMounted(true), 0);
     
     // Simulate dynamic market fluctuations
@@ -78,7 +95,7 @@ export default function GoToMarketHub() {
       clearTimeout(timer);
       clearInterval(interval);
     };
-  }, []);
+  }, [t]);
 
   const toggleItem = (id: string) => {
     setCompletedItems(prev => 
@@ -322,7 +339,26 @@ export default function GoToMarketHub() {
                  </div>
 
                  <div className="space-y-3">
-                    {filteredTenders.length > 0 ? (
+                    {isLoading ? (
+                       Array.from({ length: 3 }).map((_, i) => (
+                          <div key={i} className="flex flex-col md:flex-row md:items-center justify-between p-4 rounded-2xl bg-white/5 border border-white/5">
+                             <div className="flex items-center gap-4 w-full">
+                                <Skeleton className="w-12 h-12 rounded-xl shrink-0" />
+                                <div className="space-y-2 w-full">
+                                   <div className="flex items-center gap-2">
+                                      <Skeleton className="h-4 w-40" />
+                                      <Skeleton className="h-3 w-12 rounded-full" />
+                                   </div>
+                                   <div className="flex items-center gap-3">
+                                      <Skeleton className="h-3 w-20" />
+                                      <Skeleton className="h-3 w-16" />
+                                   </div>
+                                </div>
+                             </div>
+                             <Skeleton className="mt-4 md:mt-0 h-8 w-24 rounded-xl shrink-0" />
+                          </div>
+                       ))
+                    ) : filteredTenders.length > 0 ? (
                        filteredTenders.map(tender => (
                           <div key={tender.id} className="flex flex-col md:flex-row md:items-center justify-between p-4 rounded-2xl bg-white/5 border border-white/5 group/tender hover:border-primary/30 transition-all">
                              <div className="flex items-center gap-4">
@@ -336,7 +372,7 @@ export default function GoToMarketHub() {
                                    </div>
                                    <div className="flex items-center gap-3 text-[10px] text-muted-foreground">
                                       <span className="flex items-center gap-1"><MapPin className="w-2.5 h-2.5" /> {tender.location}</span>
-                                      <span className="flex items-center gap-1 font-black text-foreground"><IndianRupee className="w-2.5 h-2.5" /> {tender.value}</span>
+                                      <span className="flex items-center gap-1 font-black text-foreground"><IndianRupee className="w-2.5 h-2.5" /> {tender.value_text || tender.value}</span>
                                    </div>
                                 </div>
                              </div>

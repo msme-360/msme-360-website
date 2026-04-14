@@ -17,6 +17,12 @@ import LocaleSwitcher from "@/components/layout/LocaleSwitcher";
 import { useTranslations } from "next-intl";
 import { usePathname } from "next/navigation";
 
+interface BreadcrumbCrumb {
+  title: string;
+  href: string;
+  isLast: boolean;
+}
+
 export function DashboardClientLayer({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { completionPercentage } = useProgress();
@@ -51,7 +57,7 @@ export function DashboardClientLayer({ children }: { children: React.ReactNode }
             <SidebarTrigger className="-ml-1 md:hidden text-muted-foreground hover:text-primary transition-colors h-8 w-8" />
             <Breadcrumb className="hidden md:block">
               <BreadcrumbList>
-                {breadcrumbs.map((crumb: any) => (
+                {breadcrumbs.map((crumb: BreadcrumbCrumb) => (
                   <React.Fragment key={crumb.href}>
                     <BreadcrumbItem>
                       {crumb.isLast ? (

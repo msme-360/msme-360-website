@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { TrendingUp, TrendingDown, Wallet, Calendar } from "lucide-react";
+import { TrendingUp, Wallet, Calendar } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 export function CashFlowCalculator() {

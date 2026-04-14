@@ -46,7 +46,7 @@ export default function HelpCenterClient() {
 
   const FAQS = useMemo(() => t.raw("faqs") as { question: string, answer: string }[], [t]);
 
-  const handleSupportQuery = async (e: React.FormEvent) => {
+  const handleSupportQuery = async (e: React.SyntheticEvent) => {
     e.preventDefault();
     if (!ticketData.subject || !ticketData.message) {
       toast.error(t("ticket.error"));

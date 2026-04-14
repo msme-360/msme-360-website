@@ -20,7 +20,6 @@ import {
   Sparkles,
   ChevronRight as ChevronRightIcon
 } from "lucide-react";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
@@ -131,7 +130,7 @@ export function Omnibox() {
       aliases: ["config", "preferences", "security", "password"],
       description: "Platform configurations and account security."
     },
-  ], [tNav, tCommon]);
+  ], [tNav]);
 
   const getFuzzyScore = (str: string, query: string) => {
     if (str.toLowerCase().includes(query)) return 100;
@@ -169,9 +168,6 @@ export function Omnibox() {
     return () => document.removeEventListener("keydown", down);
   }, []);
 
-  useEffect(() => {
-    setSelectedIndex(0);
-  }, [filteredItems]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "ArrowDown") {
@@ -208,6 +204,7 @@ export function Omnibox() {
               value={searchQuery}
               onChange={(e) => {
                 setSearchQuery(e.target.value);
+                setSelectedIndex(0);
                 if (!open) setOpen(true);
               }}
               onKeyDown={handleKeyDown}
@@ -246,7 +243,7 @@ export function Omnibox() {
                       {searchQuery ? tCommon("searchResults") : tCommon("recentActions")}
                     </span>
                     {searchQuery && (
-                      <Badge variant="outline" className="text-[9px] px-1.5 py-0 border-primary/20 text-primary">
+                      <Badge className="text-[9px] px-1.5 py-0 border-primary/20 text-primary">
                         {tCommon("smartMatch")}
                       </Badge>
                     )}
@@ -313,7 +310,7 @@ export function Omnibox() {
   );
 }
 
-function Badge({ children, className, variant }: { children: React.ReactNode, className?: string, variant?: string }) {
+function Badge({ children, className }: { children: React.ReactNode, className?: string }) {
   return (
     <div className={cn(
       "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",

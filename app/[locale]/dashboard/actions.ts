@@ -38,7 +38,7 @@ export async function getProgress(userId: string) {
       ...d,
       completed: data.find(r => r.step_id === d.id)?.completed ?? false
     }));
-  } catch (error) {
+  } catch {
     // Fail gracefully for MVP if table doesn't exist
     return [
       { id: 'udyam', label: 'Udyam Registration', completed: false },
@@ -109,7 +109,7 @@ export async function getProfile(userId: string) {
   }
 }
 
-export async function updateProfile(userId: string, profileData: any) {
+export async function updateProfile(userId: string, profileData: Record<string, unknown>) {
   try {
     const { error } = await supabase
       .from('user_profiles')
@@ -314,5 +314,193 @@ export async function submitMicroAIInterest(userId: string, data: { revenue_band
     console.error("submitMicroAIInterest error:", error);
     // Return mock success for MVP if table not ready
     return { success: true, mock: true };
+  }
+}
+export async function getNicCodes() {
+  const { data, error } = await supabase
+    .from("nic_codes")
+    .select("*")
+    .order("code", { ascending: true });
+
+  if (error) {
+    console.error("Error fetching NIC codes:", error);
+    return [];
+  }
+
+  // Cache for 24 hours (static-ish data)
+  cacheTag("nic-codes");
+  cacheLife("days");
+
+  return data || [];
+}
+
+export async function getAIServices() {
+  const { data, error } = await supabase
+    .from("ai_services")
+    .select("*")
+    .order("created_at", { ascending: true });
+
+  if (error) {
+    console.error("Error fetching AI services:", error);
+    return [];
+  }
+
+  cacheTag("ai-services");
+  cacheLife("hours");
+
+  return data || [];
+}
+
+export async function getTenders() {
+  const { data, error } = await supabase
+    .from("tenders")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Error fetching tenders:", error);
+    return [];
+  }
+
+  cacheTag("tenders");
+  cacheLife("minutes");
+
+  return data || [];
+}
+
+export async function getGTMTemplates() {
+  const { data, error } = await supabase
+    .from("gtm_templates")
+    .select("*");
+
+  if (error) {
+    console.error("Error fetching GTM templates:", error);
+    return [];
+  }
+
+  cacheTag("gtm-templates");
+  cacheLife("days");
+
+  return data || [];
+}
+
+export async function getGTMCampaigns(userId: string) {
+  const { data, error } = await supabase
+    .from("gtm_campaigns")
+    .select("*")
+    .eq("user_id", userId)
+    .order("updated_at", { ascending: false });
+
+  if (error) {
+    console.error("Error fetching GTM campaigns:", error);
+    return [];
+  }
+
+  cacheTag(`gtm-campaigns-${userId}`);
+  cacheLife("minutes");
+
+  return data || [];
+}
+
+export async function generateGTMCampaign(userId: string, title: string, roadmapData: Record<string, unknown>[]) {
+  const { data, error } = await supabase
+    .from("gtm_campaigns")
+    .insert([{
+      user_id: userId,
+      title,
+      roadmap_data: roadmapData,
+      status: "Active"
+    }])
+    .select()
+    .single();
+
+  if (error) {
+    console.error("Error generating GTM campaign:", error);
+    return { success: false, error: error.message };
+  }
+
+  revalidateTag(`gtm-campaigns-${userId}`, "max");
+  return { success: true, data };
+}
+
+export async function getTeamMembers(userId: string) {
+  "use cache";
+  cacheTag(`team-${userId}`);
+  cacheLife("minutes");
+
+  try {
+    const { data, error } = await supabase
+      .from('team_members')
+      .select('*')
+      .eq('user_id', userId);
+
+    if (error) throw error;
+    return data || [];
+  } catch {
+    console.warn("Falling back to mock team members");
+    return [
+      { id: '1', full_name: "Rahul Sharma", role_key: "proprietor", status: "active" },
+      { id: '2', full_name: "Ananya Iyer", role_key: "accountsManager", status: "active" }
+    ];
+  }
+}
+
+export async function addTeamMember(userId: string, member: { full_name: string, role_key: string }) {
+  try {
+    const { error } = await supabase
+      .from('team_members')
+      .insert({
+        user_id: userId,
+        full_name: member.full_name,
+        role_key: member.role_key,
+        status: 'active'
+      });
+
+    if (error) throw error;
+    revalidateTag(`team-${userId}`, "max");
+    return { success: true };
+  } catch (error) {
+    console.error("addTeamMember error:", error);
+    return { success: false, error };
+  }
+}
+
+export async function getComplianceTasks(userId: string) {
+  "use cache";
+  cacheTag(`compliance-${userId}`);
+  cacheLife("minutes");
+
+  try {
+    const { data, error } = await supabase
+      .from('compliance_tasks')
+      .select('*')
+      .eq('user_id', userId);
+
+    if (error) throw error;
+    return data || [];
+  } catch {
+    console.warn("Falling back to mock compliance tasks");
+    return [
+      { id: "gst", task_name: "GSTR-1 (Monthly)", due_date: "11-Oct", status: "pending" },
+      { id: "tds", task_name: "TDS Quarterly", due_date: "31-Oct", status: "pending" },
+      { id: "pf", task_name: "EPF/ESI Filing", due_date: "15-Oct", status: "filed" }
+    ];
+  }
+}
+
+export async function updateComplianceTaskStatus(userId: string, taskId: string, status: string) {
+  try {
+    const { error } = await supabase
+      .from('compliance_tasks')
+      .update({ status })
+      .eq('id', taskId)
+      .eq('user_id', userId);
+
+    if (error) throw error;
+    revalidateTag(`compliance-${userId}`, "max");
+    return { success: true };
+  } catch (error) {
+    console.error("updateComplianceTaskStatus error:", error);
+    return { success: false, error };
   }
 }

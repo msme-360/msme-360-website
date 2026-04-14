@@ -26,8 +26,13 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { submitMicroAIInterest } from "@/app/[locale]/dashboard/actions";
+import { 
+  getAIServices, 
+  getNicCodes, 
+  submitMicroAIInterest 
+} from "@/app/[locale]/dashboard/actions";
 import { toast } from "sonner";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface OCRData {
   vendor: string;
@@ -37,72 +42,76 @@ interface OCRData {
   items: number;
 }
 
-const MOCK_NIC_CODES = [
-  { code: "62011", category: "IT Services", description: "Software development and maintenance", subtext: "Writing, modifying, testing and supporting software." },
-  { code: "62020", category: "IT Services", description: "Computer consultancy and facilities management", subtext: "Planning and designing computer systems." },
-  { code: "47110", category: "Retail", description: "Retail sale in non-specialized stores (Food/Beverages)", subtext: "Supermarkets and general stores." },
-  { code: "56101", category: "Food Service", description: "Restaurants and mobile food service activities", subtext: "Dining-in and take-away services." },
-  { code: "01111", category: "Agriculture", description: "Growing of wheat", subtext: "Cereal grain cultivation." },
-  { code: "10712", category: "Manufacturing", description: "Bakery products - bread, cakes, pastries", subtext: "Small scale production of baked goods." },
-  { code: "96020", category: "Services", description: "Hairdressing and other beauty treatment", subtext: "Personal care and salon services." }
-];
+interface AIService {
+  id?: string;
+  title_key: string;
+  description_key: string;
+  type_key: string;
+  icon_name: string;
+  title?: string;
+  description?: string;
+  type?: string;
+  icon?: React.ReactNode;
+  status?: string;
+}
+
+interface NicCode {
+  code: string;
+  description: string;
+  category?: string;
+  [key: string]: string | undefined;
+}
 
 export default function MicroAIHubClient() {
   const t = useTranslations("MicroAIHub");
-  
-  const aiServices = useMemo(() => [
-    {
-      id: "forecasting",
-      title: t("tools.forecasting.title"),
-      description: t("tools.forecasting.description"),
-      icon: <BarChart3 className="w-5 h-5" />,
-      status: t("status.active"),
-      type: t("type.data")
-    },
-    {
-      id: "sop",
-      title: t("tools.sop.title"),
-      description: t("tools.sop.description"),
-      icon: <MessageSquare className="w-5 h-5" />,
-      status: t("status.beta"),
-      type: t("type.nlp")
-    },
-    {
-      id: "eligibility",
-      title: t("tools.eligibility.title"),
-      description: t("tools.eligibility.description"),
-      icon: <ShieldCheck className="w-5 h-5" />,
-      status: t("status.beta"),
-      type: t("type.scoring")
-    },
-    {
-      id: "nic",
-      title: t("tools.nic.title"),
-      description: t("tools.nic.description"),
-      icon: <Sparkles className="w-5 h-5" />,
-      status: t("status.active"),
-      type: t("type.nlp")
-    },
-    {
-      id: "ocr",
-      title: t("tools.ocr.title"),
-      description: t("tools.ocr.description"),
-      icon: <Zap className="w-5 h-5" />,
-      status: t("status.active"),
-      type: t("type.vision")
-    }
-  ], [t]);
+  const [aiServices, setAiServices] = useState<AIService[]>([]);
+  const [nicCodes, setNicCodes] = useState<NicCode[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [forecastVal, setForecastVal] = useState(65);
   const [isMounted, setIsMounted] = useState(false);
   const [activeTool, setActiveTool] = useState("forecasting");
   const searchParams = useSearchParams();
 
   useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true);
+      try {
+        const [services, nics]: [AIService[], NicCode[]] = await Promise.all([
+          getAIServices(),
+          getNicCodes()
+        ]);
+        
+        // Map services with icons and translations
+        const iconMap: Record<string, React.ReactNode> = {
+          "BarChart3": <BarChart3 className="w-5 h-5" />,
+          "MessageSquare": <MessageSquare className="w-5 h-5" />,
+          "ShieldCheck": <ShieldCheck className="w-5 h-5" />,
+          "Sparkles": <Sparkles className="w-5 h-5" />,
+          "Zap": <Zap className="w-5 h-5" />
+        };
+
+        setAiServices(services.map((s: AIService) => ({
+          ...s,
+          title: t(s.title_key),
+          description: t(s.description_key),
+          icon: iconMap[s.icon_name] || <Bot className="w-5 h-5" />,
+          type: t(s.type_key)
+        })));
+        
+        setNicCodes(nics);
+      } catch (err) {
+        console.error("Failed to fetch MicroAI data", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchData();
+
     const tool = searchParams.get('tool');
     if (tool && ["forecasting", "ocr", "nic", "eligibility"].includes(tool)) {
       setActiveTool(tool);
     }
-  }, [searchParams]);
+  }, [searchParams, t]);
   const [ocrState, setOcrState] = useState<"idle" | "scanning" | "completed">("idle");
   const [ocrData, setOcrData] = useState<OCRData | null>(null);
   const [nicQuery, setNicQuery] = useState("");
@@ -119,12 +128,12 @@ export default function MicroAIHubClient() {
   const nicResults = useMemo(() => {
     if (!nicQuery) return [];
     const q = nicQuery.toLowerCase();
-    return MOCK_NIC_CODES.filter(c => 
+    return nicCodes.filter(c => 
       c.description.toLowerCase().includes(q) || 
-      c.category.toLowerCase().includes(q) ||
-      c.subtext.toLowerCase().includes(q)
+      c.category?.toLowerCase().includes(q) ||
+      (c.subtext && c.subtext.toLowerCase().includes(q))
     );
-  }, [nicQuery]);
+  }, [nicQuery, nicCodes]);
 
   useEffect(() => {
     const timer = setTimeout(() => setIsMounted(true), 0);
@@ -508,37 +517,54 @@ export default function MicroAIHubClient() {
 
           {/* Directory Grid */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {aiServices.map((service) => (
-              <div 
-                key={service.id} 
-                onClick={() => {
-                  if (service.id === "forecasting" || service.id === "ocr" || service.id === "nic" || service.id === "eligibility") {
-                    setActiveTool(service.id);
-                  }
-                }}
-                className={`glass-card hover:border-primary/40 p-6 transition-all cursor-pointer group hover:bg-white/5 flex flex-col ${
-                  activeTool === service.id ? 'border-primary shadow-glow ring-1 ring-primary/20' : ''
-                }`}
-              >
-                <div className={`p-3 bg-secondary/50 rounded-2xl w-fit mb-4 group-hover:bg-primary/25 group-hover:scale-110 transition-all ${
-                  activeTool === service.id ? 'bg-primary/20 scale-110' : ''
-                }`}>
-                  {service.icon}
+            {isLoading ? (
+              Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className="glass-card p-6 flex flex-col space-y-4">
+                  <div className="flex flex-row justify-between items-start">
+                    <Skeleton className="w-12 h-12 rounded-2xl" />
+                    <Skeleton className="w-4 h-4 rounded-full" />
+                  </div>
+                  <Skeleton className="h-6 w-3/4" />
+                  <Skeleton className="h-4 w-full" />
+                  <div className="flex justify-between mt-auto">
+                    <Skeleton className="h-3 w-12" />
+                    <Skeleton className="h-4 w-4" />
+                  </div>
                 </div>
-                <h3 className={`font-bold mb-1 tracking-tight ${activeTool === service.id ? 'text-primary' : ''}`}>{service.title}</h3>
-                <p className="text-xs text-muted-foreground leading-relaxed mb-4">{service.description}</p>
-                <div className="flex items-center justify-between mt-auto">
-                  <Badge variant="outline" className={`text-[9px] uppercase tracking-widest border-none px-0 ${
-                    service.status === 'Active' ? 'text-emerald-400' : 'text-amber-400'
+              ))
+            ) : (
+              aiServices.map((service) => (
+                <div 
+                  key={service.id} 
+                  onClick={() => {
+                    if (service.id === "forecasting" || service.id === "ocr" || service.id === "nic" || service.id === "eligibility") {
+                      setActiveTool(service.id);
+                    }
+                  }}
+                  className={`glass-card hover:border-primary/40 p-6 transition-all cursor-pointer group hover:bg-white/5 flex flex-col ${
+                    activeTool === service.id ? 'border-primary shadow-glow ring-1 ring-primary/20' : ''
+                  }`}
+                >
+                  <div className={`p-3 bg-secondary/50 rounded-2xl w-fit mb-4 group-hover:bg-primary/25 group-hover:scale-110 transition-all ${
+                    activeTool === service.id ? 'bg-primary/20 scale-110' : ''
                   }`}>
-                    {service.status}
-                  </Badge>
-                  <ChevronRight className={`w-4 h-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all ${
-                    activeTool === service.id ? 'text-primary translate-x-1' : ''
-                  }`} />
+                    {service.icon}
+                  </div>
+                  <h3 className={`font-bold mb-1 tracking-tight ${activeTool === service.id ? 'text-primary' : ''}`}>{service.title}</h3>
+                  <p className="text-xs text-muted-foreground leading-relaxed mb-4">{service.description}</p>
+                  <div className="flex items-center justify-between mt-auto">
+                    <Badge variant="outline" className={`text-[9px] uppercase tracking-widest border-none px-0 ${
+                      service.status === 'Active' ? 'text-emerald-400' : 'text-amber-400'
+                    }`}>
+                      {service.status}
+                    </Badge>
+                    <ChevronRight className={`w-4 h-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all ${
+                      activeTool === service.id ? 'text-primary translate-x-1' : ''
+                    }`} />
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
 
@@ -604,7 +630,7 @@ function AIReadinessQuiz() {
   const [currentQ, setCurrentQ] = useState(0);
   const [answers, setAnswers] = useState<number[]>([]);
 
-  const questions = useMemo(() => t.raw("questions") as any[], [t]);
+  const questions = useMemo(() => t.raw("questions") as { text: string; options: string[] }[], [t]);
 
   const handleStart = () => setStep("questions");
   
@@ -701,7 +727,7 @@ function MicroAIInterestForm() {
     service: "Demand Forecasting"
   });
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SyntheticEvent) => {
     e.preventDefault();
     setLoading(true);
     const res = await submitMicroAIInterest("user_123", {

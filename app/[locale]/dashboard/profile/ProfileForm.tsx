@@ -39,7 +39,7 @@ export function ProfileForm({ initialProfile, userId }: ProfileFormProps) {
       } else {
         toast.error(t("errorToast"));
       }
-    } catch (error) {
+    } catch {
       toast.error(t("generalError"));
     } finally {
       setIsSaving(false);

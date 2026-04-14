@@ -1,15 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { 
-  FileText, 
   Download, 
   Plus, 
   Trash2, 
-  ChevronRight, 
   Receipt,
   User,
-  Building,
   Calendar,
   IndianRupee,
   ShieldCheck
@@ -37,13 +34,8 @@ export function InvoiceGenerator() {
   const [items, setItems] = useState<InvoiceItem[]>([
     { id: "1", description: "Service/Product Name", quantity: 1, rate: 0 }
   ]);
-  const [invoiceNumber, setInvoiceNumber] = useState("INV-YYYY-001");
-  const [date, setDate] = useState("YYYY-MM-DD");
-
-  useEffect(() => {
-    setInvoiceNumber(`INV-${new Date().getFullYear()}-001`);
-    setDate(new Date().toISOString().split('T')[0]);
-  }, []);
+  const [invoiceNumber, setInvoiceNumber] = useState(() => `INV-${new Date().getFullYear()}-001`);
+  const [date, setDate] = useState(() => new Date().toISOString().split('T')[0]);
 
   const addItem = () => {
     setItems([...items, { id: Math.random().toString(), description: "", quantity: 1, rate: 0 }]);

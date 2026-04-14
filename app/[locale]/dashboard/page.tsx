@@ -8,12 +8,21 @@ import { Badge } from "@/components/ui/badge";
 import { useProgress } from "@/components/dashboard/ProgressProvider";
 import { useTranslations } from "next-intl";
 import { useParams } from "next/navigation";
+import { useState, useEffect } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function DashboardPage() {
   const t = useTranslations("Dashboard");
   const ts = useTranslations("Stats");
   const { locale } = useParams();
+  const [isLoading, setIsLoading] = useState(true);
   
+  useEffect(() => {
+    // Simulate loading transition
+    const timer = setTimeout(() => setIsLoading(false), 800);
+    return () => clearTimeout(timer);
+  }, []);
+
   useProgress();
 
   return (
@@ -33,6 +42,7 @@ export default function DashboardPage() {
           description={ts("formalization.description")}
           href={`/${locale}/dashboard/formalize`}
           icon={<ShieldCheck className="w-6 h-6 text-primary" />}
+          loading={isLoading}
         />
         <StatCard 
           title={ts("operations.title")} 
@@ -40,6 +50,7 @@ export default function DashboardPage() {
           description={ts("operations.description")}
           href={`/${locale}/dashboard/operate`}
           icon={<Briefcase className="w-6 h-6 text-primary" />}
+          loading={isLoading}
         />
         <StatCard 
           title={ts("microAI.title")} 
@@ -47,6 +58,7 @@ export default function DashboardPage() {
           description={ts("microAI.description")}
           href={`/${locale}/dashboard/grow`}
           icon={<Cpu className="w-6 h-6 text-primary" />}
+          loading={isLoading}
         />
         <StatCard 
           title={ts("gtm.title")} 
@@ -54,6 +66,7 @@ export default function DashboardPage() {
           description={ts("gtm.description")}
           href={`/${locale}/dashboard/gtm`}
           icon={<ArrowRight className="w-6 h-6 text-primary" />}
+          loading={isLoading}
         />
         <StatCard 
           title={ts("financial.title")} 
@@ -61,6 +74,7 @@ export default function DashboardPage() {
           description={ts("financial.description")}
           href={`/${locale}/dashboard/connect`}
           icon={<TrendingUp className="w-6 h-6 text-primary" />}
+          loading={isLoading}
         />
       </div>
 
@@ -86,19 +100,39 @@ export default function DashboardPage() {
   );
 }
 
-function StatCard({ title, status, description, href, icon }: { title: string; status: string; description: string; href: string; icon: React.ReactNode }) {
+function StatCard({ 
+  title, status, description, href, icon, loading 
+}: { 
+  title: string; status: string; description: string; href: string; icon: React.ReactNode; loading?: boolean 
+}) {
+  if (loading) {
+    return (
+      <Card className="h-full border-primary/10">
+        <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <Skeleton className="h-10 w-10 rounded-xl" />
+          <Skeleton className="h-4 w-12" />
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <Skeleton className="h-6 w-3/4" />
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-full" />
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Link href={href}>
-      <Card className="hover:border-primary/50 transition-colors group cursor-pointer h-full">
+      <Card className="hover:border-primary/50 transition-colors group cursor-pointer h-full border-primary/10 shadow-sm hover:shadow-primary/5">
         <CardHeader className="flex flex-row items-center justify-between pb-2">
           <div className="p-2 bg-secondary rounded-xl group-hover:bg-primary/10 transition-colors">
             {icon}
           </div>
-          <span className="text-xs font-semibold opacity-60">{status}</span>
+          <span className="text-[10px] font-black uppercase tracking-widest opacity-40">{status}</span>
         </CardHeader>
         <CardContent>
-          <CardTitle className="text-xl mb-1">{title}</CardTitle>
-          <CardDescription>{description}</CardDescription>
+          <CardTitle className="text-xl mb-1 font-bold tracking-tight">{title}</CardTitle>
+          <CardDescription className="line-clamp-2 leading-relaxed">{description}</CardDescription>
         </CardContent>
       </Card>
     </Link>

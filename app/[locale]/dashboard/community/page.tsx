@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import CommunityClient from "./CommunityClient";
+import CommunityClient, { type FounderUpdate } from "./CommunityClient";
 import { getFounderUpdates } from "@/app/[locale]/dashboard/actions";
 import { Suspense } from "react";
 import { headers } from "next/headers";
@@ -20,7 +20,7 @@ export default async function CommunityPage() {
     "name": "MSME Founder Updates",
     "description": "Latest updates from the MSME 360 founder community.",
     "numberOfItems": initialUpdates.length,
-    "itemListElement": initialUpdates.map((update: any, index: number) => ({
+    "itemListElement": initialUpdates.map((update: FounderUpdate, index: number) => ({
       "@type": "ListItem",
       "position": index + 1,
       "item": {
