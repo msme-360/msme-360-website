@@ -29,7 +29,7 @@ export default function GlobalError({
           </h1>
           
           <p className="text-muted-foreground text-lg max-w-md mb-12 leading-relaxed">
-            A critical error occurred while processing your request. Our team has been notified, and we're working to restore the MSME Hub.
+            A critical error occurred while processing your request. Our team has been notified, and we&apos;re working to restore the MSME Hub.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4">

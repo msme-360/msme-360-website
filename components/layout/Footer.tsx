@@ -1,15 +1,20 @@
+"use client";
+
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { Rocket, Twitter, Linkedin, Github } from "lucide-react";
 
 export function Footer() {
+  const [isMounted, setIsMounted] = useState(false);
   const t = useTranslations("Footer");
-  const [currentYear, setCurrentYear] = useState<number | string>("...");
 
   useEffect(() => {
-    setCurrentYear(new Date().getFullYear());
+    const timer = setTimeout(() => setIsMounted(true), 0);
+    return () => clearTimeout(timer);
   }, []);
+
+  const currentYear = isMounted ? new Date().getFullYear() : 2026;
 
   return (
     <footer className="bg-background border-t border-white/5 py-12 px-4 selection:bg-primary/20">
@@ -65,7 +70,7 @@ export function Footer() {
         </div>
 
         <div className="pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs text-muted-foreground" suppressHydrationWarning>
             {t("copyright", { year: currentYear })}
           </p>
           <div className="flex gap-6">
