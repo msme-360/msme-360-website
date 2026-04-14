@@ -55,12 +55,12 @@ export default function RegisterPage() {
             <Shield className="w-8 h-8 text-primary-foreground" />
           </div>
           <h1 className="text-4xl font-display font-bold mb-6">Start your formalization journey today.</h1>
-          <ul className="space-y-4">
+          <div className="space-y-4">
             <FeatureItem text="Zero-fee platform for micro entrepreneurs" />
             <FeatureItem text="Guided Udyam and GST registration" />
             <FeatureItem text="Premium business templates library" />
             <FeatureItem text="Early access to MicroAI Hub tools" />
-          </ul>
+          </div>
         </motion.div>
 
         {/* Right Side: Form */}
@@ -126,9 +126,9 @@ export default function RegisterPage() {
 
 function FeatureItem({ text }: { text: string }) {
   return (
-    <li className="flex items-center gap-3 font-medium">
+    <div className="flex items-center gap-3 font-medium bg-white/5 border border-white/10 p-4 rounded-2xl hover:bg-white/10 transition-colors shadow-sm">
       <CheckCircle2 className="w-5 h-5 text-primary" />
-      {text}
-    </li>
+      <span>{text}</span>
+    </div>
   );
 }
