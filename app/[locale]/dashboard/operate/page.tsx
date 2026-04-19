@@ -3,7 +3,7 @@ import { Toolbox, Briefcase } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { getSOPTemplates } from "@/app/[locale]/dashboard/actions";
+import { getSOPTemplates } from "@/app/[locale]/dashboard/queries";
 import { OperationsTools } from "./OperationsTools";
 import { InvoiceGenerator } from "./InvoiceGenerator";
 import { CashFlowCalculator } from "./CashFlowCalculator";

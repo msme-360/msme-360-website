@@ -19,7 +19,8 @@ import {
   Zap,
   RotateCcw,
   CheckCircle2,
-  ListTodo
+  ListTodo,
+  AlertCircle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -27,12 +28,15 @@ import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
-  getAIServices, 
-  getNicCodes, 
-  submitMicroAIInterest 
+  submitMicroAIInterest,
+  fetchAIServices,
+  fetchNicCodes
 } from "@/app/[locale]/dashboard/actions";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
+import { logger } from "@/lib/logger";
+import { useForm } from "@tanstack/react-form";
+import { z } from "zod";
 
 interface OCRData {
   vendor: string;
@@ -77,8 +81,8 @@ export default function MicroAIHubClient() {
       setIsLoading(true);
       try {
         const [services, nics]: [AIService[], NicCode[]] = await Promise.all([
-          getAIServices(),
-          getNicCodes()
+          fetchAIServices(),
+          fetchNicCodes()
         ]);
         
         // Map services with icons and translations
@@ -100,7 +104,7 @@ export default function MicroAIHubClient() {
         
         setNicCodes(nics);
       } catch (err) {
-        console.error("Failed to fetch MicroAI data", err);
+        logger.error("Failed to fetch MicroAI data", "MicroAIHubClient", err);
       } finally {
         setIsLoading(false);
       }
@@ -719,29 +723,46 @@ function AIReadinessQuiz() {
   );
 }
 
+const microAISchema = z.object({
+  revenue: z.string().min(1, "Revenue band is required"),
+  service: z.string().min(1, "Service selection is required"),
+});
+
 function MicroAIInterestForm() {
   const t = useTranslations("MicroAIHub.interestForm");
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({
-    revenue: "10-50L",
-    service: "Demand Forecasting"
-  });
 
-  const handleSubmit = async (e: React.SyntheticEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    const res = await submitMicroAIInterest("user_123", {
-      revenue_band: formData.revenue,
-      data_readiness: "Moderate",
-      capabilities: [formData.service],
-      comments: "Interested via dashboard discovery"
-    });
-    
-    if (res.success) {
-      toast.success(t("success"));
+  const form = useForm({
+    defaultValues: {
+      revenue: "10-50L",
+      service: "Demand Forecasting"
+    },
+    validators: {
+      onChange: microAISchema,
+    },
+    onSubmit: async ({ value }) => {
+      setLoading(true);
+      try {
+        const res = await submitMicroAIInterest({
+          revenue_band: value.revenue,
+          data_readiness: "Moderate",
+          capabilities: [value.service],
+          comments: "Interested via dashboard discovery"
+        });
+        
+        if (res.success) {
+          toast.success(t("success"));
+        } else {
+          toast.error(res.error || "Submission failed");
+        }
+      } catch (error) {
+        logger.error("submitMicroAIInterest failed", "MicroAIInterestForm", error);
+        toast.error("An unexpected error occurred");
+      } finally {
+        setLoading(false);
+      }
     }
-    setLoading(false);
-  };
+  });
 
   return (
     <Card className="glass-card border-accent/20 bg-accent/5 overflow-hidden p-8">
@@ -753,35 +774,66 @@ function MicroAIInterestForm() {
              <p className="text-sm text-muted-foreground">{t("subtitle")}</p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form 
+            onSubmit={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              form.handleSubmit();
+            }} 
+            className="space-y-4"
+          >
              <div className="space-y-1.5">
                 <Label className="text-[10px] font-black uppercase tracking-widest opacity-60 ml-1">{t("revenue")}</Label>
-                <Select value={formData.revenue} onValueChange={(v) => setFormData(p => ({ ...p, revenue: v }))}>
-                   <SelectTrigger className="h-12 rounded-xl bg-background/50 border-border/50">
-                      <SelectValue />
-                   </SelectTrigger>
-                   <SelectContent className="rounded-xl border-border/50">
-                      <SelectItem value="<10L">{t("revenueOptions.lt10L")}</SelectItem>
-                      <SelectItem value="10-50L">{t("revenueOptions.10_50L")}</SelectItem>
-                      <SelectItem value="50L-1Cr">{t("revenueOptions.50L_1Cr")}</SelectItem>
-                      <SelectItem value=">1Cr">{t("revenueOptions.gt10Cr")}</SelectItem>
-                   </SelectContent>
-                </Select>
+                <form.Field name="revenue">
+                  {(field) => (
+                    <>
+                      <Select value={field.state.value} onValueChange={(v) => field.handleChange(v)}>
+                         <SelectTrigger className="h-12 rounded-xl bg-background/50 border-border/50">
+                            <SelectValue />
+                         </SelectTrigger>
+                         <SelectContent className="rounded-xl border-border/50">
+                            <SelectItem value="<10L">{t("revenueOptions.lt10L")}</SelectItem>
+                            <SelectItem value="10-50L">{t("revenueOptions.10_50L")}</SelectItem>
+                            <SelectItem value="50L-1Cr">{t("revenueOptions.50L_1Cr")}</SelectItem>
+                            <SelectItem value=">1Cr">{t("revenueOptions.gt10Cr")}</SelectItem>
+                         </SelectContent>
+                      </Select>
+                      {field.state.meta.errors.length > 0 && (
+                        <p className="text-xs font-medium text-destructive flex items-center gap-1.5 mt-1">
+                          <AlertCircle className="w-3.5 h-3.5" />
+                          {(field.state.meta.errors[0] as { message?: string })?.message}
+                        </p>
+                      )}
+                    </>
+                  )}
+                </form.Field>
              </div>
 
              <div className="space-y-1.5">
                 <Label className="text-[10px] font-black uppercase tracking-widest opacity-60 ml-1">{t("targetService")}</Label>
-                <Select value={formData.service} onValueChange={(v) => setFormData(p => ({ ...p, service: v }))}>
-                   <SelectTrigger className="h-12 rounded-xl bg-background/50 border-border/50">
-                      <SelectValue />
-                   </SelectTrigger>
-                   <SelectContent className="rounded-xl border-border/50">
-                      <SelectItem value="Demand Forecasting">{t("serviceOptions.forecasting")}</SelectItem>
-                      <SelectItem value="SOP Automation">{t("serviceOptions.sop")}</SelectItem>
-                      <SelectItem value="Vision Inventory">{t("serviceOptions.inventory")}</SelectItem>
-                      <SelectItem value="DPIIT Scorer">{t("serviceOptions.eligibility")}</SelectItem>
-                   </SelectContent>
-                </Select>
+                <form.Field name="service">
+                  {(field) => (
+                    <>
+                      <Select value={field.state.value} onValueChange={(v) => field.handleChange(v)}>
+                         <SelectTrigger className="h-12 rounded-xl bg-background/50 border-border/50">
+                            <SelectValue />
+                         </SelectTrigger>
+                         <SelectContent className="rounded-xl border-border/50">
+                            <SelectItem value="Demand Forecasting">{t("serviceOptions.forecasting")}</SelectItem>
+                            <SelectItem value="SOP Automation">{t("serviceOptions.sop")}</SelectItem>
+                            <SelectItem value="Vision Inventory">{t("serviceOptions.inventory")}</SelectItem>
+                            <SelectItem value="DPIIT Scorer">{t("serviceOptions.eligibility")}</SelectItem>
+                         </SelectContent>
+                      </Select>
+                      {field.state.meta.errors.length > 0 && (
+                        <p className="text-xs font-medium text-destructive flex items-center gap-1.5 mt-1">
+                          <AlertCircle className="w-3.5 h-3.5" />
+                          {(field.state.meta.errors[0] as { message?: string })?.message}
+                        </p>
+                      )}
+                    </>
+                  )}
+                </form.Field>
              </div>
 
              <Button 

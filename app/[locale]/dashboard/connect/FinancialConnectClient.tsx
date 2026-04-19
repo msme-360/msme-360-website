@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useSyncExternalStore } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { TrendingUp, Search, ArrowRight, Building2, CheckCircle2, Zap, Info, DollarSign, PieChart, ExternalLink } from "lucide-react";
@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { getSchemes } from "@/app/[locale]/dashboard/actions";
+import { fetchSchemes as fetchSchemesAction } from "@/app/[locale]/dashboard/actions";
 
 
 interface Scheme {
@@ -29,23 +29,23 @@ export default function FinancialConnectClient() {
   const [loading, setLoading] = useState(false);
   const hasMounted = React.useRef(false);
 
-  const fetchSchemes = async (query?: string) => {
+  const getSchemesLocal = async (query?: string) => {
     setLoading(true);
-    const data = await getSchemes(query);
+    const data = await fetchSchemesAction(query);
     setSchemes(data as Scheme[]);
     setLoading(false);
   };
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    fetchSchemes(); // async — setState runs after await, not synchronously
+    getSchemesLocal(); // async — setState runs after await, not synchronously
     hasMounted.current = true;
   }, []);
 
   useEffect(() => {
     if (hasMounted.current) {
       const timer = setTimeout(() => {
-        fetchSchemes(searchQuery);
+        getSchemesLocal(searchQuery);
       }, 3000);
       return () => clearTimeout(timer);
     }
@@ -58,6 +58,12 @@ export default function FinancialConnectClient() {
     if (isFormalized) newScore += 100;
     return Math.min(newScore, 900);
   })();
+
+  const isMounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false
+  );
 
   if (!isMounted) return null;
 

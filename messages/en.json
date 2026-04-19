@@ -85,7 +85,8 @@
     "footer": {
       "plan": "Growth Plan",
       "status": "Free Forever"
-    }
+    },
+    "logout": "Logout"
   },
   "Navbar": {
     "links": {
@@ -121,6 +122,14 @@
     "badge": "Advanced Intelligence",
     "title": "MicroAI Hub",
     "description": "Enterprise-grade AI, simplified for micro-entrepreneurs. Automate your growth, predict your future.",
+    "grow": {
+      "badge": "Scalability",
+      "description": "Accelerate your reach with automated marketing and sales growth tools."
+    },
+    "operate": {
+      "badge": "Efficiency",
+      "description": "Streamline daily operations with neural invoice processing and forecasting."
+    },
     "status": {
       "active": "Active",
       "beta": "Beta"
@@ -367,6 +376,13 @@
       "description": "Chat with our mentors for personalized compliance advice.",
       "cta": "Start Chat"
     },
+    "tabs": {
+      "faqs": "FAQs",
+      "myTickets": "My Tickets"
+    },
+    "tickets": {
+      "noTickets": "No tickets found"
+    },
     "faqTitle": "Frequently Asked Questions",
     "noFaqs": "No matching questions found. Try another term.",
     "faqs": [
@@ -510,15 +526,26 @@
     "badge": "Global Preferences",
     "title": "Settings",
     "description": "Manage your platform preferences and security with precision.",
+    "logout": "Logout",
+    "loading": "Loading settings...",
     "notifications": {
       "title": "Notifications",
+      "updated": "Preferences updated successfully",
       "compliance": {
         "title": "Compliance Alerts",
-        "description": "Get notified about upcoming GST and filing deadlines."
+        "description": "Stay informed about upcoming GST and filing deadlines."
       },
       "growth": {
         "title": "Growth Opportunities",
-        "description": "Alerts for new government schemes and subsidies."
+        "description": "Alerts about new government schemes and subsidies."
+      },
+      "community": {
+        "title": "Community",
+        "description": "Get alerts about new circles and mentorship slots."
+      },
+      "security": {
+        "title": "Security",
+        "description": "Alerts about login attempts and critical account changes."
       }
     },
     "appearance": {
@@ -532,9 +559,15 @@
       "title": "Danger Zone",
       "deleteProfile": {
         "title": "Delete Business Profile",
-        "description": "Permanently remove all data and progress."
+        "description": "Permanently remove all data and progress associated with this business."
       },
-      "deleteButton": "Delete Account"
+      "deleteButton": "Delete Account",
+      "deleteConfirm": {
+        "title": "Are you absolutely sure?",
+        "description": "This action cannot be undone. This will permanently delete your MSME profile and remove your data from our servers."
+      },
+      "cancel": "Cancel",
+      "confirmDelete": "Delete Account"
     }
   },
   "OperationsHub": {
@@ -597,11 +630,13 @@
       "due": "Due: {date}",
       "filedOn": "Filed on {date}",
       "markAsFiled": "Mark as Filed",
+      "noTasks": "No pending compliance tasks.",
       "month": "October 2024"
     },
     "team": {
       "title": "Team Ledger",
       "viewAll": "View All Employees",
+      "empty": "No team members recorded.",
       "roles": {
         "proprietor": "Proprietor",
         "accountsManager": "Accounts Manager",

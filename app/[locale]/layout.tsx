@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Inter, Outfit } from "next/font/google";
 import "../globals.css";
+import { AuthProvider } from "@/components/providers/AuthProvider";
+import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { ConditionalNavigation } from "@/components/layout/ConditionalNavigation";
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages, setRequestLocale } from 'next-intl/server';
@@ -77,12 +79,22 @@ export default async function RootLayout({
   const messages = await getMessages();
 
   return (
-    <html lang={locale}>
+    <html lang={locale} suppressHydrationWarning>
       <body className={`${inter.variable} ${outfit.variable} antialiased`}>
         <NextIntlClientProvider locale={locale} messages={messages}>
-          <ConditionalNavigation>
-            {children}
-          </ConditionalNavigation>
+          <AuthProvider>
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="system"
+              enableSystem
+              disableTransitionOnChange
+              storageKey="msme360-theme"
+            >
+              <ConditionalNavigation>
+                {children}
+              </ConditionalNavigation>
+            </ThemeProvider>
+          </AuthProvider>
         </NextIntlClientProvider>
       </body>
     </html>

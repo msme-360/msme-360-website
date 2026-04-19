@@ -2,7 +2,8 @@ import { Metadata } from "next";
 import { Suspense } from "react";
 import { UserCircle, Shield } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { getProfile } from "@/app/[locale]/dashboard/actions";
+import { getProfile } from "@/app/[locale]/dashboard/queries";
+import { getUser } from "@/lib/supabase-server";
 import { ProfileForm } from "./ProfileForm";
 import { ProfileSkeleton } from "./ProfileSkeleton";
 import { Button } from "@/components/ui/button";
@@ -20,13 +21,18 @@ export default async function ProfilePage({ params }: { params: Promise<{ locale
   await headers();
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "Profile" });
-  const MOCK_USER_ID = "00000000-0000-0000-0000-000000000000";
-  const profile = await getProfile(MOCK_USER_ID);
+  const user = await getUser();
+  const profile = await getProfile(user?.id || "", user?.email);
+
+  if (!profile) {
+    // This handles the null case if user is not found, though middleware should prevent this
+    return <div>User not found. Please log in.</div>;
+  }
 
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Organization",
-    "name": profile.company_name || "MSME 360 Founder", // Fixed key name based on defaults in actions.ts
+    "name": profile.company_name || "MSME 360 Founder",
     "legalName": profile.legalName,
     "foundingDate": profile.establishedDate,
     "address": {
@@ -57,7 +63,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ locale
 
       <div className="grid gap-8">
         <Suspense fallback={<ProfileSkeleton />}>
-          <ProfileForm initialProfile={profile} userId={MOCK_USER_ID} />
+          <ProfileForm initialProfile={profile} />
         </Suspense>
 
         <Card className="glass-card p-8 border-primary/20 bg-primary/5">
@@ -78,3 +84,4 @@ export default async function ProfilePage({ params }: { params: Promise<{ locale
     </div>
   );
 }
+

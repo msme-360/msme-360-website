@@ -13,14 +13,14 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { useTranslations } from "next-intl";
 import { 
-  getTeamMembers, 
-  getComplianceTasks, 
   addTeamMember as addMemberAction, 
-  updateComplianceTaskStatus 
+  updateComplianceTaskStatus,
+  fetchTeamMembers,
+  fetchComplianceTasks
 } from "@/app/[locale]/dashboard/actions";
-import { supabase } from "@/lib/supabase";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
+import { logger } from "@/lib/logger";
 
 interface ComplianceItem {
   id: string;
@@ -42,45 +42,44 @@ export function OperationsTools() {
   const [compliance, setCompliance] = useState<ComplianceItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isAddingMember, setIsAddingMember] = useState(false);
-  const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
     async function init() {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        setUserId(user.id);
+      setIsLoading(true);
+      try {
         const [teamData, complianceData] = await Promise.all([
-          getTeamMembers(user.id),
-          getComplianceTasks(user.id)
+          fetchTeamMembers(),
+          fetchComplianceTasks()
         ]);
         setTeam(teamData);
         setCompliance(complianceData);
+      } catch (error) {
+        logger.error("Failed to initialize OperationsTools", "OperationsTools", error);
+      } finally {
+        setIsLoading(false);
       }
-      setIsLoading(false);
     }
     init();
   }, []);
 
   const markFiled = async (id: string) => {
-    if (!userId) return;
     try {
-      const result = await updateComplianceTaskStatus(userId, id, 'filed');
+      const result = await updateComplianceTaskStatus(id, 'filed');
       if (result.success) {
         setCompliance(prev => prev.map(item => 
           item.id === id ? { ...item, status: "filed" } : item
         ));
         toast.success("Task marked as filed");
+      } else {
+        toast.error(result.error || "Failed to update task");
       }
-    } catch {
-      toast.error("Failed to update task");
+    } catch (error) {
+      logger.error("markFiled failed", "OperationsTools", error);
+      toast.error("An unexpected error occurred");
     }
   };
 
   const handleAddTeamMember = async () => {
-    if (!userId) {
-      toast.error("You must be logged in");
-      return;
-    }
     setIsAddingMember(true);
     const names = ["Sameer Khan", "Priya Das", "Vikram Singh"];
     const roles = ["salesExecutive", "supportStar", "leadDeveloper"];
@@ -88,15 +87,18 @@ export function OperationsTools() {
     const newMember = { full_name: names[random], role_key: roles[random] };
     
     try {
-      const result = await addMemberAction(userId, newMember);
+      const result = await addMemberAction(newMember);
       if (result.success) {
         // Refresh team list
-        const updatedTeam = await getTeamMembers(userId);
+        const updatedTeam = await fetchTeamMembers();
         setTeam(updatedTeam);
         toast.success(`Welcome ${newMember.full_name} to the team!`);
+      } else {
+        toast.error(result.error || "Failed to add team member");
       }
-    } catch {
-      toast.error("Failed to add team member");
+    } catch (error) {
+      logger.error("handleAddTeamMember failed", "OperationsTools", error);
+      toast.error("An unexpected error occurred");
     } finally {
       setIsAddingMember(false);
     }

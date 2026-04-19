@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, ChevronRight, ChevronLeft, ExternalLink, ShieldCheck, FileText, Globe, ClipboardList } from "lucide-react";
-import { getProgress, updateProgress } from "@/app/[locale]/dashboard/actions";
+import { updateProgress, fetchProgress } from "@/app/[locale]/dashboard/actions";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -85,14 +85,12 @@ export default function FormalizeWizard() {
     }
   ], [t]);
 
-  // In a real app, this would come from auth. Using a placeholder for now.
-  const userId = "placeholder-user-id";
 
   useEffect(() => {
     async function loadProgress() {
       setIsLoading(true);
       try {
-        const progress = await getProgress(userId);
+        const progress = await fetchProgress();
         const completed = progress.filter((p: { completed: boolean; id: string }) => p.completed).map((p: { id: string }) => p.id);
         setCompletedSteps(completed);
         
@@ -108,12 +106,12 @@ export default function FormalizeWizard() {
       }
     }
     loadProgress();
-  }, [userId, steps]);
+  }, [steps]);
 
   const handleComplete = async (stepId: string) => {
     setIsUpdating(true);
     try {
-      const result = await updateProgress(userId, stepId, true);
+      const result = await updateProgress(stepId, true);
       if (result.success) {
         setCompletedSteps(prev => [...prev, stepId]);
         if (currentStep < steps.length - 1) {

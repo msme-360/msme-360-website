@@ -19,10 +19,11 @@ export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
 
   const navLinks = useMemo(() => [
-    { name: t("formalize"), href: `/${locale}/dashboard/formalize` },
-    { name: t("operate"), href: `/${locale}/dashboard/operate` },
-    { name: t("grow"), href: `/${locale}/dashboard/grow` },
-  ], [t, locale]);
+    { name: t("formalize"), href: `/#formalize` },
+    { name: t("operate"), href: `/#operate` },
+    { name: t("grow"), href: `/#grow` },
+    { name: t("profile"), href: `/#story` },
+  ], [t]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -33,13 +34,13 @@ export function Navbar() {
   }, []);
 
   return (
-    <header 
+    <header
       className={cn(
         "fixed top-4 left-0 right-0 z-50 transition-all duration-500 flex justify-center px-4",
         scrolled ? "top-2" : "top-6"
       )}
     >
-      <nav 
+      <nav
         className={cn(
           "glass rounded-full px-6 py-2 flex items-center justify-between w-full max-w-5xl transition-all duration-500",
           scrolled ? "px-4 py-1.5 border-primary/20 bg-background/80" : "border-white/5 bg-background/40"
@@ -71,21 +72,23 @@ export function Navbar() {
         <div className="flex items-center gap-3">
           <div className="hidden md:flex items-center gap-3">
             <LocaleSwitcher />
-            <Link 
-              href={`/${locale}/login`} 
+            <Link
+              href={`/${locale}/login`}
               className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
             >
               {tNav("links.login")}
             </Link>
-            <Button size="sm" className="rounded-full px-6 font-semibold shadow-glow">
-              {tNav("links.join")}
-            </Button>
+            <Link href={`/${locale}/register`}>
+              <Button size="sm" className="rounded-full px-6 font-semibold shadow-glow">
+                {tNav("links.join")}
+              </Button>
+            </Link>
           </div>
 
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            onClick={() => setIsOpen(!isOpen)} 
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setIsOpen(!isOpen)}
             className="md:hidden rounded-full p-2 hover:bg-white/5"
           >
             {isOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -117,7 +120,7 @@ export function Navbar() {
               <LocaleSwitcher />
             </div>
             <div className="flex flex-col gap-3 mt-4">
-              <Link 
+              <Link
                 href={`/${locale}/login`}
                 onClick={() => setIsOpen(false)}
                 className="text-center py-2 text-muted-foreground"

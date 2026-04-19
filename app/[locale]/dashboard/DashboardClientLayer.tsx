@@ -62,7 +62,6 @@ export function DashboardClientLayer({ children }: { children: React.ReactNode }
                     <BreadcrumbItem>
                       {crumb.isLast ? (
                         <div className="flex items-center gap-2">
-                          <span className="text-[10px] font-black uppercase tracking-tighter text-muted-foreground/30">{t("dashboard")}</span>
                           <BreadcrumbPage className="font-black text-primary text-sm tracking-tight">{crumb.title}</BreadcrumbPage>
                         </div>
                       ) : (

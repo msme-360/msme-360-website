@@ -18,7 +18,9 @@ import {
   FileText,
   Plus,
   Sparkles,
-  ChevronRight as ChevronRightIcon
+  ChevronRight as ChevronRightIcon,
+  Loader2,
+  Zap
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -29,16 +31,28 @@ import {
 import { cn } from "@/lib/utils";
 import { useTranslations } from "next-intl";
 
+interface SearchItem {
+  title: string;
+  href: string;
+  icon?: React.ElementType;
+  description: string;
+  aliases?: string[];
+  category?: string;
+  score?: number;
+}
+
 export function Omnibox() {
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [dynamicResults, setDynamicResults] = useState<SearchItem[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
   const tCommon = useTranslations("Common");
   const tNav = useTranslations("Navigation");
 
-  const searchItemsWithTranslations = useMemo(() => [
+  const staticItems = useMemo(() => [
     { 
       title: tNav("dashboard"), 
       href: "/dashboard", 
@@ -132,30 +146,63 @@ export function Omnibox() {
     },
   ], [tNav]);
 
+  // Debounced Dynamic Search
+  useEffect(() => {
+    if (searchQuery.length < 2) {
+      setDynamicResults([]);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      setIsSearching(true);
+      try {
+        const res = await fetch(`/api/search?q=${encodeURIComponent(searchQuery)}`);
+        const data = await res.json() as SearchItem[];
+        if (Array.isArray(data)) {
+          setDynamicResults(data.map((item) => ({
+            ...item,
+            icon: item.category === "Scheme" ? TrendingUp : item.category === "Tender" ? Rocket : Zap
+          })));
+        }
+      } catch (e: unknown) {
+        console.error("Omnibox dynamic search fetch failed", e);
+      } finally {
+        setIsSearching(false);
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
   const getFuzzyScore = (str: string, query: string) => {
     if (str.toLowerCase().includes(query)) return 100;
-    return 0; // Simple implementation for now
+    return 0;
   };
 
   const filteredItems = useMemo(() => {
-    if (!searchQuery) return searchItemsWithTranslations.slice(0, 5);
-    
     const q = searchQuery.toLowerCase();
     
-    return searchItemsWithTranslations
-      .map(item => {
-        const titleScore = getFuzzyScore(item.title, q);
-        const aliasScore = Math.max(...item.aliases.map(a => getFuzzyScore(a, q)));
-        const descScore = getFuzzyScore(item.description, q) * 0.5;
-        
-        return { 
-          ...item, 
-          score: Math.max(titleScore, aliasScore, descScore) 
-        };
-      })
-      .filter(item => item.score > 10)
-      .sort((a, b) => b.score - a.score);
-  }, [searchQuery, searchItemsWithTranslations]);
+    // 1. Process Static Items
+    const staticFiltered = !searchQuery 
+      ? staticItems.slice(0, 5) 
+      : staticItems
+          .map(item => {
+            const titleScore = getFuzzyScore(item.title, q);
+            const aliasScore = Math.max(...(item.aliases || []).map(a => getFuzzyScore(a, q)));
+            const descScore = getFuzzyScore(item.description, q) * 0.5;
+            
+            return { 
+              ...item, 
+              score: Math.max(titleScore, aliasScore, descScore) 
+            };
+          })
+          .filter(item => item.score > 10)
+          .sort((a, b) => (b.score || 0) - (a.score || 0));
+
+    // 2. Merge with Dynamic Results
+    const combined: SearchItem[] = [...staticFiltered, ...dynamicResults];
+    return combined;
+  }, [searchQuery, staticItems, dynamicResults]);
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
@@ -167,7 +214,6 @@ export function Omnibox() {
     document.addEventListener("keydown", down);
     return () => document.removeEventListener("keydown", down);
   }, []);
-
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "ArrowDown") {
@@ -195,10 +241,14 @@ export function Omnibox() {
               open ? "border-primary/40 ring-4 ring-primary/5 bg-secondary/10" : "border-border/50 hover:border-primary/40"
             )}
           >
-            <Search className={cn(
-              "w-4 h-4 transition-colors",
-              open ? "text-primary" : "text-muted-foreground/30 group-hover:text-primary/60"
-            )} />
+            {isSearching ? (
+              <Loader2 className="w-4 h-4 animate-spin text-primary" />
+            ) : (
+              <Search className={cn(
+                "w-4 h-4 transition-colors",
+                open ? "text-primary" : "text-muted-foreground/30 group-hover:text-primary/60"
+              )} />
+            )}
             <input
               ref={inputRef}
               value={searchQuery}
@@ -229,7 +279,7 @@ export function Omnibox() {
               role="listbox"
               className="max-h-[400px] overflow-y-auto p-2 custom-scrollbar"
             >
-              {filteredItems.length === 0 ? (
+              {filteredItems.length === 0 && !isSearching ? (
                 <div className="py-12 text-center" role="status">
                   <p className="text-sm text-muted-foreground italic">{tCommon("noMatches", { query: searchQuery })}</p>
                   <Button variant="link" className="text-xs text-primary mt-2" onClick={() => setSearchQuery("")}>
@@ -251,7 +301,7 @@ export function Omnibox() {
                   
                   {filteredItems.map((item, index) => (
                     <button 
-                      key={item.href}
+                      key={`${item.href}-${index}`}
                       role="option"
                       aria-selected={index === selectedIndex}
                       onClick={() => {
@@ -268,7 +318,7 @@ export function Omnibox() {
                         "flex h-11 w-11 items-center justify-center rounded-xl shadow-sm border border-border/20 transition-all",
                         index === selectedIndex ? "bg-primary/20 text-primary border-primary/30" : "bg-secondary/40 text-muted-foreground/60 group-hover/item:bg-primary/10 group-hover/item:text-primary group-hover/item:border-primary/20"
                       )}>
-                        <item.icon className="w-5 h-5" />
+                        {item.icon ? <item.icon className="w-5 h-5" /> : <Zap className="w-5 h-5" />}
                       </div>
                       <div className="flex-1 flex flex-col gap-0.5 overflow-hidden">
                         <div className="flex items-center justify-between">
@@ -278,6 +328,9 @@ export function Omnibox() {
                           )}>
                             {item.title}
                           </span>
+                          {item.category && (
+                            <span className="text-[9px] uppercase font-black opacity-30 px-1.5 py-0.5 rounded-md border border-border/50">{item.category}</span>
+                          )}
                         </div>
                         <span className={cn(
                           "text-[11px] truncate transition-colors",
@@ -292,6 +345,12 @@ export function Omnibox() {
                       )} />
                     </button>
                   ))}
+                  
+                  {isSearching && (
+                    <div className="py-4 text-center">
+                      <Loader2 className="w-5 h-5 animate-spin mx-auto text-primary opacity-50" />
+                    </div>
+                  )}
                 </div>
               )}
             </div>

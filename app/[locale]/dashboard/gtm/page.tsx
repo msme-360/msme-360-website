@@ -28,8 +28,9 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useTranslations } from "next-intl";
 import { 
-  getTenders, 
-  getGTMTemplates} from "@/app/[locale]/dashboard/actions";
+  fetchTenders, 
+  fetchGTMTemplates 
+} from "@/app/[locale]/dashboard/actions";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function GoToMarketHub() {
@@ -66,8 +67,8 @@ export default function GoToMarketHub() {
       setIsLoading(true);
       try {
         const [tList, tplList]: [Record<string, string>[], Record<string, string>[]] = await Promise.all([
-          getTenders(),
-          getGTMTemplates()
+          fetchTenders(),
+          fetchGTMTemplates()
         ]);
         setTenders(tList);
         setOutreachTemplates(tplList.map(tpl => ({

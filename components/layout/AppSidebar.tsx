@@ -23,6 +23,8 @@ import {
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useParams } from "next/navigation";
+import { LogoutButton } from "./LogoutButton";
+
 
 export function AppSidebar() {
   const t = useTranslations("Navigation");
@@ -86,7 +88,10 @@ export function AppSidebar() {
         ))}
       </SidebarContent>
 
-      <SidebarFooter className="p-4 group-data-[collapsible=icon]:p-2">
+      <SidebarFooter className="p-4 group-data-[collapsible=icon]:p-2 border-t border-border/50">
+        <div className="mb-4">
+          <LogoutButton label={t("logout")} />
+        </div>
         <div className="glass-card p-4 border-primary/10 group-data-[collapsible=icon]:hidden">
           <p className="text-[10px] font-bold text-primary mb-1 uppercase tracking-widest">{t("footer.plan")}</p>
           <p className="text-sm font-bold font-display">{t("footer.status")}</p>
@@ -95,6 +100,7 @@ export function AppSidebar() {
           <div className="w-6 h-1 bg-primary/20 rounded-full" />
         </div>
       </SidebarFooter>
+
     </Sidebar>
   );
 }

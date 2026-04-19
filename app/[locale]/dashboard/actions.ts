@@ -1,260 +1,99 @@
 "use server";
 
-import { supabase } from "@/lib/supabase";
-import { revalidateTag, cacheTag, cacheLife } from "next/cache";
+import { createClient, createServiceClient, getUser } from "@/lib/supabase-server";
+import { revalidateTag } from "next/cache";
+import { logger } from "@/lib/logger";
+import * as queries from "./queries";
+import { 
+  profileSchema, 
+  ticketSchema, 
+  teamMemberSchema, 
+  progressSchema, 
+  microAISchema,
+  userSettingsSchema,
+  communityPostSchema,
+  mentorshipBookingSchema
+} from "./schemas";
 
-export type ProgressStep = {
-  id: string;
-  label: string;
-  completed: boolean;
-};
+// --- Mutations / Actions ---
 
-export async function getProgress(userId: string) {
-  "use cache";
-  cacheTag(`progress-${userId}`);
-  cacheLife("minutes");
-  
+export async function updateProgress(stepId: string, completed: boolean) {
+  const user = await getUser();
+  if (!user) throw new Error("Unauthorized");
+
+  const userId = user.id;
   try {
-    const { data, error } = await supabase
-      .from('user_progress')
-      .select('step_id, completed')
-      .eq('user_id', userId);
+    progressSchema.parse({ stepId, completed });
 
-    if (error) {
-      console.warn("Supabase user_progress table might be missing or non-accessible. Using PRD defaults.");
-      throw error;
-    }
+    const supabase = await createClient();
+    
+    // Map string IDs to numerical indices for the step_index column
+    const stepMapping: Record<string, number> = {
+      'udyam': 0,
+      'dpiit': 1,
+      'gst': 2,
+      'bank': 3
+    };
+    const stepIndex = stepMapping[stepId] ?? 0;
 
-    const defaults = [
-      { id: 'udyam', label: 'Udyam Registration', completed: false },
-      { id: 'dpiit', label: 'DPIIT Startup India', completed: false },
-      { id: 'gst', label: 'GST Preparation', completed: false },
-      { id: 'bank', label: 'Bank Account/KYC', completed: false },
-    ];
-
-    if (!data || data.length === 0) return defaults;
-
-    return defaults.map(d => ({
-      ...d,
-      completed: data.find(r => r.step_id === d.id)?.completed ?? false
-    }));
-  } catch {
-    // Fail gracefully for MVP if table doesn't exist
-    return [
-      { id: 'udyam', label: 'Udyam Registration', completed: false },
-      { id: 'dpiit', label: 'DPIIT Startup India', completed: false },
-      { id: 'gst', label: 'GST Preparation', completed: false },
-      { id: 'bank', label: 'Bank Account/KYC', completed: false },
-    ];
-  }
-}
-
-export async function updateProgress(userId: string, stepId: string, completed: boolean) {
-  try {
     const { error } = await supabase
       .from('user_progress')
-      .upsert({ 
-        user_id: userId, 
-        step_id: stepId, 
-        completed,
+      .upsert({
+        user_id: userId,
+        module_name: 'formalization', // Default for this specific progress bar
+        step_index: stepIndex,
+        is_completed: completed,
         updated_at: new Date().toISOString()
-      }, { onConflict: 'user_id,step_id' });
+      }, { onConflict: 'user_id,module_name' });
 
     if (error) throw error;
-    
-    // Invalidate the cache for this user's progress using recommended "max" profile
+
+    logger.info("Progress updated", "actions.ts", { userId, stepId, completed });
     revalidateTag(`progress-${userId}`, "max");
     return { success: true };
   } catch (error) {
-    console.error("Supabase updateProgress error:", error);
-    return { success: false, error };
+    logger.error("updateProgress error", "actions.ts", error);
+    return { success: false, error: (error as any)?.message || "Update failed" };
   }
 }
 
-export async function getProfile(userId: string) {
-  "use cache";
-  cacheTag(`profile-${userId}`);
-  cacheLife("weeks");
-  
+export async function updateProfile(profileData: Record<string, unknown>) {
+  const user = await getUser();
+  if (!user) throw new Error("Unauthorized");
+
+  const userId = user.id;
   try {
-    const { data, error } = await supabase
-      .from('user_profiles')
-      .select('*')
-      .eq('user_id', userId)
-      .single();
+    profileSchema.parse(profileData);
 
-    if (error && error.code !== 'PGRST116') throw error;
-
-    const defaults = {
-      company_name: "Amet Innovations Pvt Ltd",
-      category: "Technology / Software",
-      udyam_number: "UDYAM-MH-01-XXXXXXX",
-      email: "founder@ametinn.com",
-      location: "Bangalore, Karnataka, India",
-      website: "www.ametinn.com"
-    };
-
-    if (!data) return defaults;
-    return { ...defaults, ...data };
-  } catch (error) {
-    console.error("Supabase getProfile error:", error);
-    return {
-      company_name: "Amet Innovations Pvt Ltd",
-      category: "Technology / Software",
-      udyam_number: "UDYAM-MH-01-XXXXXXX",
-      email: "founder@ametinn.com",
-      location: "Bangalore, Karnataka, India",
-      website: "www.ametinn.com"
-    };
-  }
-}
-
-export async function updateProfile(userId: string, profileData: Record<string, unknown>) {
-  try {
+    const supabase = await createClient();
     const { error } = await supabase
-      .from('user_profiles')
-      .upsert({ 
-        user_id: userId, 
+      .from('profiles')
+      .upsert({
+        id: userId,
         ...profileData,
         updated_at: new Date().toISOString()
-      }, { onConflict: 'user_id' });
+      }, { onConflict: 'id' });
 
     if (error) throw error;
-    
-    // Invalidate profile cache using recommended "max" profile
+
+    logger.info("Profile updated", "actions.ts", { userId });
     revalidateTag(`profile-${userId}`, "max");
     return { success: true };
   } catch (error) {
-    console.error("Supabase updateProfile error:", error);
-    return { success: false, error };
+    logger.error("updateProfile error", "actions.ts", error);
+    return { success: false, error: error instanceof Error ? error.message : "Update failed" };
   }
 }
 
-export async function getSOPTemplates() {
-  "use cache";
-  cacheTag("sop-templates");
-  cacheLife("weeks");
-  
-  return [
-    {
-      id: "gst-filing",
-      title: "GST Monthly Filing SOP",
-      content: "Step 1: Reconcile invoices with GSTR-2B. Step 2: Extract sales data for GSTR-1...",
-      category: "Compliance",
-      lastUpdated: "2024-03-15"
-    },
-    {
-      id: "udyam-update",
-      title: "Udyam Renewal SOP",
-      content: "Step 1: Check NIC codes for activity changes. Step 2: Update investment & turnover details...",
-      category: "Registration",
-      lastUpdated: "2024-03-10"
-    },
-    {
-      id: "hiring-flow",
-      title: "New Employee Onboarding",
-      content: "Step 1: Collect Aadhaar/PAN. Step 2: Issue appointment letter. Step 3: Setup bank account...",
-      category: "HR",
-      lastUpdated: "2024-03-20"
-    },
-    {
-      id: "sales-outreach",
-      title: "B2B Sales Outreach",
-      content: "Step 1: Identify targets. Step 2: Send WhatsApp intro script. Step 3: Follow up in 48 hours...",
-      category: "Sales",
-      lastUpdated: "2024-03-25"
-    }
-  ];
-}
+export async function submitSupportTicket(data: { subject: string, message: string, category: string }) {
+  const user = await getUser();
+  if (!user) throw new Error("Unauthorized");
 
-export async function getSchemes(query?: string) {
-  "use cache";
-  cacheTag("government-schemes");
-  cacheLife("weeks");
-
-  const allSchemes = [
-    {
-      id: "pmegp",
-      title: "PMEGP Loans",
-      description: "Credit linked subsidy program for setting up new micro-enterprises. Up to ₹50 Lakhs for manufacturing.",
-      subsidy: "15% - 35%",
-      category: "Manufacturing",
-      url: "https://www.kviconline.gov.in/pmegpeportal/pmegphome/index.jsp"
-    },
-    {
-      id: "cgtsme",
-      title: "CGTMSE Coverage",
-      description: "Collateral free credit for MSMEs up to ₹5 Cr with government guarantee.",
-      subsidy: "Credit Guarantee",
-      category: "Service",
-      url: "https://www.cgtmse.in/"
-    },
-    {
-      id: "clcss",
-      title: "CLCSS Subsidy",
-      description: "Technology Upgradation subsidy for plant & machinery in specified sectors.",
-      subsidy: "15% Upfront",
-      category: "Technology",
-      url: "https://msme.gov.in/technology-upgradation-and-quality-certification"
-    },
-    {
-      id: "mudra",
-      title: "MUDRA Yojana",
-      description: "Micro-finance for non-corporate, non-farm small/micro enterprises up to ₹10 Lakhs.",
-      subsidy: "Low Interest",
-      category: "General",
-      url: "https://www.mudra.org.in/"
-    }
-  ];
-
-  if (!query) return allSchemes;
-  const q = query.toLowerCase();
-  return allSchemes.filter(s => 
-    s.title.toLowerCase().includes(q) || 
-    s.description.toLowerCase().includes(q) ||
-    s.category.toLowerCase().includes(q)
-  );
-}
-
-export async function getFounderUpdates() {
-  "use cache";
-  cacheTag("community-updates");
-  cacheLife("minutes");
-
-  // In a real app, this would fetch from Supabase 'community_posts' table
-  return [
-    {
-      id: "update-1",
-      founder: "Rajesh Kumar",
-      company: "Kumar Tex-Solutions",
-      update: "Just secured first institutional loan via MSME360 simulator! 🚀",
-      time: "2h ago",
-      category: "Milestone",
-      type: "Trophy"
-    },
-    {
-      id: "update-2",
-      founder: "Priya Sharma",
-      company: "EcoPack India",
-      update: "DPIIT Recognition approved today. The checklist guide was a life-saver.",
-      time: "5h ago",
-      category: "Success",
-      type: "Sparkles"
-    },
-    {
-      id: "update-3",
-      founder: "Amit Singh",
-      company: "TechGear MSME",
-      update: "Optimized inventory by 30% using the Operations Toolkit. Highly recommend!",
-      time: "Yesterday",
-      category: "Growth",
-      type: "Zap"
-    }
-  ];
-}
-
-export async function submitSupportTicket(userId: string, data: { subject: string, message: string, category: string }) {
+  const userId = user.id;
   try {
+    ticketSchema.parse(data);
+
+    const supabase = await createClient();
     const { error } = await supabase
       .from('support_tickets')
       .insert({
@@ -267,36 +106,23 @@ export async function submitSupportTicket(userId: string, data: { subject: strin
       });
 
     if (error) throw error;
+    logger.info("Support ticket created", "actions.ts", { userId, subject: data.subject });
     return { success: true };
   } catch (error) {
-    console.error("submitSupportTicket error:", error);
-    // Fallback for demonstration if table doesn't exist yet
-    return { success: true, mock: true };
+    logger.error("submitSupportTicket error", "actions.ts", error);
+    return { success: false, error: (error as any)?.message || "Submission failed" };
   }
 }
 
-export async function getAvailableMentorshipSlots() {
-  "use cache";
-  cacheTag("mentorship-slots");
-  cacheLife("minutes");
+export async function submitMicroAIInterest(data: { revenue_band: string, data_readiness: string, capabilities: string[], comments: string }) {
+  const user = await getUser();
+  if (!user) throw new Error("Unauthorized");
 
-  // Mock slots for the next 3 days
-  const now = new Date();
-  const slots = [];
-  for (let i = 1; i <= 3; i++) {
-    const date = new Date(now);
-    date.setDate(now.getDate() + i);
-    const dateStr = date.toISOString().split('T')[0];
-    slots.push(
-      { id: `${dateStr}-10`, date: dateStr, time: "10:00 AM", mentor: "Anil Sharma", expertise: "Compliance" },
-      { id: `${dateStr}-14`, date: dateStr, time: "02:00 PM", mentor: "Sunita Rao", expertise: "Growth" }
-    );
-  }
-  return slots;
-}
-
-export async function submitMicroAIInterest(userId: string, data: { revenue_band: string, data_readiness: string, capabilities: string[], comments: string }) {
+  const userId = user.id;
   try {
+    microAISchema.parse(data);
+
+    const supabase = await createClient();
     const { error } = await supabase
       .from('microai_interest')
       .insert({
@@ -309,144 +135,52 @@ export async function submitMicroAIInterest(userId: string, data: { revenue_band
       });
 
     if (error) throw error;
+    logger.info("MicroAI interest submitted", "actions.ts", { userId });
     return { success: true };
   } catch (error) {
-    console.error("submitMicroAIInterest error:", error);
-    // Return mock success for MVP if table not ready
-    return { success: true, mock: true };
+    logger.error("submitMicroAIInterest error", "actions.ts", error);
+    return { success: false, error: (error as any)?.message || "Submission failed" };
   }
 }
-export async function getNicCodes() {
-  const { data, error } = await supabase
-    .from("nic_codes")
-    .select("*")
-    .order("code", { ascending: true });
 
-  if (error) {
-    console.error("Error fetching NIC codes:", error);
-    return [];
-  }
+export async function generateGTMCampaign(title: string, roadmapData: Record<string, unknown>[]) {
+  const user = await getUser();
+  if (!user) throw new Error("Unauthorized");
 
-  // Cache for 24 hours (static-ish data)
-  cacheTag("nic-codes");
-  cacheLife("days");
-
-  return data || [];
-}
-
-export async function getAIServices() {
-  const { data, error } = await supabase
-    .from("ai_services")
-    .select("*")
-    .order("created_at", { ascending: true });
-
-  if (error) {
-    console.error("Error fetching AI services:", error);
-    return [];
-  }
-
-  cacheTag("ai-services");
-  cacheLife("hours");
-
-  return data || [];
-}
-
-export async function getTenders() {
-  const { data, error } = await supabase
-    .from("tenders")
-    .select("*")
-    .order("created_at", { ascending: false });
-
-  if (error) {
-    console.error("Error fetching tenders:", error);
-    return [];
-  }
-
-  cacheTag("tenders");
-  cacheLife("minutes");
-
-  return data || [];
-}
-
-export async function getGTMTemplates() {
-  const { data, error } = await supabase
-    .from("gtm_templates")
-    .select("*");
-
-  if (error) {
-    console.error("Error fetching GTM templates:", error);
-    return [];
-  }
-
-  cacheTag("gtm-templates");
-  cacheLife("days");
-
-  return data || [];
-}
-
-export async function getGTMCampaigns(userId: string) {
-  const { data, error } = await supabase
-    .from("gtm_campaigns")
-    .select("*")
-    .eq("user_id", userId)
-    .order("updated_at", { ascending: false });
-
-  if (error) {
-    console.error("Error fetching GTM campaigns:", error);
-    return [];
-  }
-
-  cacheTag(`gtm-campaigns-${userId}`);
-  cacheLife("minutes");
-
-  return data || [];
-}
-
-export async function generateGTMCampaign(userId: string, title: string, roadmapData: Record<string, unknown>[]) {
-  const { data, error } = await supabase
-    .from("gtm_campaigns")
-    .insert([{
-      user_id: userId,
-      title,
-      roadmap_data: roadmapData,
-      status: "Active"
-    }])
-    .select()
-    .single();
-
-  if (error) {
-    console.error("Error generating GTM campaign:", error);
-    return { success: false, error: error.message };
-  }
-
-  revalidateTag(`gtm-campaigns-${userId}`, "max");
-  return { success: true, data };
-}
-
-export async function getTeamMembers(userId: string) {
-  "use cache";
-  cacheTag(`team-${userId}`);
-  cacheLife("minutes");
-
+  const userId = user.id;
   try {
+    const supabase = await createClient();
     const { data, error } = await supabase
-      .from('team_members')
-      .select('*')
-      .eq('user_id', userId);
+      .from("gtm_campaigns")
+      .insert([{
+        user_id: userId,
+        title,
+        roadmap_data: roadmapData,
+        status: "Active"
+      }])
+      .select()
+      .single();
 
     if (error) throw error;
-    return data || [];
-  } catch {
-    console.warn("Falling back to mock team members");
-    return [
-      { id: '1', full_name: "Rahul Sharma", role_key: "proprietor", status: "active" },
-      { id: '2', full_name: "Ananya Iyer", role_key: "accountsManager", status: "active" }
-    ];
+
+    logger.info("GTM campaign generated", "actions.ts", { userId, title });
+    revalidateTag(`gtm-campaigns-${userId}`, "max");
+    return { success: true, data };
+  } catch (error) {
+    logger.error("generateGTMCampaign error", "actions.ts", error);
+    return { success: false, error: (error as any)?.message || "Generation failed" };
   }
 }
 
-export async function addTeamMember(userId: string, member: { full_name: string, role_key: string }) {
+export async function addTeamMember(member: { full_name: string, role_key: string }) {
+  const user = await getUser();
+  if (!user) throw new Error("Unauthorized");
+
+  const userId = user.id;
   try {
+    teamMemberSchema.parse(member);
+
+    const supabase = await createClient();
     const { error } = await supabase
       .from('team_members')
       .insert({
@@ -457,39 +191,23 @@ export async function addTeamMember(userId: string, member: { full_name: string,
       });
 
     if (error) throw error;
+
+    logger.info("Team member added", "actions.ts", { userId, memberName: member.full_name });
     revalidateTag(`team-${userId}`, "max");
     return { success: true };
   } catch (error) {
-    console.error("addTeamMember error:", error);
-    return { success: false, error };
+    logger.error("addTeamMember error", "actions.ts", error);
+    return { success: false, error: (error as any)?.message || "Addition failed" };
   }
 }
 
-export async function getComplianceTasks(userId: string) {
-  "use cache";
-  cacheTag(`compliance-${userId}`);
-  cacheLife("minutes");
+export async function updateComplianceTaskStatus(taskId: string, status: string) {
+  const user = await getUser();
+  if (!user) throw new Error("Unauthorized");
 
+  const userId = user.id;
   try {
-    const { data, error } = await supabase
-      .from('compliance_tasks')
-      .select('*')
-      .eq('user_id', userId);
-
-    if (error) throw error;
-    return data || [];
-  } catch {
-    console.warn("Falling back to mock compliance tasks");
-    return [
-      { id: "gst", task_name: "GSTR-1 (Monthly)", due_date: "11-Oct", status: "pending" },
-      { id: "tds", task_name: "TDS Quarterly", due_date: "31-Oct", status: "pending" },
-      { id: "pf", task_name: "EPF/ESI Filing", due_date: "15-Oct", status: "filed" }
-    ];
-  }
-}
-
-export async function updateComplianceTaskStatus(userId: string, taskId: string, status: string) {
-  try {
+    const supabase = await createClient();
     const { error } = await supabase
       .from('compliance_tasks')
       .update({ status })
@@ -497,10 +215,210 @@ export async function updateComplianceTaskStatus(userId: string, taskId: string,
       .eq('user_id', userId);
 
     if (error) throw error;
+
+    logger.info("Compliance task updated", "actions.ts", { userId, taskId, status });
     revalidateTag(`compliance-${userId}`, "max");
     return { success: true };
   } catch (error) {
-    console.error("updateComplianceTaskStatus error:", error);
-    return { success: false, error };
+    logger.error("updateComplianceTaskStatus error", "actions.ts", error);
+    return { success: false, error: (error as any)?.message || "Update failed" };
   }
+}
+
+export async function updateUserSettings(data: Record<string, unknown>) {
+  const user = await getUser();
+  if (!user) throw new Error("Unauthorized");
+
+  const userId = user.id;
+  try {
+    userSettingsSchema.parse(data);
+
+    const supabase = await createClient();
+    const { error } = await supabase
+      .from('user_settings')
+      .upsert({
+        user_id: userId,
+        ...data,
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'user_id' });
+
+    if (error) throw error;
+
+    logger.info("User settings updated", "actions.ts", { userId });
+    revalidateTag(`settings-${userId}`, "max");
+    return { success: true };
+  } catch (error) {
+    logger.error("updateUserSettings error", "actions.ts", error);
+    return { success: false, error: (error as any)?.message || "Update failed" };
+  }
+}
+
+export async function postFounderUpdate(data: { content: string, category: string, type?: string }) {
+  const user = await getUser();
+  if (!user) throw new Error("Unauthorized");
+
+  const userId = user.id;
+  try {
+    const supabase = await createClient();
+    
+    // Fetch profile for founder/company name
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('company_name')
+      .eq('id', userId)
+      .single();
+
+    const payload = {
+      user_id: userId,
+      founder_name: user.user_metadata?.full_name || user.email?.split('@')[0] || "Founder",
+      company_name: profile?.company_name || "New Startup",
+      content: data.content,
+      category: data.category,
+      type: data.type || 'Sparkles',
+      created_at: new Date().toISOString()
+    };
+
+    communityPostSchema.parse(payload);
+
+    const { error } = await supabase
+      .from('community_posts')
+      .insert(payload);
+
+    if (error) throw error;
+
+    logger.info("Founder update posted", "actions.ts", { userId });
+    revalidateTag("community-updates", "max");
+    return { success: true };
+  } catch (error) {
+    logger.error("postFounderUpdate error", "actions.ts", error);
+    return { success: false, error: (error as any)?.message || "Post failed" };
+  }
+}
+
+export async function bookMentorshipSlot(data: { mentor_name: string, expertise: string, scheduled_at: string }) {
+  const user = await getUser();
+  if (!user) throw new Error("Unauthorized");
+
+  const userId = user.id;
+  try {
+    mentorshipBookingSchema.parse(data);
+
+    const supabase = await createClient();
+    const { error } = await supabase
+      .from('mentorship_bookings')
+      .insert({
+        mentee_id: userId,
+        mentor_name: data.mentor_name,
+        expertise: data.expertise,
+        scheduled_at: data.scheduled_at,
+        status: 'pending'
+      });
+
+    if (error) throw error;
+
+    logger.info("Mentorship booked", "actions.ts", { userId, mentor: data.mentor_name });
+    revalidateTag("mentorship-slots", "max");
+    return { success: true };
+  } catch (error) {
+    logger.error("bookMentorshipSlot error", "actions.ts", error);
+    return { success: false, error: (error as any)?.message || "Booking failed" };
+  }
+}
+
+export async function deleteProfile() {
+  const user = await getUser();
+  if (!user) throw new Error("Unauthorized");
+
+  const userId = user.id;
+  try {
+    const supabase = await createServiceClient();
+    
+    // In a real app we might do more (GDPR compliance, etc)
+    // Cascading deletes in schema handle related tables
+    const { error } = await supabase.auth.admin.deleteUser(userId);
+
+    if (error) throw error;
+
+    logger.info("Profile deleted", "actions.ts", { userId });
+    return { success: true };
+  } catch (error) {
+    logger.error("deleteProfile error", "actions.ts", error);
+    return { success: false, error: (error as any)?.message || "Deletion failed" };
+  }
+}
+
+// --- Relays (Fetching data via dynamic user context) ---
+
+export async function fetchProgress() {
+  const user = await getUser();
+  if (!user) return [];
+  return queries.getProgress(user.id);
+}
+
+export async function fetchUserSettings() {
+  const user = await getUser();
+  if (!user) return null;
+  return queries.getUserSettings(user.id);
+}
+
+export async function fetchProfile() {
+  const user = await getUser();
+  if (!user) return null;
+  return queries.getProfile(user.id, user.email);
+}
+
+export async function fetchSupportTickets() {
+  const user = await getUser();
+  if (!user) return [];
+  return queries.getSupportTickets(user.id);
+}
+
+export async function fetchGTMCampaigns() {
+  const user = await getUser();
+  if (!user) return [];
+  return queries.getGTMCampaigns(user.id);
+}
+
+export async function fetchTeamMembers() {
+  const user = await getUser();
+  if (!user) return [];
+  return queries.getTeamMembers(user.id);
+}
+
+export async function fetchComplianceTasks() {
+  const user = await getUser();
+  if (!user) return [];
+  return queries.getComplianceTasks(user.id);
+}
+
+export async function fetchFounderUpdates() {
+  return queries.getFounderUpdates();
+}
+
+export async function fetchAvailableMentorshipSlots() {
+  return queries.getAvailableMentorshipSlots();
+}
+
+export async function fetchSOPTemplates() {
+  return queries.getSOPTemplates();
+}
+
+export async function fetchSchemes(query?: string) {
+  return queries.getSchemes(query);
+}
+
+export async function fetchAIServices() {
+  return queries.getAIServices();
+}
+
+export async function fetchTenders() {
+  return queries.getTenders();
+}
+
+export async function fetchNicCodes() {
+  return queries.getNicCodes();
+}
+
+export async function fetchGTMTemplates() {
+  return queries.getGTMTemplates();
 }

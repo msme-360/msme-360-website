@@ -105,7 +105,7 @@ export default function LandingClient() {
       </section>
 
       {/* Features Bento Grid */}
-      <section className="py-24 px-4 bg-background">
+      <section id="formalize" className="py-24 px-4 bg-background">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-5xl font-display font-bold mb-4">{t("features.badge")}</h2>
@@ -138,7 +138,7 @@ export default function LandingClient() {
             </motion.div>
 
             {/* Side Bento 1 */}
-            <motion.div variants={item} className="glass-card p-8 flex flex-col justify-between group">
+            <motion.div id="operate" variants={item} className="glass-card p-8 flex flex-col justify-between group">
               <div>
                 <div className="p-3 bg-accent/10 rounded-2xl w-fit mb-6 group-hover:bg-accent/20 transition-colors">
                   <Briefcase className="w-8 h-8 text-accent" />
@@ -154,7 +154,7 @@ export default function LandingClient() {
             </motion.div>
 
             {/* Side Bento 2 */}
-            <motion.div variants={item} className="glass-card p-8 flex flex-col justify-between group">
+            <motion.div id="grow" variants={item} className="glass-card p-8 flex flex-col justify-between group">
               <div>
                 <div className="p-3 bg-primary/10 rounded-2xl w-fit mb-6 group-hover:bg-primary/20 transition-colors">
                   <Cpu className="w-8 h-8 text-primary" />
@@ -212,7 +212,7 @@ export default function LandingClient() {
       </section>
 
       {/* Immersive Narrative */}
-      <section className="py-32 px-4 relative overflow-hidden">
+      <section id="story" className="py-32 px-4 relative overflow-hidden">
         <div className="absolute inset-0 bg-primary/5 -z-10" />
         <div className="max-w-4xl mx-auto text-center">
           <motion.h2

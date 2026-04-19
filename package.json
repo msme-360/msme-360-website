@@ -9,9 +9,11 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.99.2",
+    "@supabase/ssr": "^0.10.2",
+    "@supabase/supabase-js": "^2.103.3",
     "@tanstack/react-form": "^1.28.5",
     "@tanstack/react-table": "^8.21.3",
+    "@tanstack/zod-form-adapter": "^0.42.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
