@@ -1,0 +1,28 @@
+{
+  "About": {
+    "badge": "Our Mission",
+    "title": "Our Mission & Story",
+    "subtitle": "Empowering the engine of India's economy: One MSME at a time.",
+    "visionTitle": "The MSME 360 Vision",
+    "visionP1": "Founded with a single mission: to eliminate the regulatory and technological barriers that hold back India's micro-entrepreneurs. We believe that professional business tools, compliance, and advanced AI should not be locked behind high consultancy fees or complex enterprise software.",
+    "visionP2": "At MSME 360, we are building a founder-first infrastructure that guides you from your first Udyam registration to your first AI-driven revenue forecast—all with zero upfront cost.",
+    "features": {
+      "founderFirst": {
+        "title": "Founder-First",
+        "desc": "Everything we build is designed for the person on the ground. Simple, mobile-first, and results-driven."
+      },
+      "zeroFee": {
+        "title": "Zero-Fee Access",
+        "desc": "We eliminate the 'compliance tax'. Our core enablement platform is free forever for small founders."
+      },
+      "aiDemocratization": {
+        "title": "AI Democratization",
+        "desc": "We bring specialized AI microservices out of reach for most small businesses right to your dashboard."
+      },
+      "communityScale": {
+        "title": "Community Scale",
+        "desc": "You are not building alone. Connect with 100,000+ peers and veterans in our ecosystem."
+      }
+    }
+  }
+}

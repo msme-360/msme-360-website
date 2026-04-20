@@ -1,0 +1,113 @@
+{
+  "Common": {
+    "dashboard": "Dashboard",
+    "formalize": "Formalize",
+    "operate": "Operate",
+    "grow": "MicroAI Hub",
+    "connect": "Community",
+    "profile": "Profile",
+    "settings": "Settings",
+    "help": "Help",
+    "logout": "Logout",
+    "backToDashboard": "Back to Dashboard",
+    "loading": "Loading...",
+    "search": "Search...",
+    "searchPlaceholder": "Search tools or press ⌘K",
+    "noMatches": "No matches found for \"{query}\"",
+    "clearSearch": "Clear search",
+    "searchResults": "Search Results",
+    "recentActions": "Recent Actions",
+    "smartMatch": "SMART MATCH",
+    "poweredBy": "Powered by MicroAI",
+    "notifications": "Notifications",
+    "language": "Language",
+    "theme": "Theme",
+    "unauthorized": "Unauthorized Access",
+    "more": "More",
+    "previousSlide": "Previous slide",
+    "nextSlide": "Next slide"
+  },
+  "Stats": {
+    "formalization": {
+      "title": "Formalization",
+      "status": "{current}/{total} Steps",
+      "description": "Udyam, DPIIT & GST"
+    },
+    "operations": {
+      "title": "Operations",
+      "status": "Not Started",
+      "description": "Toolkit & Templates"
+    },
+    "microAI": {
+      "title": "MicroAI Hub",
+      "status": "Active",
+      "description": "AI Microservices"
+    },
+    "gtm": {
+      "title": "Go-to-Market",
+      "status": "Phase 3",
+      "description": "Launch & Strategy"
+    },
+    "financial": {
+      "title": "Financial Connect",
+      "status": "Ready",
+      "description": "Loans & Subsidies"
+    }
+  },
+  "Navigation": {
+    "dashboard": "Dashboard",
+    "formalize": "Formalize",
+    "operate": "Operate",
+    "grow": "MicroAI Hub",
+    "gtm": "Go-to-Market",
+    "connect": "Financial Connect",
+    "profile": "Profile",
+    "settings": "Settings",
+    "community": "Community Hub",
+    "help": "Support Hub",
+    "groups": {
+      "business": "Business",
+      "innovation": "Innovation",
+      "account": "Account"
+    },
+    "footer": {
+      "plan": "Growth Plan",
+      "status": "Free Forever"
+    },
+    "logout": "Logout"
+  },
+  "Navbar": {
+    "links": {
+      "formalize": "Formalize",
+      "operate": "Operate",
+      "grow": "Grow with AI",
+      "about": "About Us",
+      "pricing": "Pricing",
+      "careers": "Careers",
+      "login": "Login",
+      "join": "Join Now"
+    }
+  },
+  "Footer": {
+    "description": "India's first modular enablement platform for micro-entrepreneurs. Bridging the gap between traditional operations and AI-driven scale. Trusted by 10k MSMEs.",
+    "links": {
+      "platform": "Platform",
+      "connect": "Connect",
+      "legal": "Legal",
+      "items": {
+        "formalize": "Formalization",
+        "operations": "Operations",
+        "aiHub": "AI Hub",
+        "about": "About Us",
+        "pricing": "Pricing",
+        "careers": "Careers",
+        "privacy": "Privacy Policy",
+        "terms": "Terms of Service"
+      }
+    },
+    "contact": {
+      "label": "Contact us:"
+    },
+    "copyright": "© {year} MSME 360 Enablement Pvt Ltd. All rights reserved."
+  }
+}

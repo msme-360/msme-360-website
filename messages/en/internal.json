@@ -1,0 +1,9 @@
+{
+  "Internal": {
+    "hub": {
+      "header": "MSME 360 Internal Hub",
+      "restricted": "Restricted Access",
+      "staffRequired": "Staff access required."
+    }
+  }
+}

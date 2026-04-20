@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
+import { useParams } from "next/navigation";
 import { Rocket, Twitter, Linkedin, Github } from "lucide-react";
 
 export function Footer() {
@@ -16,13 +17,15 @@ export function Footer() {
 
   const currentYear = isMounted ? new Date().getFullYear() : 2026;
 
+  const locale = (useParams()?.locale as string) || "en";
+
   return (
     <footer className="bg-background border-t border-white/5 py-12 px-4 selection:bg-primary/20">
       <div className="max-w-6xl mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
           {/* Brand Col */}
           <div className="md:col-span-2">
-            <Link href="/" className="flex items-center gap-2 mb-6 group w-fit">
+            <Link href={`/${locale}`} className="flex items-center gap-2 mb-6 group w-fit">
               <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center shadow-glow group-hover:scale-110 transition-transform">
                 <Rocket className="w-5 h-5 text-primary-foreground" />
               </div>
@@ -39,9 +42,9 @@ export function Footer() {
           <div>
             <h4 className="font-bold text-sm uppercase tracking-widest mb-6 text-foreground/50">{t("links.platform")}</h4>
             <ul className="space-y-4">
-              {["formalize", "operations", "aiHub", "pricing"].map((key) => (
+              {["about", "pricing", "careers"].map((key) => (
                 <li key={key}>
-                  <Link href="#" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                  <Link href={`/${locale}/${key}`} className="text-sm text-muted-foreground hover:text-primary transition-colors">
                     {t(`links.items.${key}`)}
                   </Link>
                 </li>
@@ -74,8 +77,8 @@ export function Footer() {
             {t("copyright", { year: currentYear })}
           </p>
           <div className="flex gap-6">
-            <Link href="#" className="text-xs text-muted-foreground hover:text-foreground">{t("links.items.privacy")}</Link>
-            <Link href="#" className="text-xs text-muted-foreground hover:text-foreground">{t("links.items.terms")}</Link>
+            <Link href={`/${locale}/privacy`} className="text-xs text-muted-foreground hover:text-foreground">{t("links.items.privacy")}</Link>
+            <Link href={`/${locale}/terms`} className="text-xs text-muted-foreground hover:text-foreground">{t("links.items.terms")}</Link>
           </div>
         </div>
       </div>

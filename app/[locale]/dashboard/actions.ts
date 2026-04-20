@@ -53,7 +53,7 @@ export async function updateProgress(stepId: string, completed: boolean) {
     return { success: true };
   } catch (error) {
     logger.error("updateProgress error", "actions.ts", error);
-    return { success: false, error: (error as any)?.message || "Update failed" };
+    return { success: false, error: error instanceof Error ? error.message : "Update failed" };
   }
 }
 
@@ -110,7 +110,7 @@ export async function submitSupportTicket(data: { subject: string, message: stri
     return { success: true };
   } catch (error) {
     logger.error("submitSupportTicket error", "actions.ts", error);
-    return { success: false, error: (error as any)?.message || "Submission failed" };
+    return { success: false, error: error instanceof Error ? error.message : "Submission failed" };
   }
 }
 
@@ -139,7 +139,7 @@ export async function submitMicroAIInterest(data: { revenue_band: string, data_r
     return { success: true };
   } catch (error) {
     logger.error("submitMicroAIInterest error", "actions.ts", error);
-    return { success: false, error: (error as any)?.message || "Submission failed" };
+    return { success: false, error: error instanceof Error ? error.message : "Submission failed" };
   }
 }
 
@@ -168,7 +168,7 @@ export async function generateGTMCampaign(title: string, roadmapData: Record<str
     return { success: true, data };
   } catch (error) {
     logger.error("generateGTMCampaign error", "actions.ts", error);
-    return { success: false, error: (error as any)?.message || "Generation failed" };
+    return { success: false, error: error instanceof Error ? error.message : "Generation failed" };
   }
 }
 
@@ -197,7 +197,7 @@ export async function addTeamMember(member: { full_name: string, role_key: strin
     return { success: true };
   } catch (error) {
     logger.error("addTeamMember error", "actions.ts", error);
-    return { success: false, error: (error as any)?.message || "Addition failed" };
+    return { success: false, error: error instanceof Error ? error.message : "Addition failed" };
   }
 }
 
@@ -221,7 +221,7 @@ export async function updateComplianceTaskStatus(taskId: string, status: string)
     return { success: true };
   } catch (error) {
     logger.error("updateComplianceTaskStatus error", "actions.ts", error);
-    return { success: false, error: (error as any)?.message || "Update failed" };
+    return { success: false, error: error instanceof Error ? error.message : "Update failed" };
   }
 }
 
@@ -249,7 +249,7 @@ export async function updateUserSettings(data: Record<string, unknown>) {
     return { success: true };
   } catch (error) {
     logger.error("updateUserSettings error", "actions.ts", error);
-    return { success: false, error: (error as any)?.message || "Update failed" };
+    return { success: false, error: error instanceof Error ? error.message : "Update failed" };
   }
 }
 
@@ -291,7 +291,7 @@ export async function postFounderUpdate(data: { content: string, category: strin
     return { success: true };
   } catch (error) {
     logger.error("postFounderUpdate error", "actions.ts", error);
-    return { success: false, error: (error as any)?.message || "Post failed" };
+    return { success: false, error: error instanceof Error ? error.message : "Post failed" };
   }
 }
 
@@ -321,7 +321,7 @@ export async function bookMentorshipSlot(data: { mentor_name: string, expertise:
     return { success: true };
   } catch (error) {
     logger.error("bookMentorshipSlot error", "actions.ts", error);
-    return { success: false, error: (error as any)?.message || "Booking failed" };
+    return { success: false, error: error instanceof Error ? error.message : "Booking failed" };
   }
 }
 
@@ -343,7 +343,7 @@ export async function deleteProfile() {
     return { success: true };
   } catch (error) {
     logger.error("deleteProfile error", "actions.ts", error);
-    return { success: false, error: (error as any)?.message || "Deletion failed" };
+    return { success: false, error: error instanceof Error ? error.message : "Deletion failed" };
   }
 }
 

@@ -23,10 +23,9 @@ interface BreadcrumbCrumb {
   isLast: boolean;
 }
 
-export function DashboardClientLayer({ children }: { children: React.ReactNode }) {
+export function DashboardClientLayer({ children, userId }: { children: React.ReactNode; userId?: string }) {
   const pathname = usePathname();
   const { completionPercentage } = useProgress();
-  const t = useTranslations("Common");
   
   const nt = useTranslations("Navigation");
   
@@ -42,7 +41,7 @@ export function DashboardClientLayer({ children }: { children: React.ReactNode }
 
   return (
     <SidebarProvider>
-      <AppSidebar />
+      <AppSidebar userId={userId} />
       <SidebarInset className="bg-background relative">
         {/* Global Progress Strip */}
         <div className="absolute top-16 left-0 right-0 h-[2px] bg-secondary/20 z-10 overflow-hidden">

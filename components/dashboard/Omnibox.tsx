@@ -148,12 +148,12 @@ export function Omnibox() {
 
   // Debounced Dynamic Search
   useEffect(() => {
-    if (searchQuery.length < 2) {
-      setDynamicResults([]);
-      return;
-    }
-
     const timer = setTimeout(async () => {
+      if (searchQuery.length < 2) {
+        setDynamicResults([]);
+        return;
+      }
+
       setIsSearching(true);
       try {
         const res = await fetch(`/api/search?q=${encodeURIComponent(searchQuery)}`);

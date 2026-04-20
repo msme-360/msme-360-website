@@ -1,0 +1,30 @@
+{
+  "Admin": {
+    "HiringPortal": {
+      "title": "Hiring Vault",
+      "subtitle": "Manage candidate pipeline and workforce intake.",
+      "refresh": "Refresh Pipeline",
+      "searchPlaceholder": "Search candidates...",
+      "filters": "Filters",
+      "loading": "Loading candidates...",
+      "noCandidates": "No candidates found in this stage.",
+      "totalApplied": "Total Applied",
+      "pendingReview": "Pending Review",
+      "hired": "Hired",
+      "candidateRow": {
+        "resume": "Resume",
+        "shortlist": "Shortlist",
+        "reject": "Reject",
+        "hire": "Hire",
+        "finalHire": "Final Hire",
+        "remote": "Remote"
+      },
+      "toasts": {
+        "fetchFailed": "Failed to load candidates",
+        "hiredSuccess": "{name} has been hired. They can now activate their account via Login.",
+        "actionSuccess": "Candidate {action} successfully.",
+        "actionFailed": "Action failed. Please check permissions."
+      }
+    }
+  }
+}

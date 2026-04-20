@@ -1,0 +1,25 @@
+{
+  "Navigation": {
+    "home": "Home",
+    "dashboard": "Dashboard",
+    "formalize": "Formalize",
+    "operate": "Operate",
+    "grow": "MicroAI Hub",
+    "gtm": "Launchpad",
+    "connect": "Financial Connect",
+    "community": "Community",
+    "help": "Support",
+    "profile": "Profile",
+    "settings": "Settings",
+    "logout": "Logout",
+    "groups": {
+      "business": "Business Essentials",
+      "innovation": "Innovation & Growth",
+      "account": "Account Management"
+    },
+    "footer": {
+      "plan": "Active Strategy",
+      "status": "Enterprise Tier"
+    }
+  }
+}

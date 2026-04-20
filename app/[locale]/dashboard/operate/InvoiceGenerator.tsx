@@ -20,6 +20,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
+import { jsPDF } from "jspdf";
 
 interface InvoiceItem {
   id: string;
@@ -57,10 +58,87 @@ export function InvoiceGenerator() {
 
   const handleExport = () => {
     toast.success(t("toastGenerating"));
-    // Future: Use jspdf or a server action to generate real PDF
-    setTimeout(() => {
+    
+    try {
+      const doc = new jsPDF();
+      
+      // Styling
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(22);
+      doc.setTextColor(33, 150, 243); // Primary-like color
+      doc.text("INVOICE", 105, 20, { align: "center" });
+      
+      doc.setFontSize(10);
+      doc.setTextColor(100, 100, 100);
+      doc.text(`${t("date")}: ${date}`, 190, 20, { align: "right" });
+      doc.text(`${t("number")}: ${invoiceNumber}`, 190, 26, { align: "right" });
+
+      // Branding
+      doc.setFontSize(14);
+      doc.setTextColor(0, 0, 0);
+      doc.text("MSME 360", 20, 35);
+      doc.setFontSize(8);
+      doc.setFont("helvetica", "normal");
+      doc.text("Verified MSME Platform", 20, 40);
+
+      // Bill To
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(10);
+      doc.text(`${t("billTo").toUpperCase()}:`, 20, 55);
+      doc.setFont("helvetica", "normal");
+      doc.text(customer.name || "N/A", 20, 62);
+      doc.text(customer.email || "N/A", 20, 68);
+      doc.text(customer.address || "N/A", 20, 74);
+
+      // Table Header
+      doc.setDrawColor(200, 200, 200);
+      doc.line(20, 85, 190, 85);
+      doc.setFont("helvetica", "bold");
+      doc.text(t("itemDesc"), 25, 92);
+      doc.text(t("qty"), 120, 92, { align: "center" });
+      doc.text(t("price"), 150, 92, { align: "right" });
+      doc.text("Total", 185, 92, { align: "right" });
+      doc.line(20, 95, 190, 95);
+
+      // Table Items
+      doc.setFont("helvetica", "normal");
+      let y = 105;
+      items.forEach((item) => {
+        doc.text(item.description || "N/A", 25, y);
+        doc.text(item.quantity.toString(), 120, y, { align: "center" });
+        doc.text(`Rs. ${item.rate.toLocaleString()}`, 150, y, { align: "right" });
+        doc.text(`Rs. ${(item.quantity * item.rate).toLocaleString()}`, 185, y, { align: "right" });
+        y += 10;
+      });
+
+      // Totals
+      doc.line(20, y + 2, 190, y + 2);
+      y += 12;
+      doc.setFont("helvetica", "bold");
+      doc.text(t("subtotal"), 150, y, { align: "right" });
+      doc.text(`Rs. ${subtotal.toLocaleString()}`, 185, y, { align: "right" });
+      
+      y += 8;
+      doc.text(t("gst") + " (18%)", 150, y, { align: "right" });
+      doc.text(`Rs. ${gst.toLocaleString()}`, 185, y, { align: "right" });
+      
+      y += 10;
+      doc.setFontSize(14);
+      doc.setTextColor(33, 150, 243);
+      doc.text(`${t("total").toUpperCase()}:`, 150, y, { align: "right" });
+      doc.text(`Rs. ${total.toLocaleString()}`, 185, y, { align: "right" });
+
+      // Footer
+      doc.setFontSize(8);
+      doc.setTextColor(150, 150, 150);
+      doc.text("Generated via MSME 360 Operations Hub", 105, 280, { align: "center" });
+
+      doc.save(`${invoiceNumber}.pdf`);
       toast.success(t("toastReady"));
-    }, 2000);
+    } catch (err) {
+      console.error("PDF generation failed:", err);
+      toast.error("Failed to generate PDF");
+    }
   };
 
   return (

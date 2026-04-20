@@ -1,0 +1,175 @@
+{
+  "MicroAIHub": {
+    "badge": "Advanced Intelligence",
+    "title": "MicroAI Hub",
+    "description": "Enterprise-grade AI, simplified for micro-entrepreneurs. Automate your growth, predict your future.",
+    "grow": {
+      "badge": "Scalability",
+      "description": "Accelerate your reach with automated marketing and sales growth tools."
+    },
+    "operate": {
+      "badge": "Efficiency",
+      "description": "Streamline daily operations with neural invoice processing and forecasting."
+    },
+    "status": {
+      "active": "Active",
+      "beta": "Beta"
+    },
+    "type": {
+      "data": "Data",
+      "nlp": "NLP",
+      "scoring": "Scoring",
+      "vision": "Vision"
+    },
+    "tools": {
+      "forecasting": {
+        "title": "Revenue Forecasting",
+        "description": "Predict next month's sales with 85% accuracy using your historical data.",
+        "simulator": "Revenue Forecast Simulator",
+        "simulatorSub": "Adjust market variables to see projected sales impact.",
+        "badge": "Latest Model",
+        "inventory": "Inventory Levels",
+        "stockRisk": "Stock-out Risk",
+        "priceElasticity": "Price Elasticity",
+        "predictedRevenue": "Predicted Revenue",
+        "growth": "{value}",
+        "riskLevels": {
+          "low": "Low",
+          "medium": "Medium",
+          "high": "High"
+        },
+        "cta": "Connect Inventory Data"
+      },
+      "sop": {
+        "title": "AI SOP Generator",
+        "description": "Generate Standard Operating Procedures for any business process in seconds."
+      },
+      "eligibility": {
+        "title": "Grant Eligibility",
+        "description": "AI-powered mapping of your profile to 500+ government grants and schemes.",
+        "scorer": "Startup India Scorer",
+        "scorerSub": "Self-assessment for DPIIT Startup India recognition.",
+        "scoreLabel": "Eligibility Score",
+        "checklistTitle": "Verification Checklist",
+        "checklist": {
+          "age": {
+            "label": "Company Age < 10 Years",
+            "desc": "Is your company registered within the last 10 years?"
+          },
+          "turnover": {
+            "label": "Turnover < ₹100 Cr",
+            "desc": "Is your annual turnover below the official threshold?"
+          },
+          "innovation": {
+            "label": "Scalable/Innovative",
+            "desc": "Does your business model provide innovation or scalability?"
+          }
+        },
+        "aiAssessment": "AI Assessment",
+        "assessments": {
+          "excellent": "Excellent! Your profile meets all primary criteria for DPIIT recognition. You're ready to apply.",
+          "potential": "You show strong potential. Focus on documenting the 'innovative' aspect to boost your application.",
+          "missing": "Review the missing criteria. Most Indian MSMEs fail on formal registration timing."
+        },
+        "cta": "Start DPIIT Application",
+        "text": "Loan simulator provides estimates based on standard bank algorithms. Actual credit scores and loan offers may vary based on your CIBIL profile and individual bank policies."
+      },
+      "nic": {
+        "title": "AI NIC Finder",
+        "description": "Neural matching of business activity to Industrial Codes.",
+        "finderSub": "Describe your business to find the match.",
+        "badge": "NLP v2.1",
+        "placeholder": "e.g., 'Bakery making organic bread'...",
+        "waiting": "Waiting for input... Describe your products or services",
+        "cta": "Download Directory"
+      },
+      "ocr": {
+        "title": "Invoice OCR",
+        "description": "Neural extraction of billing and tax data.",
+        "visionSub": "Instant extraction of line items and tax data from images/PDFs.",
+        "visionBadge": "Vision Model v4",
+        "dropzone": "Drop your invoice here",
+        "dropzoneSub": "Supports PNG, JPG or PDF up to 10MB",
+        "selectFile": "Select File",
+        "scanning": "Neural Scanning...",
+        "scanningSub": "Detecting line items and tax segments",
+        "intelligence": "Extracted Intelligence",
+        "scanAnother": "Scan Another",
+        "fields": {
+          "vendor": "Vendor",
+          "date": "Date",
+          "amount": "Amount",
+          "gstin": "GSTIN"
+        },
+        "cta": "Schedule Now"
+      }
+    },
+    "insights": {
+      "title": "AI Insights",
+      "forecasting": "\"Current inventory trends reveal a 15% stockout risk for SKU-242 next month. Consider restocking.\"",
+      "general": "\"Neural processing is 12x faster than manual entry. You saved approximately 4.2 hours this week.\"",
+      "cta": "Generate Full Audit"
+    },
+    "infrastructure": {
+      "title": "Scale Infrastructure",
+      "description": "Unlock multi-tenant AI capabilities for branch locations.",
+      "computeLabel": "Free Compute Usage",
+      "usage": "{current} / {total}h"
+    },
+    "quiz": {
+      "badge": "Discovery",
+      "title": "AI Readiness Assessment",
+      "subtitle": "Discover which MicroAI services are suitable for your current stage.",
+      "start": "Start Assessment",
+      "next": "Next Question",
+      "resultTitle": "Your AI Readiness Level",
+      "step": "Question {current} of {total}",
+      "reset": "Start Over",
+      "cta": "Explore Recommended Tools",
+      "questions": [
+        {
+          "id": 1,
+          "text": "How do you currently track inventory?",
+          "options": ["By hand/memory", "Simple Spreadsheet", "Cloud ERP/POS"]
+        },
+        {
+          "id": 2,
+          "text": "What is your primary revenue channel?",
+          "options": ["Offline only", "Hybrid (Offline + WhatsApp)", "Full E-commerce"]
+        },
+        {
+          "id": 3,
+          "text": "How often do you face stock-outs?",
+          "options": ["Often", "Sometimes", "Rarely"]
+        }
+      ],
+      "levels": {
+        "beginner": "L1: Digital Foundation",
+        "intermediate": "L2: Automated Growth",
+        "expert": "L3: Predictive Intelligence"
+      }
+    },
+    "interestForm": {
+      "title": "Secure Early Access",
+      "subtitle": "Join the waitlist for specialized MicroAI nodes.",
+      "revenue": "Annual Revenue Range",
+      "targetService": "Interested Service",
+      "submit": "Register Interest",
+      "recording": "Recording...",
+      "footer": "Beta Access Stage 1 / 50 Slots Remaining",
+      "revenueOptions": {
+        "lt10L": "< ₹10 Lakhs",
+        "10_50L": "₹10L - ₹50L",
+        "50L_1Cr": "₹50L - ₹1 Crore",
+        "gt10Cr": "> ₹1 Crore"
+      },
+      "serviceOptions": {
+        "forecasting": "Demand Forecasting",
+        "sop": "SOP Automation",
+        "inventory": "Vision Inventory",
+        "eligibility": "DPIIT Scorer"
+      },
+      "success": "Interest registered! Our AI consultant will reach out."
+    }
+  }
+}

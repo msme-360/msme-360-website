@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from "react";
 import { fetchProgress, updateProgress as updateProgressAction } from "@/app/[locale]/dashboard/actions";
 import { logger } from "@/lib/logger";
 import { useAuth } from "@/components/providers/AuthProvider";
@@ -69,9 +69,12 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
     }
   }, [user]);
 
+  const hasHydrated = useRef(false);
+
   useEffect(() => {
-    if (!authLoading) {
+    if (!authLoading && !hasHydrated.current) {
       hydrate();
+      hasHydrated.current = true;
     }
   }, [authLoading, hydrate]);
 

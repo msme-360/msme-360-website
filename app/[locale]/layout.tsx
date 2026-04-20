@@ -3,9 +3,11 @@ import { Inter, Outfit } from "next/font/google";
 import "../globals.css";
 import { AuthProvider } from "@/components/providers/AuthProvider";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
+import { QueryProvider } from "@/components/providers/QueryProvider";
 import { ConditionalNavigation } from "@/components/layout/ConditionalNavigation";
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages, setRequestLocale } from 'next-intl/server';
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { notFound } from 'next/navigation';
 import { locales } from '@/i18n/settings';
 
@@ -82,19 +84,23 @@ export default async function RootLayout({
     <html lang={locale} suppressHydrationWarning>
       <body className={`${inter.variable} ${outfit.variable} antialiased`}>
         <NextIntlClientProvider locale={locale} messages={messages}>
-          <AuthProvider>
-            <ThemeProvider
-              attribute="class"
-              defaultTheme="system"
-              enableSystem
-              disableTransitionOnChange
-              storageKey="msme360-theme"
-            >
-              <ConditionalNavigation>
-                {children}
-              </ConditionalNavigation>
-            </ThemeProvider>
-          </AuthProvider>
+          <TooltipProvider>
+            <AuthProvider>
+              <QueryProvider>
+                <ThemeProvider
+                  attribute="class"
+                  defaultTheme="system"
+                  enableSystem
+                  disableTransitionOnChange
+                  storageKey="msme360-theme"
+                >
+                  <ConditionalNavigation>
+                    {children}
+                  </ConditionalNavigation>
+                </ThemeProvider>
+              </QueryProvider>
+            </AuthProvider>
+          </TooltipProvider>
         </NextIntlClientProvider>
       </body>
     </html>

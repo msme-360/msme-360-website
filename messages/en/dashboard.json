@@ -1,0 +1,14 @@
+{
+  "Dashboard": {
+    "badge": "Central Command",
+    "title": "Business Hub",
+    "description": "Manage your MSME formalization and growth journey with peak efficiency.",
+    "welcome": "Welcome back, {name}",
+    "nextStep": {
+      "badge": "Next Step",
+      "title": "Register for Udyam MSME",
+      "description": "Start your journey by getting your official Udyam Registration. This enables you to access government schemes and subsidies.",
+      "cta": "Get Started"
+    }
+  }
+}

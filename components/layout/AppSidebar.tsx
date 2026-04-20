@@ -24,12 +24,18 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useParams } from "next/navigation";
 import { LogoutButton } from "./LogoutButton";
+import { useRole } from "@/hooks/useRole";
+import { 
+  ShieldCheck as ShieldIcon,
+  Building2 
+} from "lucide-react";
 
 
-export function AppSidebar() {
+export function AppSidebar({ userId }: { userId?: string }) {
   const t = useTranslations("Navigation");
   const params = useParams();
   const locale = params.locale as string;
+  const { isStaff, isAdmin } = useRole(userId || "");
 
   const navItems = [
     { group: t("groups.business"), items: [
@@ -48,11 +54,28 @@ export function AppSidebar() {
     ]}
   ];
 
+  const adminItems = [
+    { 
+      title: "Admin Portal", 
+      icon: ShieldIcon, 
+      url: `/${locale}/admin/roles`, 
+      visible: isAdmin, 
+      color: "text-primary" 
+    },
+    { 
+      title: "Staff Hub", 
+      icon: Building2, 
+      url: `/${locale}/internal/staff`, 
+      visible: isStaff || isAdmin, 
+      color: "text-accent" 
+    },
+  ];
+
   return (
     <Sidebar collapsible="icon" variant="inset" className="border-r border-border/50">
       <SidebarHeader className="p-4 group-data-[collapsible=icon]:p-2 transition-all border-b border-border/50 mb-2">
         <div className="flex items-center justify-between gap-1 overflow-hidden group-data-[collapsible=icon]:justify-center">
-          <Link href={`/${locale}`} className="flex items-center gap-2 px-2 group shrink-0 group-data-[collapsible=icon]:hidden">
+          <Link href={`/${locale}/dashboard`} className="flex items-center gap-2 px-2 group shrink-0 group-data-[collapsible=icon]:hidden">
             <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center shadow-glow group-hover:scale-110 transition-transform shrink-0">
               <Rocket className="w-4 h-4 text-primary-foreground" />
             </div>
@@ -86,6 +109,27 @@ export function AppSidebar() {
             </SidebarGroupContent>
           </SidebarGroup>
         ))}
+
+        {/* Conditional Admin/Staff Section */}
+        {(isAdmin || isStaff) && (
+          <SidebarGroup>
+            <SidebarGroupLabel className="text-[10px] font-bold text-primary uppercase tracking-widest">Governance</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {adminItems.filter(item => item.visible).map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild tooltip={item.title}>
+                      <Link href={item.url} className={`flex items-center gap-3 ${item.color}`}>
+                        <item.icon className="w-4 h-4" />
+                        <span className="font-bold">{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
       </SidebarContent>
 
       <SidebarFooter className="p-4 group-data-[collapsible=icon]:p-2 border-t border-border/50">

@@ -1,0 +1,108 @@
+{
+  "GTMHub": {
+    "badge": "Phase 3: Market Launch",
+    "title": "Go-to-Market Hub",
+    "description": "Everything you need to move from \"Built\" to \"Launched\". Strategize your entry with precision.",
+    "export": "Export Strategy",
+    "generateRoadmap": "Generate Roadmap",
+    "syncing": "Neural Syncing...",
+    "tenders": {
+      "title": "Tender Alerts",
+      "subtitle": "Discover government and corporate opportunities.",
+      "filters": {
+        "sector": "Sector:",
+        "location": "Location:",
+        "value": "Value Range:"
+      },
+      "noResults": "No tenders found for these filters.",
+      "bidCta": "Check Eligibility",
+      "sectors": [
+        "Manufacturing",
+        "Services",
+        "IT/Tech",
+        "Construction"
+      ],
+      "locations": [
+        "All India",
+        "Maharashtra",
+        "Karnataka",
+        "Delhi-NCR"
+      ]
+    },
+    "outreach": {
+      "title": "Outreach Scripts",
+      "subtitle": "Founder-ready templates for your first 10 customers.",
+      "whatsapp": "WhatsApp Intro",
+      "linkedin": "LinkedIn Outreach",
+      "email": "Cold Email Guide",
+      "copy": "Copy to Clipboard",
+      "copied": "Copied!"
+    },
+    "roadmap": {
+      "title": "AI Generated GTM Roadmap",
+      "back": "Back to Hub",
+      "strategicPriority": "Strategic Priority: {status}",
+      "summaryTitle": "Executive Summary",
+      "summaryText": "Your market entry should focus on direct B2B partnerships while leveraging digital identity as a trust factor. Early adopters in your category value reliability over price.",
+      "steps": {
+        "week12": {
+          "phase": "Week 1-2",
+          "task": "Competitor Analysis",
+          "status": "High"
+        },
+        "week34": {
+          "phase": "Week 3-4",
+          "task": "Pricing Strategy",
+          "status": "Medium"
+        },
+        "month2": {
+          "phase": "Month 2",
+          "task": "Launch Campaign",
+          "status": "Strategic"
+        }
+      }
+    },
+    "competitive": {
+      "title": "Competitive Strategy",
+      "subtitle": "Analyze and beat the market",
+      "launchWizard": "Launch Strategy Wizard",
+      "items": {
+        "analysis": "Competitor Analysis",
+        "pricing": "Pricing Benchmarking",
+        "usp": "Unique Selling Prop",
+        "swot": "SWOT Matrix"
+      }
+    },
+    "reach": {
+      "title": "Potential Reach",
+      "subtitle": "Serviceable Addressable Market (SAM)",
+      "score": "Strategy Score",
+      "statusComplete": "Strategy Complete",
+      "statusPending": "Strategy Pending"
+    },
+    "marketing": {
+      "titlePart1": "Marketing &",
+      "titlePart2": "Creative",
+      "mockup": "Mockup",
+      "openStudio": "Open Creative Studio",
+      "items": [
+        "Social Media Kit",
+        "Brand Guidelines",
+        "Email Templates"
+      ]
+    },
+    "distribution": {
+      "title": "Distribution Strategy",
+      "description": "Connect your business to the right customers through optimized channels.",
+      "tags": [
+        "Direct to Consumer",
+        "B2B Wholesale",
+        "Online Marketplaces"
+      ],
+      "insightsTitle": "Data-driven Insights",
+      "insightsDesc": "Your industry shows 45% higher conversion rates on mobile-first platforms.",
+      "insightsStatus": "Insights Ready"
+    },
+    "disclaimer": "AI roadmap is for guidance. Market conditions may vary."
+  }
+}

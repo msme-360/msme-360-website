@@ -10,10 +10,22 @@ const intlMiddleware = createIntlMiddleware({
 });
 
 export default async function proxy(request: NextRequest) {
-  // 1. First, create a base response from next-intl
-  let response = intlMiddleware(request);
+  const pathname = request.nextUrl.pathname;
 
-  // 2. Initialize Supabase client with the ability to modify the existing response
+  // 1. Identify API routes
+  const isApiPath = pathname.startsWith('/api/') || 
+                    locales.some(locale => pathname.startsWith(`/${locale}/api/`));
+
+  // 2. Handle localization (Skip for API routes)
+  let response: NextResponse;
+
+  if (isApiPath) {
+    response = NextResponse.next();
+  } else {
+    response = intlMiddleware(request);
+  }
+
+  // 3. Initialize Supabase client
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -23,7 +35,6 @@ export default async function proxy(request: NextRequest) {
           return request.cookies.getAll();
         },
         setAll(cookiesToSet) {
-          // Update the already created intl response with new cookies
           cookiesToSet.forEach(({ name, value, options }) =>
             response.cookies.set(name, value, options)
           );
@@ -32,18 +43,19 @@ export default async function proxy(request: NextRequest) {
     }
   );
 
-  // 3. Refresh session / Get user
-  // getUser() automatically calls getSession() and refreshes it if needed
+  // 4. Auth & Protection Logic
   const { data: { user } } = await supabase.auth.getUser();
 
-  // 4. Protect routes
-  const pathname = request.nextUrl.pathname;
-  
-  // Dashboard routes protection
+  // 5. Protect paths
   const isDashboardPath = pathname === '/dashboard' || pathname.startsWith('/dashboard/') ||
                          locales.some(locale => pathname === `/${locale}/dashboard` || pathname.startsWith(`/${locale}/dashboard/`));
 
-  // Auth pages protection (redirect logged-in users away)
+  const isAdminPath = pathname === '/admin' || pathname.startsWith('/admin/') ||
+                     locales.some(locale => pathname === `/${locale}/admin` || pathname.startsWith(`/${locale}/admin/`));
+
+  const isInternalPath = pathname === '/internal' || pathname.startsWith('/internal/') ||
+                        locales.some(locale => pathname === `/${locale}/internal` || pathname.startsWith(`/${locale}/internal/`));
+
   const isAuthPath = pathname === '/login' || pathname.startsWith('/login/') ||
                     pathname === '/register' || pathname.startsWith('/register/') ||
                     pathname === '/auth/callback' || pathname.startsWith('/auth/callback/') ||
@@ -51,20 +63,42 @@ export default async function proxy(request: NextRequest) {
                                           pathname === `/${locale}/register` || pathname.startsWith(`/${locale}/register/`) ||
                                           pathname === `/${locale}/auth/callback` || pathname.startsWith(`/${locale}/auth/callback/`));
 
-  // Redirect to login if accessing dashboard while logged out
-  if (isDashboardPath && !user) {
+  const isProtectedPath = isDashboardPath || isAdminPath || isInternalPath;
+
+  // Redirect to login if accessing protected paths while logged out
+  if (isProtectedPath && !user) {
     const url = request.nextUrl.clone();
     url.pathname = '/login'; 
     return NextResponse.redirect(url);
   }
 
-  // Redirect to dashboard if accessing auth pages while logged in
+  // Redirect to role-specific home if accessing auth pages while logged in
   if (isAuthPath && user) {
-    // Only redirect if NOT on the callback page, as callback might need to finish code exchange
-    // But actually, if user is already established, we can go to dashboard
     if (!pathname.includes('/auth/callback')) {
       const url = request.nextUrl.clone();
-      url.pathname = '/dashboard';
+      
+      // Fetch role for intelligent middleware redirect
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single();
+      
+      const role = profile?.role || 'user';
+      const locale = locales.find(l => pathname.startsWith(`/${l}`)) || defaultLocale;
+
+      if (['super_admin', 'ceo', 'managing_partner'].includes(role)) {
+        url.pathname = `/${locale}/admin/executive`;
+      } else if (['cto', 'engineering_director'].includes(role)) {
+        url.pathname = `/${locale}/admin/tech`;
+      } else if (['hr_manager', 'recruiter'].includes(role)) {
+        url.pathname = `/${locale}/admin/hiring`;
+      } else if (['staff', 'employee', 'intern'].includes(role)) {
+        url.pathname = `/${locale}/internal/staff`;
+      } else {
+        url.pathname = `/${locale}/dashboard`;
+      }
+
       return NextResponse.redirect(url);
     }
   }

@@ -1,0 +1,150 @@
+{
+  "FormalizationWizard": {
+    "badge": "Compliance Streamlined",
+    "title": "Formalization Wizard",
+    "description": "Follow these steps to legally enroll your business with confidence.",
+    "completed": "Completed",
+    "keyActions": "Key Actions & Checkpoints:",
+    "nicSearch": "NIC 2008 Search",
+    "nicConfused": "Confused about your industry code?",
+    "officialPortal": "Official Portal",
+    "portalReady": "Ready to register? Visit the official government portal.",
+    "resourcesTitle": "Helpful Resources",
+    "checkerPrompt": "Uncertain about DPIIT eligibility?",
+    "checkerSub": "Run our 30-second checker to find out.",
+    "founderTip": "Founder Tip",
+    "back": "Back",
+    "next": "Next",
+    "finish": "Finish",
+    "syncing": "Syncing your progress...",
+    "disclaimer": "This wizard provides guidance and simplified checklists based on official government processes. Always verify latest requirements on official portals. This is not legal advice.",
+    "steps": {
+      "prep": {
+        "title": "Preparation",
+        "description": "Documents & Eligibility Check",
+        "tip": "Keep high-resolution scans of your Aadhaar and PAN ready. Most portals require files under 1MB.",
+        "items": [
+          "Aadhaar Card (linked to mobile)",
+          "PAN Card (Personal/Firm/Company)",
+          "Bank Account & IFSC Code",
+          "NIC Code for your business category",
+          "Investment & Turnover Estimates"
+        ],
+        "resources": [
+          {
+            "name": "NIC 2008 Search",
+            "url": "https://udyamregistration.gov.in/Government-of-India-Ministry-MSME-NIC-2008-Code.htm"
+          }
+        ]
+      },
+      "udyam": {
+        "title": "Udyam Registration",
+        "description": "Official MSME Certificate",
+        "tip": "Always use the mobile number linked to your Aadhaar for OTP verification to avoid delays.",
+        "items": [
+          "Self-declaration: No paper docs needed",
+          "Zero Cost: No government fees",
+          "Instant ID: Get certificate within 2 minutes",
+          "Priority Sector Lending (PSL) eligibility"
+        ],
+        "resources": [
+          {
+            "name": "Udyam Official Portal",
+            "url": "https://udyamregistration.gov.in/"
+          },
+          {
+            "name": "Verify Udyam Certificate",
+            "url": "https://udyamregistration.gov.in/Udyam_Verify.aspx"
+          }
+        ]
+      },
+      "dpiit": {
+        "title": "DPIIT Recognition",
+        "description": "Startup India Benefits",
+        "tip": "DPIIT recognition is key for tax holidays. Ensure your pitch deck or website is live.",
+        "hasChecker": true,
+        "items": [
+          "Startup India Registration (Portal Login)",
+          "DPIIT Certificate Application",
+          "Tax Exemption (80-IAC) readiness",
+          "Self-certification for 9 labour laws",
+          "Environmental law exemptions",
+          "Fast-track patent application"
+        ],
+        "resources": [
+          {
+            "name": "Startup India Hub",
+            "url": "https://www.startupindia.gov.in/"
+          },
+          {
+            "name": "DPIIT Guides",
+            "url": "https://www.startupindia.gov.in/content/sih/en/startupindia-learning-and-development-program.html"
+          }
+        ],
+        "checker": {
+          "launch": "Launch Checker",
+          "title": "DPIIT Eligibility Checker",
+          "description": "Find out if your business qualifies for Startup India recognition in 4 simple questions.",
+          "q1": "1. Is your business one of these?",
+          "q1_o1": "Pvt Ltd / LLP / Regd Partnership",
+          "q1_o2": "Proprietorship / Trust / NGO",
+          "q2": "2. How old is your company?",
+          "q2_o1": "Less than 10 years since inc.",
+          "q2_o2": "More than 10 years old",
+          "q3": "3. Annual turnover for any FY?",
+          "q3_o1": "Less than ₹100 Crores",
+          "q3_o2": "More than ₹100 Crores",
+          "result": "Result:",
+          "eligible": "Eligible!",
+          "notEligible": "Not Eligible",
+          "eligibleReason": "Your business meets the basic criteria for DPIIT recognition! You can proceed with the application.",
+          "notEligibleReason": "DPIIT recognition requires specific entity types and age/revenue limits. You can still be a great MSME, but these are the constraints for this specific recognition.",
+          "cta": "Show Result"
+        }
+      },
+      "gst": {
+        "title": "GST Readiness",
+        "description": "Tax Compliance Readiness",
+        "tip": "If turnover is < ₹40L, check if GST is mandatory for you. It can save compliance costs.",
+        "items": [
+          "Proof of Place of Business (Lease/Rent)",
+          "HSN/SAC Code Identification Guide",
+          "Appointment of Authorized Signatory",
+          "GST Portal login setup (post-reg)",
+          "Composition vs Standard Tax selection"
+        ],
+        "resources": [
+          {
+            "name": "GST Portal",
+            "url": "https://www.gst.gov.in/"
+          },
+          {
+            "name": "HSN Code Finder",
+            "url": "https://www.gst.gov.in/download/hsn_sac_code"
+          }
+        ]
+      },
+      "bank": {
+        "title": "Bank Account & KYC",
+        "description": "Financial Foundation",
+        "tip": "Request a cheque book immediately. You'll need it for various payment verifications.",
+        "items": [
+          "Opening Current Account (Entity Name)",
+          "Digital KYC Video Call Scheduling",
+          "Udyam-to-Bank Credit Score Link",
+          "CGTMSE Collateral-free loan check"
+        ],
+        "resources": [
+          {
+            "name": "CGTMSE Portal",
+            "url": "https://www.cgtmse.in/"
+          },
+          {
+            "name": "SIDBI MSME Loans",
+            "url": "https://www.sidbi.in/"
+          }
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "Profile": {
+    "badge": "Account Management",
+    "title": "Business Profile",
+    "description": "Manage your MSME information and brand identity with precision.",
+    "recognitionCard": {
+      "title": "Ready for DPIIT Recognition",
+      "description": "Your profile info is {percentage}% complete. Complete your founders' details to apply for Startup India recognition.",
+      "cta": "Apply Now"
+    },
+    "form": {
+      "verified": "Verified MSME",
+      "edit": "Edit",
+      "cancel": "Cancel",
+      "save": "Save Changes",
+      "saving": "Saving...",
+      "companyName": "Company Name",
+      "category": "Business Category",
+      "udyam": "Udyam Registration Number",
+      "email": "Email Address",
+      "location": "HQ Location",
+      "website": "Website",
+      "successToast": "Profile updated successfully!",
+      "errorToast": "Failed to update profile.",
+      "generalError": "An error occurred while saving."
+    }
+  }
+}

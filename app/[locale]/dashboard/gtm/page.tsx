@@ -323,7 +323,7 @@ export default function GoToMarketHub() {
                     
                     <div className="flex gap-2">
                        <Select value={tenderSector} onValueChange={setTenderSector}>
-                          <SelectTrigger className="w-[140px] bg-background/50 rounded-xl border-border/50 h-9 text-xs">
+                          <SelectTrigger className="w-[140px] bg-background/50 rounded-xl border-border/50 data-[size=default]:h-9 text-xs" size="default">
                              <SelectValue placeholder="Sector" />
                           </SelectTrigger>
                           <SelectContent className="rounded-xl border-border/50">

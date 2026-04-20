@@ -187,7 +187,7 @@ export default function LandingClient() {
                   {[
                     { label: t("features.sync.stats.formalization"), progress: 85, color: "bg-primary shadow-[0_0_10px_rgba(var(--primary),0.5)]" },
                     { label: t("features.sync.stats.ops"), progress: 40, color: "bg-accent shadow-[0_0_10px_rgba(var(--accent),0.5)]" },
-                    { label: t("features.sync.stats.ai"), progress: 10, color: "bg-muted" }
+                    { label: t("features.sync.stats.ai"), progress: 10, color: "bg-muted-foreground" }
                   ].map((s) => (
                     <div key={s.label} className="space-y-3">
                       <div className="flex justify-between text-sm font-medium tracking-tight">

@@ -1,0 +1,24 @@
+{
+  "Footer": {
+    "description": "India's first modular enablement platform for micro‑entrepreneurs. Bridging traditional operations with AI‑driven scale.",
+    "links": {
+      "platform": "Platform",
+      "connect": "Connect",
+      "legal": "Legal",
+      "items": {
+        "formalize": "Formalization",
+        "operations": "Operations",
+        "aiHub": "AI Hub",
+        "about": "About Us",
+        "pricing": "Pricing",
+        "careers": "Careers",
+        "privacy": "Privacy Policy",
+        "terms": "Terms of Service"
+      }
+    },
+    "contact": {
+      "label": "Contact us:"
+    },
+    "copyright": "© {year} MSME 360 Enablement Pvt Ltd. All rights reserved."
+  }
+}

@@ -7,13 +7,42 @@ export default getRequestConfig(async ({ requestLocale }) => {
   // Ensure we have a valid locale string
   const currentLocale = (locale && locales.includes(locale as (typeof locales)[number])) ? (locale as string) : (defaultLocale as string);
 
-  // Static mapping for reliability in build/production environments
-  const messageImports: Record<string, () => Promise<{ default: Record<string, unknown> }>> = {
-    en: () => import('../messages/en.json'),
-    hi: () => import('../messages/hi.json'),
-  };
+  // Modular segments to aggregate
+  const modules = [
+    'common',
+    'auth',
+    'microai',
+    'financial',
+    'help',
+    'community',
+    'profile',
+    'settings',
+    'operations',
+    'landing',
+    'formalization',
+    'dashboard',
+    'navigation',
+    'footer',
+    'gtm',
+    'about',
+    'careers',
+    'admin',
+    'internal',
+    'pricing'
+  ];
 
-  const messages = (await messageImports[currentLocale]()).default;
+  const messages = {};
+
+  // Aggregate all modules for the current locale
+  for (const segment of modules) {
+    try {
+      const mod = (await import(`../messages/${currentLocale}/${segment}.json`)).default;
+      Object.assign(messages, mod);
+    } catch {
+      // Silently skip missing modules - useful for incrementally adding new translations
+      // like about.json, careers.json etc.
+    }
+  }
 
   return {
     locale: currentLocale,

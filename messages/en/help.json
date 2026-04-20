@@ -1,0 +1,74 @@
+{
+  "HelpCenter": {
+    "badge": "Support Hub",
+    "title": "How can we help?",
+    "description": "Find answers to common questions or reach out to our team of MSME experts.",
+    "searchPlaceholder": "Search for guides, compliance help, or loan queries...",
+    "knowledgeBase": {
+      "title": "Knowledge Base",
+      "description": "Detailed guides on registration, GST, and business expansion.",
+      "cta": "Explore Guides"
+    },
+    "directSupport": {
+      "title": "Direct Support",
+      "description": "Chat with our mentors for personalized compliance advice.",
+      "cta": "Start Chat"
+    },
+    "tabs": {
+      "faqs": "FAQs",
+      "myTickets": "My Tickets"
+    },
+    "tickets": {
+      "noTickets": "No tickets found"
+    },
+    "faqTitle": "Frequently Asked Questions",
+    "noFaqs": "No matching questions found. Try another term.",
+    "faqs": [
+      {
+        "question": "Do I need to pay for Udyam registration?",
+        "answer": "No, Udyam registration is completely free. MSME360 provides a guided flow to the official government portal."
+      },
+      {
+        "question": "How long does DPIIT recognition take?",
+        "answer": "Typically, 2-4 weeks after submission. MSME360 helps you ensure your documents are 'recognition-ready' before you apply."
+      },
+      {
+        "question": "What is the benefit of the Loan Eligibility Simulator?",
+        "answer": "It allows you to understand your credit-readiness based on real business metrics (GST, revenue, age) before you visit a bank, increasing your approval chances."
+      },
+      {
+        "question": "Can I manage multiple businesses on MSME360?",
+        "answer": "Currently, our platform is optimized for single business management, but we're working on a multi-profile feature for Phase 7."
+      }
+    ],
+    "contact": {
+      "title": "Still have questions?",
+      "description": "Our team typically responds within 4 hours during business days.",
+      "cta": "Send a Query",
+      "submitting": "Sending...",
+      "successToast": "Support query sent! Our team will reach out soon."
+    },
+    "ticket": {
+      "title": "Open Support Ticket",
+      "subtitle": "We typically respond within 4 hours.",
+      "subject": "Subject",
+      "message": "Describe your issue...",
+      "category": "Category",
+      "submit": "Submit Ticket",
+      "error": "Please fill in all fields",
+      "subjectPlaceholder": "e.g. Udyam OTP error",
+      "success": "Ticket submitted! Our team will reach out soon.",
+      "categories": [
+        "Compliance",
+        "Technical",
+        "Billing",
+        "Partnerships"
+      ]
+    },
+    "mentorship": {
+      "title": "Expert Mentorship",
+      "description": "Book 1:1 sessions with industry experts for personalized guidance.",
+      "cta": "Schedule Now"
+    }
+  }
+}

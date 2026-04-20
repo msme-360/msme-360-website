@@ -1,0 +1,53 @@
+{
+  "Pricing": {
+    "badge": "Transparent Pricing",
+    "title": "The Zero-Fee Foundation",
+    "subtitle": "Helping Bharat's MSMEs scale with professional tools, verified compliance, and specialized AI.",
+    "foundation": {
+      "title": "Foundation",
+      "price": "₹0",
+      "period": "/lifetime",
+      "features": [
+        "Udyam Registration Wizard",
+        "DPIIT Scorer & Prep",
+        "Operations Toolkit (Basics)",
+        "Community Access",
+        "Standard AI Microservices"
+      ],
+      "cta": "Get Started"
+    },
+    "scaleAI": {
+      "title": "Scale AI",
+      "status": "Coming Soon",
+      "desc": "Advanced neural forecasting and custom GTM automation for growing teams.",
+      "features": [
+        "Advanced Neural Forecasting",
+        "Custom GTM Automation",
+        "Priority Mentor Access",
+        "Multi-Entity Management"
+      ]
+    },
+    "nodes": {
+      "title": "Nodes",
+      "status": "Custom",
+      "desc": "Dedicated compute nodes for industry clusters and large cooperatives.",
+      "features": [
+        "Dedicated GPU Compute",
+        "Custom LLM Training",
+        "White-label Portals",
+        "On-premise Deployment"
+      ]
+    },
+    "faq": {
+      "title": "Frequently Asked Questions",
+      "q1": {
+        "title": "How can it be ₹0?",
+        "desc": "Our core mission is democratization. We sustain the platform through partnerships and upcoming advanced AI compute services for larger entities."
+      },
+      "q2": {
+        "title": "Are there hidden charges?",
+        "desc": "No. We do not charge for Udyam, DPIIT assistance, or basic operational tools. Third-party government fees (if any) are paid directly to the government."
+      }
+    }
+  }
+}

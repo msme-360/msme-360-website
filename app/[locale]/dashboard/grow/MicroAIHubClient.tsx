@@ -73,8 +73,18 @@ export default function MicroAIHubClient() {
   const [isLoading, setIsLoading] = useState(true);
   const [forecastVal, setForecastVal] = useState(65);
   const [isMounted, setIsMounted] = useState(false);
-  const [activeTool, setActiveTool] = useState("forecasting");
   const searchParams = useSearchParams();
+  const toolParam = searchParams.get('tool');
+  const [activeToolState, setActiveToolState] = useState("forecasting");
+
+  const activeTool = useMemo(() => {
+    if (toolParam && ["forecasting", "ocr", "nic", "eligibility"].includes(toolParam)) {
+      return toolParam;
+    }
+    return activeToolState;
+  }, [toolParam, activeToolState]);
+
+  const setActiveTool = (tool: string) => setActiveToolState(tool);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -110,12 +120,8 @@ export default function MicroAIHubClient() {
       }
     };
     fetchData();
+  }, [t]);
 
-    const tool = searchParams.get('tool');
-    if (tool && ["forecasting", "ocr", "nic", "eligibility"].includes(tool)) {
-      setActiveTool(tool);
-    }
-  }, [searchParams, t]);
   const [ocrState, setOcrState] = useState<"idle" | "scanning" | "completed">("idle");
   const [ocrData, setOcrData] = useState<OCRData | null>(null);
   const [nicQuery, setNicQuery] = useState("");
@@ -788,7 +794,7 @@ function MicroAIInterestForm() {
                   {(field) => (
                     <>
                       <Select value={field.state.value} onValueChange={(v) => field.handleChange(v)}>
-                         <SelectTrigger className="h-12 rounded-xl bg-background/50 border-border/50">
+                         <SelectTrigger className="data-[size=default]:h-12 rounded-xl bg-background/50 border-border/50" size="default">
                             <SelectValue />
                          </SelectTrigger>
                          <SelectContent className="rounded-xl border-border/50">

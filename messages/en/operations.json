@@ -1,0 +1,106 @@
+{
+  "OperationsHub": {
+    "badge": "Operations Hub",
+    "title": "Operations Toolkit",
+    "description": "Essential resources for day-to-day business management.",
+    "financialTools": "Financial Management",
+    "sopLibrary": "Resource Toolkit",
+    "cachedBadge": "CACHED FOR SPEED",
+    "lastUpdated": "Last modified: {date}",
+    "cashFlow": {
+      "title": "Cash Flow Predictor",
+      "description": "Track your liquidity and runway based on current burn rate.",
+      "surplus": "SURPLUS",
+      "burnRate": "BURN RATE",
+      "income": "Monthly Income",
+      "expenses": "Monthly Expenses",
+      "reserve": "Current Cash Reserve",
+      "currency": "₹",
+      "impact": "Net Monthly Impact",
+      "runway": "Survival Runway",
+      "months": "Months",
+      "health": "Health Status",
+      "positive": "Positive",
+      "critical": "Critical"
+    },
+    "invoice": {
+      "title": "Invoice Generator",
+      "description": "Create legally compliant invoices in seconds.",
+      "date": "Invoice Date",
+      "billTo": "Bill To",
+      "name": "Client/Business Name",
+      "email": "Email Address",
+      "address": "Business Address",
+      "details": "Invoice Details",
+      "number": "Invoice #",
+      "status": "Status",
+      "draft": "Draft",
+      "itemDesc": "Description",
+      "qty": "Qty",
+      "price": "Price",
+      "placeholder": "Item name or service",
+      "addItem": "Add Item Line",
+      "subtotal": "Subtotal",
+      "gst": "GST (18%)",
+      "total": "Grand Total",
+      "secure": "Powered by MSME360 Secure Billing",
+      "save": "Save Draft",
+      "generate": "Generate Invoice",
+      "toastGenerating": "Generating Professional PDF...",
+      "toastReady": "Invoice Ready for Download!"
+    },
+    "customRequest": {
+      "text": "Need a specialized operational tool for your unique business flow?",
+      "cta": "Request Custom Build"
+    },
+    "compliance": {
+      "title": "Compliance Tracker",
+      "subtitle": "Stay ahead of legal and tax deadlines.",
+      "due": "Due: {date}",
+      "filedOn": "Filed on {date}",
+      "markAsFiled": "Mark as Filed",
+      "noTasks": "No pending compliance tasks.",
+      "month": "October 2024"
+    },
+    "team": {
+      "title": "Team Ledger",
+      "viewAll": "View All Employees",
+      "empty": "No team members recorded.",
+      "roles": {
+        "proprietor": "Proprietor",
+        "accountsManager": "Accounts Manager",
+        "salesExecutive": "Sales Executive",
+        "supportStar": "Support Star",
+        "leadDeveloper": "Lead Developer"
+      }
+    },
+    "status": {
+      "active": "Active",
+      "pending": "Pending",
+      "filed": "Filed",
+      "onboarding": "Onboarding"
+    }
+  },
+  "SOPTemplates": {
+    "gst-filing": {
+      "title": "GST Monthly Filing SOP",
+      "content": "Step 1: Reconcile invoices with GSTR-2B. Step 2: Extract sales data for GSTR-1...",
+      "category": "Compliance"
+    },
+    "udyam-update": {
+      "title": "Udyam Renewal SOP",
+      "content": "Step 1: Check NIC codes for activity changes. Step 2: Update investment & turnover details...",
+      "category": "Registration"
+    },
+    "hiring-flow": {
+      "title": "New Employee Onboarding",
+      "content": "Step 1: Collect Aadhaar/PAN. Step 2: Issue appointment letter. Step 3: Setup bank account...",
+      "category": "HR"
+    },
+    "sales-outreach": {
+      "title": "B2B Sales Outreach",
+      "content": "Step 1: Identify targets. Step 2: Send WhatsApp intro script. Step 3: Follow up in 48 hours...",
+      "category": "Sales"
+    }
+  }
+}

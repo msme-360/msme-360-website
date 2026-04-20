@@ -1,0 +1,72 @@
+{
+  "FinancialHub": {
+    "badge": "Financial Control",
+    "title": "Financial Hub",
+    "description": "Bridge the gap between business metrics and capital. Secure, data-driven financial enablement.",
+    "tabs": {
+      "simulator": "Loan Simulator",
+      "schemes": "Government Schemes",
+      "banking": "Banking Partners"
+    },
+    "simulator": {
+      "title": "Credit Readiness Simulator",
+      "subtitle": "Discover your borrowing potential based on real business health.",
+      "scoreLabel": "Credit Readiness Score",
+      "revenue": "GSTR Monthly Revenue",
+      "age": "Business Age (Years)",
+      "yearsUnit": "Years",
+      "formalizedTitle": "Is Business Formalized?",
+      "formalizedBonus": "+100 Score Bonus",
+      "loanPotential": "Projected Loan Potential",
+      "benchmark": "Benchmark: In the <span>top 15%</span> of peer MSMEs",
+      "cta": "Get Verified Score"
+    },
+    "schemes": {
+      "searchPlaceholder": "Search for schemes (e.g., 'subsidy', 'manufacturing')",
+      "filterCta": "Filter by Category",
+      "searching": "Searching...",
+      "benefitLabel": "Benefit:",
+      "visitPortal": "Visit Portal"
+    },
+    "sidebar": {
+      "investorTitle": "Investor Readiness",
+      "pitchScore": "Pitch Score",
+      "readinessAdvice": "Your documentation is highly precise. Ready for debt fund review.",
+      "readinessCta": "Download Financial Pack",
+      "bankingPartners": "Banking Partners",
+      "bankingDesc": "Fast-track business accounts with our integrated partners.",
+      "bankingPartnersList": ["HDFC Bank", "SBI", "ICICI Bank"],
+      "fastTrack": "Fast-track Available"
+    },
+    "notice": {
+      "title": "Verification Notice:",
+      "text": "Loan simulator provides estimates based on standard bank algorithms. Actual credit scores and loan offers may vary based on your CIBIL profile and individual bank policies."
+    }
+  },
+  "Schemes": {
+    "pmegp": {
+      "title": "PMEGP Loans",
+      "description": "Credit linked subsidy program for setting up new micro-enterprises. Up to ₹50 Lakhs for manufacturing.",
+      "subsidy": "15% - 35%",
+      "category": "Manufacturing"
+    },
+    "cgtsme": {
+      "title": "CGTMSE Coverage",
+      "description": "Collateral free credit for MSMEs up to ₹5 Cr with government guarantee.",
+      "subsidy": "Credit Guarantee",
+      "category": "Service"
+    },
+    "clcss": {
+      "title": "CLCSS Subsidy",
+      "description": "Technology Upgradation subsidy for plant & machinery in specified sectors.",
+      "subsidy": "15% Upfront",
+      "category": "Technology"
+    },
+    "mudra": {
+      "title": "MUDRA Yojana",
+      "description": "Micro-finance for non-corporate, non-farm small/micro enterprises up to ₹10 Lakhs.",
+      "subsidy": "Low Interest",
+      "category": "General"
+    }
+  }
+}

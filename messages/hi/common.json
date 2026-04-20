@@ -1,0 +1,113 @@
+{
+  "Common": {
+    "dashboard": "डैशबोर्ड",
+    "formalize": "व्यवसाय पंजीकरण",
+    "operate": "ऑपरेशन्स",
+    "grow": "MicroAI हब",
+    "connect": "कम्युनिटी",
+    "profile": "प्रोफ़ाइल",
+    "settings": "सेटिंग्स",
+    "help": "सहायता",
+    "logout": "लॉगआउट",
+    "backToDashboard": "डैशबोर्ड पर वापस जाएं",
+    "loading": "लोड हो रहा है...",
+    "search": "सर्च...",
+    "searchPlaceholder": "टूल खोजें या ⌘K दबाएं",
+    "noMatches": "\"{query}\" के लिए कोई मेल नहीं मिला",
+    "clearSearch": "खोज साफ़ करें",
+    "searchResults": "खोज परिणाम",
+    "recentActions": "हालिया गतिविधियां",
+    "smartMatch": "स्मार्ट मैच",
+    "poweredBy": "MicroAI द्वारा संचालित",
+    "notifications": "सूचनाएं",
+    "language": "भाषा",
+    "theme": "थीम",
+    "unauthorized": "अनधिकृत एक्सेस",
+    "more": "अधिक",
+    "previousSlide": "पिछली स्लाइड",
+    "nextSlide": "अगली स्लाइड"
+  },
+  "Stats": {
+    "formalization": {
+      "title": "औपचारिकता",
+      "status": "{current}/{total} चरण",
+      "description": "उद्यम, DPIIT और GST"
+    },
+    "operations": {
+      "title": "ऑपरेशन्स",
+      "status": "शुरू नहीं हुआ",
+      "description": "टूलकिट और टेम्पलेट्स"
+    },
+    "microAI": {
+      "title": "MicroAI हब",
+      "status": "सक्रिय",
+      "description": "AI माइक्रोसर्विसेज"
+    },
+    "gtm": {
+      "title": "गो-टू-मार्केट",
+      "status": "चरण 3",
+      "description": "लॉन्च और रणनीति"
+    },
+    "financial": {
+      "title": "वित्तीय कनेक्ट",
+      "status": "तैयार",
+      "description": "ऋण और सब्सिडी"
+    }
+  },
+  "Navigation": {
+    "dashboard": "डैशबोर्ड",
+    "formalize": "औपचारिकता",
+    "operate": "ऑपरेशन्स",
+    "grow": "MicroAI हब",
+    "gtm": "गो-टू-मार्केट",
+    "connect": "वित्तीय कनेक्ट",
+    "profile": "प्रोफ़ाइल",
+    "settings": "सेटिंग्स",
+    "community": "कम्युनिटी हब",
+    "help": "समर्थन हब",
+    "groups": {
+      "business": "व्यापार",
+      "innovation": "नवाचार",
+      "account": "खाता"
+    },
+    "footer": {
+      "plan": "विकास योजना",
+      "status": "हमेशा के लिए मुफ्त"
+    },
+    "logout": "लॉगआउट"
+  },
+  "Navbar": {
+    "links": {
+      "formalize": "औपचारिकता",
+      "operate": "ऑपरेशन्स",
+      "grow": "AI के साथ बढ़ें",
+      "about": "हमारे बारे में",
+      "pricing": "मूल्य निर्धारण",
+      "careers": "करियर",
+      "login": "लॉगइन",
+      "join": "अभी जुड़ें"
+    }
+  },
+  "Footer": {
+    "description": "सूक्ष्म उद्यमियों के लिए भारत का पहला मॉड्यूलर सक्षमीकरण मंच। पारंपरिक ऑपरेशन्स और AI-संचालित स्केल के बीच की खाई को पाटना। 10k MSMEs द्वारा विश्वसनीय।",
+    "links": {
+      "platform": "प्लेटफॉर्म",
+      "connect": "कनेक्ट",
+      "legal": "कानूनी",
+      "items": {
+        "formalize": "औपचारिकता",
+        "operations": "ऑपरेशन्स",
+        "aiHub": "AI हब",
+        "about": "हमारे बारे में",
+        "pricing": "मूल्य निर्धारण",
+        "careers": "करियर",
+        "privacy": "गोपनीयता नीति",
+        "terms": "सेवा की शर्तें"
+      }
+    },
+    "contact": {
+      "label": "संपर्क करें:"
+    },
+    "copyright": "© {year} MSME 360 एनेबलमेंट प्राइवेट लिमिटेड। सर्वाधिकार सुरक्षित।"
+  }
+}

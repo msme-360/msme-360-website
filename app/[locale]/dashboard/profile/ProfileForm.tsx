@@ -180,7 +180,7 @@ export function ProfileForm({ initialProfile }: ProfileFormProps) {
                         id={field.name}
                         name={field.name}
                         disabled={!isEditing}
-                        value={field.state.value}
+                        value={field.state.value ?? ""}
                         onChange={(e) => field.handleChange(e.target.value)}
                         onBlur={field.handleBlur}
                         className={cn("bg-secondary/30 rounded-xl", field.state.meta.errors.length ? "border-destructive" : "")}
@@ -188,7 +188,7 @@ export function ProfileForm({ initialProfile }: ProfileFormProps) {
                       {field.state.meta.errors.length > 0 && (
                         <p className="text-[10px] text-destructive flex items-center gap-1 mt-1 font-medium">
                           <AlertCircle className="w-3.5 h-3.5" />
-                            {(field.state.meta.errors[0] as { message?: string })?.message}
+                            {(field.state.meta.errors[0] as { message?: string })?.message || String(field.state.meta.errors[0])}
                         </p>
                       )}
                     </div>
@@ -202,7 +202,7 @@ export function ProfileForm({ initialProfile }: ProfileFormProps) {
                         id={field.name}
                         name={field.name}
                         disabled={!isEditing}
-                        value={field.state.value}
+                        value={field.state.value ?? ""}
                         onChange={(e) => field.handleChange(e.target.value)}
                         onBlur={field.handleBlur}
                         className={cn("bg-secondary/30 rounded-xl", field.state.meta.errors.length ? "border-destructive" : "")}
@@ -214,7 +214,7 @@ export function ProfileForm({ initialProfile }: ProfileFormProps) {
                   <Label className="text-xs font-bold uppercase tracking-widest opacity-60 mb-2 block">{t("udyam")}</Label>
                   <Input
                     disabled={true}
-                    value={initialProfile.udyam_number}
+                    value={initialProfile.udyam_number ?? ""}
                     className="bg-secondary/10 rounded-xl font-mono opacity-60"
                   />
                 </div>
@@ -235,7 +235,7 @@ export function ProfileForm({ initialProfile }: ProfileFormProps) {
                             <Input
                               id={field.name}
                               name={field.name}
-                              value={field.state.value}
+                              value={field.state.value ?? ""}
                               onChange={(e) => field.handleChange(e.target.value)}
                               onBlur={field.handleBlur}
                               className="h-8 text-sm p-0 border-0 bg-transparent focus-visible:ring-0"
@@ -247,7 +247,8 @@ export function ProfileForm({ initialProfile }: ProfileFormProps) {
                       </div>
                       {field.state.meta.errors.length > 0 && isEditing && (
                         <p className="text-[10px] text-destructive flex items-center gap-1 ml-9 font-medium">
-                          <AlertCircle className="w-3 h-3" /> {(field.state.meta.errors[0] as { message?: string })?.message}
+                          <AlertCircle className="w-3 h-3" />
+                          {(field.state.meta.errors[0] as { message?: string })?.message || String(field.state.meta.errors[0])}
                         </p>
                       )}
                     </div>
@@ -268,7 +269,7 @@ export function ProfileForm({ initialProfile }: ProfileFormProps) {
                             <Input
                               id={field.name}
                               name={field.name}
-                              value={field.state.value}
+                              value={field.state.value ?? ""}
                               onChange={(e) => field.handleChange(e.target.value)}
                               onBlur={field.handleBlur}
                               className="h-8 text-sm p-0 border-0 bg-transparent focus-visible:ring-0"
@@ -296,7 +297,7 @@ export function ProfileForm({ initialProfile }: ProfileFormProps) {
                             <Input
                               id={field.name}
                               name={field.name}
-                              value={field.state.value}
+                              value={field.state.value ?? ""}
                               onChange={(e) => field.handleChange(e.target.value)}
                               onBlur={field.handleBlur}
                               className="h-8 text-sm p-0 border-0 bg-transparent focus-visible:ring-0"
@@ -308,7 +309,8 @@ export function ProfileForm({ initialProfile }: ProfileFormProps) {
                       </div>
                       {field.state.meta.errors.length > 0 && isEditing && (
                         <p className="text-[10px] text-destructive flex items-center gap-1 ml-9 font-medium">
-                          <AlertCircle className="w-3 h-3" /> {(field.state.meta.errors[0] as { message?: string })?.message}
+                          <AlertCircle className="w-3 h-3" />
+                          {(field.state.meta.errors[0] as { message?: string })?.message || String(field.state.meta.errors[0])}
                         </p>
                       )}
                     </div>

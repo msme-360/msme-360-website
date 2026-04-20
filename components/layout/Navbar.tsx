@@ -11,7 +11,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import LocaleSwitcher from "./LocaleSwitcher";
 
 export function Navbar() {
-  const t = useTranslations("Navigation");
   const tNav = useTranslations("Navbar");
   const params = useParams();
   const locale = (params?.locale as string) || "en";
@@ -19,11 +18,10 @@ export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
 
   const navLinks = useMemo(() => [
-    { name: t("formalize"), href: `/#formalize` },
-    { name: t("operate"), href: `/#operate` },
-    { name: t("grow"), href: `/#grow` },
-    { name: t("profile"), href: `/#story` },
-  ], [t]);
+    { name: tNav("links.about"), href: `/${locale}/about` },
+    { name: tNav("links.pricing"), href: `/${locale}/pricing` },
+    { name: tNav("links.careers"), href: `/${locale}/careers` },
+  ], [tNav, locale]);
 
   useEffect(() => {
     const handleScroll = () => {

@@ -120,7 +120,7 @@ export default function CommunityClient({ initialUpdates }: CommunityClientProps
     }
   ], [t]);
 
-  const handlePostUpdate = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handlePostUpdate = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     const content = formData.get('content') as string;

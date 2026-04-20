@@ -96,12 +96,21 @@ function Carousel({
 
   React.useEffect(() => {
     if (!api) return
-    onSelect(api)
+
+    // Defer initial onSelect to avoid synchronous setState warning
+    const handleInit = () => {
+      onSelect(api)
+    }
+    
+    const rafId = requestAnimationFrame(handleInit)
+    
     api.on("reInit", onSelect)
     api.on("select", onSelect)
 
     return () => {
+      cancelAnimationFrame(rafId)
       api?.off("select", onSelect)
+      api?.off("reInit", onSelect)
     }
   }, [api, onSelect])
 

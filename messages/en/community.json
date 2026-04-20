@@ -1,0 +1,45 @@
+{
+  "CommunityHub": {
+    "badge": "Global Network",
+    "title": "Community Hub",
+    "description": "Connect with 50,000+ verified MSME founders. Share insights, build partnerships, and scale together.",
+    "updates": {
+      "title": "Founder Updates",
+      "viewAll": "View All"
+    },
+    "spotlight": {
+      "badge": "Founder Spotlight",
+      "title": "From student project to ₹1Cr portfolio.",
+      "description": "How Priya used MSME360 to complete formalization in 3 days and secured her first angel round using the Capital Hub.",
+      "cta": "Read Full Story"
+    },
+    "circles": {
+      "title": "Active Circles",
+      "browse": "Browse All Circles",
+      "membersActive": "{count} Active",
+      "waFounders": "MSME Founders India",
+      "aiCircle": "MicroAI Strategy Circle",
+      "complianceSupport": "Compliance & Tax Support"
+    },
+    "networking": {
+      "title": "Networking Bonus",
+      "description": "Unlock exclusive networking events by reaching \"Expert\" status in the Formalization Wizard.",
+      "cta": "Learn More"
+    },
+    "mentorship": {
+      "title": "Expert Mentorship",
+      "subtitle": "Book 1:1 sessions with industry veterans.",
+      "slots": "Available Slots",
+      "noSlots": "No slots available for today.",
+      "book": "Book Session",
+      "booked": "Booked",
+      "success": "Slot booked! Check your email for details."
+    },
+    "gshare": {
+      "title": "G-Share Governance",
+      "subtitle": "Modular governance for small teams.",
+      "description": "Implement transparent decision-making with our pre-built governance templates.",
+      "cta": "View Framework"
+    }
+  }
+}

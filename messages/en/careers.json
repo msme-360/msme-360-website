@@ -1,0 +1,53 @@
+{
+  "Careers": {
+    "badge": "Careers at MSME 360",
+    "titlePart1": "Build for Bharat's",
+    "titlePart2": "60 Million MSMEs",
+    "subtitle": "Join a mission-driven team building tools that empower the backbone of the Indian economy.",
+    "categories": {
+      "selection": "Select Category",
+      "internship": {
+        "title": "Internships",
+        "desc": "Start your journey with real-world product building. For students and recent graduates looking for high-impact execution.",
+        "cta": "View Openings"
+      },
+      "job": {
+        "title": "Full-Time Jobs",
+        "desc": "Looking for experienced builders to lead and execute on core features. High-ownership, high-impact roles for industry veterans.",
+        "cta": "Check Roles"
+      }
+    },
+    "internships": {
+      "title": "Internship Openings",
+      "subtitle": "Practical knowledge required in relevant domains.",
+      "count": "{count} Opportunities",
+      "back": "Back to Categories"
+    },
+    "jobs": {
+      "comingSoon": "Coming Soon",
+      "title": "Full-Time Opportunities",
+      "desc": "We are currently focusing on our 2026 Internship Program. Full-time experienced roles will be listed shortly.",
+      "cta": "Register for Updates",
+      "back": "Back to Categories"
+    },
+    "openApp": {
+      "title": "Don't see a perfect match?",
+      "desc": "If you have a strong problem-solving mindset and can demonstrate technical capability, we want to hear from you.",
+      "cta": "Send an Open Application"
+    },
+    "values": {
+      "impact": {
+        "title": "Real World Impact",
+        "desc": "Work on features and products that will be used by millions of small business owners."
+      },
+      "accountability": {
+        "title": "Accountability",
+        "desc": "Self-driven culture where you own your results and growth from day one."
+      },
+      "speed": {
+        "title": "Fast-Paced",
+        "desc": "Collaborate in a development environment that values speed and high-quality execution."
+      }
+    }
+  }
+}

@@ -322,7 +322,7 @@ export default function HelpCenterClient() {
                         value={field.state.value} 
                         onValueChange={(val) => field.handleChange(val)}
                       >
-                        <SelectTrigger className="h-12 rounded-xl bg-background/50 border-border/50">
+                        <SelectTrigger className="data-[size=default]:h-12 rounded-xl bg-background/50 border-border/50" size="default">
                             <SelectValue />
                         </SelectTrigger>
                         <SelectContent className="rounded-xl border-border/50">

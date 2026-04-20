@@ -1,0 +1,50 @@
+{
+  "Settings": {
+    "badge": "Global Preferences",
+    "title": "Settings",
+    "description": "Manage your platform preferences and security with precision.",
+    "logout": "Logout",
+    "loading": "Loading settings...",
+    "notifications": {
+      "title": "Notifications",
+      "updated": "Preferences updated successfully",
+      "compliance": {
+        "title": "Compliance Alerts",
+        "description": "Stay informed about upcoming GST and filing deadlines."
+      },
+      "growth": {
+        "title": "Growth Opportunities",
+        "description": "Alerts about new government schemes and subsidies."
+      },
+      "community": {
+        "title": "Community",
+        "description": "Get alerts about new circles and mentorship slots."
+      },
+      "security": {
+        "title": "Security",
+        "description": "Alerts about login attempts and critical account changes."
+      }
+    },
+    "appearance": {
+      "title": "Appearance",
+      "unicornMode": {
+        "title": "Unicorn mode",
+        "description": "Our signature neon-on-onyx aesthetic for maximum focus."
+      }
+    },
+    "dangerZone": {
+      "title": "Danger Zone",
+      "deleteProfile": {
+        "title": "Delete Business Profile",
+        "description": "Permanently remove all data and progress associated with this business."
+      },
+      "deleteButton": "Delete Account",
+      "deleteConfirm": {
+        "title": "Are you absolutely sure?",
+        "description": "This action cannot be undone. This will permanently delete your MSME profile and remove your data from our servers."
+      },
+      "cancel": "Cancel",
+      "confirmDelete": "Delete Account"
+    }
+  }
+}
