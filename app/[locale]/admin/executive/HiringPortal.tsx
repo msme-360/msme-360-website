@@ -15,10 +15,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useMemo } from "react";
 import { supabase } from "@/lib/supabase";
 import { logger } from "@/lib/logger";
 import { useTranslations } from "next-intl";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 interface Application {
   id: string;
@@ -36,31 +37,21 @@ interface Application {
 
 export function HiringPortal() {
   const t = useTranslations("Admin.HiringPortal");
-  const [applications, setApplications] = useState<Application[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [filter, setFilter] = useState('all');
 
-  const fetchApplications = useCallback(async () => {
-    try {
-      setLoading(true);
+  const { data: applications = [], isLoading: loading, refetch } = useQuery({
+    queryKey: ['intern_applications'],
+    queryFn: async () => {
       const { data, error } = await supabase
         .from('intern_applications')
         .select('*')
         .order('applied_at', { ascending: false });
 
       if (error) throw error;
-      setApplications(data || []);
-    } catch (error) {
-      logger.error("Failed to fetch applications", "HiringPortal", error);
-      toast.error(t("toasts.fetchFailed"));
-    } finally {
-      setLoading(false);
+      return data as Application[];
     }
-  }, [t]);
-
-  useEffect(() => {
-    fetchApplications();
-  }, [fetchApplications]);
+  });
 
   const handleAction = async (id: string, email: string, action: 'shortlisted' | 'rejected' | 'hired', details: Application) => {
     try {
@@ -94,14 +85,23 @@ export function HiringPortal() {
         toast.success(t("toasts.actionSuccess", { action: t(`candidateRow.${action}`) }));
       }
 
-      fetchApplications();
+      queryClient.invalidateQueries({ queryKey: ['intern_applications'] });
     } catch (error) {
       logger.error(`Failed to perform ${action}`, "HiringPortal", error);
       toast.error(t("toasts.actionFailed"));
     }
   };
 
-  const filteredApps = applications.filter(app => filter === 'all' || app.status === filter);
+  const filteredApps = useMemo(() => 
+    applications.filter(app => filter === 'all' || app.status === filter),
+    [applications, filter]
+  );
+
+  const counts = useMemo(() => ({
+    all: applications.length,
+    pending: applications.filter(a => a.status === 'pending').length,
+    hired: applications.filter(a => a.status === 'hired').length
+  }), [applications]);
 
   return (
     <div className="space-y-6">
@@ -111,14 +111,14 @@ export function HiringPortal() {
           <p className="text-muted-foreground">{t("subtitle")}</p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={fetchApplications}>{t("refresh")}</Button>
+          <Button variant="outline" size="sm" onClick={() => refetch()}>{t("refresh")}</Button>
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <StatusFilterCard count={applications.length} label={t("totalApplied")} active={filter === 'all'} onClick={() => setFilter('all')} color="primary" />
-        <StatusFilterCard count={applications.filter(a => a.status === 'pending').length} label={t("pendingReview")} active={filter === 'pending'} onClick={() => setFilter('pending')} color="amber" />
-        <StatusFilterCard count={applications.filter(a => a.status === 'hired').length} label={t("hired")} active={filter === 'hired'} onClick={() => setFilter('hired')} color="green" />
+        <StatusFilterCard count={counts.all} label={t("totalApplied")} active={filter === 'all'} onClick={() => setFilter('all')} color="primary" />
+        <StatusFilterCard count={counts.pending} label={t("pendingReview")} active={filter === 'pending'} onClick={() => setFilter('pending')} color="amber" />
+        <StatusFilterCard count={counts.hired} label={t("hired")} active={filter === 'hired'} onClick={() => setFilter('hired')} color="green" />
       </div>
 
       <div className="bg-background border border-border/50 rounded-2xl overflow-hidden shadow-sm">
@@ -169,7 +169,7 @@ function CandidateRow({ app, onAction, t }: { app: Application; onAction: (a: 's
           <div className="flex items-center gap-2">
             <h4 className="font-bold text-lg">{app.full_name}</h4>
             <Badge variant={statusColors[app.status]} className="capitalize text-[10px] h-5">
-              {t(`candidateRow.${app.status}` as any) || app.status}
+              {t(`candidateRow.${app.status}` as "candidateRow.pending" | "candidateRow.shortlisted" | "candidateRow.rejected" | "candidateRow.hired")}
             </Badge>
           </div>
           <p className="text-sm text-muted-foreground flex items-center gap-2">

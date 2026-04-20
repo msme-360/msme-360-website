@@ -1,6 +1,6 @@
 "use client";
 
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { usePathname, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Languages } from "lucide-react";
@@ -13,6 +13,7 @@ import {
 
 export default function LocaleSwitcher() {
   const locale = useLocale();
+  const t = useTranslations("Common");
   const router = useRouter();
   const pathname = usePathname();
 
@@ -32,7 +33,7 @@ export default function LocaleSwitcher() {
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="icon" className="rounded-full w-9 h-9 border border-border/50 hover:bg-primary/10 hover:text-primary transition-colors">
           <Languages className="w-4 h-4" />
-          <span className="sr-only">Switch Language</span>
+          <span className="sr-only">{t("switchLanguage")}</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="glass-card min-w-[120px]">
@@ -40,13 +41,13 @@ export default function LocaleSwitcher() {
           onClick={() => handleLocaleChange("en")}
           className={locale === "en" ? "bg-primary/10 text-primary font-bold" : ""}
         >
-          English
+          {t("english")}
         </DropdownMenuItem>
         <DropdownMenuItem 
           onClick={() => handleLocaleChange("hi")}
           className={locale === "hi" ? "bg-primary/10 text-primary font-bold" : ""}
         >
-          हिन्दी (Hindi)
+          {t("hindi")}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

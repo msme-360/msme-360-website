@@ -1,15 +1,7 @@
+"use client";
+
 import {
   Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuButton,
-  SidebarGroup,
-  SidebarGroupLabel,
-  SidebarGroupContent,
-  SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { 
   ShieldCheck, 
@@ -20,22 +12,23 @@ import {
   Settings,
   UserCircle 
 } from "lucide-react";
-import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useParams } from "next/navigation";
-import { LogoutButton } from "./LogoutButton";
 import { useRole } from "@/hooks/useRole";
 import { 
   ShieldCheck as ShieldIcon,
   Building2 
 } from "lucide-react";
+import { AppSidebarHeader } from "./sidebars/AppSidebarHeader";
+import { AppSidebarContent } from "./sidebars/AppSidebarContent";
+import { AppSidebarFooter } from "./sidebars/AppSidebarFooter";
 
 
 export function AppSidebar({ userId }: { userId?: string }) {
   const t = useTranslations("Navigation");
   const params = useParams();
   const locale = params.locale as string;
-  const { isStaff, isAdmin } = useRole(userId || "");
+  const { roleData } = useRole(userId || "");
 
   const navItems = [
     { group: t("groups.business"), items: [
@@ -59,92 +52,29 @@ export function AppSidebar({ userId }: { userId?: string }) {
       title: "Admin Portal", 
       icon: ShieldIcon, 
       url: `/${locale}/admin/roles`, 
-      visible: isAdmin, 
       color: "text-primary" 
     },
     { 
       title: "Staff Hub", 
       icon: Building2, 
       url: `/${locale}/internal/staff`, 
-      visible: isStaff || isAdmin, 
       color: "text-accent" 
     },
   ];
 
   return (
     <Sidebar collapsible="icon" variant="inset" className="border-r border-border/50">
-      <SidebarHeader className="p-4 group-data-[collapsible=icon]:p-2 transition-all border-b border-border/50 mb-2">
-        <div className="flex items-center justify-between gap-1 overflow-hidden group-data-[collapsible=icon]:justify-center">
-          <Link href={`/${locale}/dashboard`} className="flex items-center gap-2 px-2 group shrink-0 group-data-[collapsible=icon]:hidden">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center shadow-glow group-hover:scale-110 transition-transform shrink-0">
-              <Rocket className="w-4 h-4 text-primary-foreground" />
-            </div>
-            <span className="font-display font-bold text-base tracking-tight transition-all duration-300 group-data-[collapsible=icon]:w-0 group-data-[collapsible=icon]:opacity-0 overflow-hidden whitespace-nowrap">
-              MSME <span className="text-primary border-primary">360</span>
-            </span>
-          </Link>
-          <div className="shrink-0 flex items-center justify-center">
-            <SidebarTrigger className="h-8 w-8 hover:bg-secondary/80 rounded-lg transition-colors group-data-[collapsible=icon]:h-10 group-data-[collapsible=icon]:w-10 group-data-[collapsible=icon]:bg-primary/5 group-data-[collapsible=icon]:text-primary" />
-          </div>
-        </div>
-      </SidebarHeader>
-      
-      <SidebarContent>
-        {navItems.map((group) => (
-          <SidebarGroup key={group.group}>
-            <SidebarGroupLabel>{group.group}</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {group.items.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild>
-                      <Link href={item.url} className="flex items-center gap-3">
-                        <item.icon className="w-4 h-4" />
-                        <span>{item.title}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        ))}
-
-        {/* Conditional Admin/Staff Section */}
-        {(isAdmin || isStaff) && (
-          <SidebarGroup>
-            <SidebarGroupLabel className="text-[10px] font-bold text-primary uppercase tracking-widest">Governance</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {adminItems.filter(item => item.visible).map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild tooltip={item.title}>
-                      <Link href={item.url} className={`flex items-center gap-3 ${item.color}`}>
-                        <item.icon className="w-4 h-4" />
-                        <span className="font-bold">{item.title}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        )}
-      </SidebarContent>
-
-      <SidebarFooter className="p-4 group-data-[collapsible=icon]:p-2 border-t border-border/50">
-        <div className="mb-4">
-          <LogoutButton label={t("logout")} />
-        </div>
-        <div className="glass-card p-4 border-primary/10 group-data-[collapsible=icon]:hidden">
-          <p className="text-[10px] font-bold text-primary mb-1 uppercase tracking-widest">{t("footer.plan")}</p>
-          <p className="text-sm font-bold font-display">{t("footer.status")}</p>
-        </div>
-        <div className="hidden group-data-[collapsible=icon]:flex items-center justify-center py-2 h-10">
-          <div className="w-6 h-1 bg-primary/20 rounded-full" />
-        </div>
-      </SidebarFooter>
-
+      <AppSidebarHeader locale={locale} />
+      <AppSidebarContent 
+        navItems={navItems} 
+        roleData={roleData} 
+        adminItems={adminItems} 
+      />
+      <AppSidebarFooter 
+        logoutLabel={t("logout")} 
+        planLabel={t("footer.plan")} 
+        statusLabel={t("footer.status")} 
+      />
     </Sidebar>
   );
 }

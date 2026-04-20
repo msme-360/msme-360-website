@@ -25,7 +25,12 @@
     "unauthorized": "अनधिकृत एक्सेस",
     "more": "अधिक",
     "previousSlide": "पिछली स्लाइड",
-    "nextSlide": "अगली स्लाइड"
+    "nextSlide": "अगली स्लाइड",
+    "logoutSuccess": "सफलतापूर्वक साइन आउट किया गया",
+    "logoutError": "साइन आउट करने में त्रुटि",
+    "switchLanguage": "भाषा बदलें",
+    "english": "English (अंग्रेज़ी)",
+    "hindi": "हिन्दी (Hindi)"
   },
   "Stats": {
     "formalization": {

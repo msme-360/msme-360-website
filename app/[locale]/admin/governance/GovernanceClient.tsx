@@ -9,7 +9,6 @@ import {
   TrendingUp,
   Scale,
   History,
-  ArrowUpRight,
   UserCheck
 } from "lucide-react";
 import { motion } from "framer-motion";

@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { getLevelTitle } from "@/lib/constants/levels";
+import { getLevelTitle } from "@/lib/constants/roles";
 
 export function WorkforceManager() {
   const employees = [

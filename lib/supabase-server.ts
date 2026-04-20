@@ -2,6 +2,13 @@ import "server-only";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
+/**
+ * Supabase Standard Server Client
+ * 
+ * USE CASE: Server Components, Server Actions, and Route Handlers.
+ * SECURITY: Uses the public anon key. Strictly bound by Row-Level Security (RLS).
+ * SESSION: Reads and writes cookies to maintain the user session.
+ */
 export async function createClient() {
   const cookieStore = await cookies();
 
@@ -28,10 +35,12 @@ export async function createClient() {
 }
 
 /**
- * Creates a Supabase client that does NOT read cookies.
- * This is safe to use inside "use cache" scopes in Next.js 16.
- * Note: Since it doesn't have a user session, it ignores RLS.
- * Use it ONLY for system tasks or when you pass a userId and trust the server-side logic to filter correctly.
+ * Supabase Service Role Client (Administrative)
+ * 
+ * USE CASE: Background tasks, system migrations, or privileged operations.
+ * SECURITY: BYPASSES ALL Row-Level Security (RLS). This is a "God Mode" client.
+ * WARNING: NEVER use this client for requests that take untrusted user input without strict validation.
+ * SESSION: Does NOT use cookies. Static administrative access only.
  */
 export async function createServiceClient() {
   // CRITICAL SECURITY: Never use NEXT_PUBLIC_ for the service_role key.

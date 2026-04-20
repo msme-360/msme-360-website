@@ -43,15 +43,17 @@ async function DashboardLayoutInner({ children, locale }: { children: React.Reac
   const userRole = profile?.role || 'user';
 
   // REDIRECTION GUARD: Internal roles (Level 0-5) belong in Professional Portals
-  // Level 0-1: Admin, Level 2-3: Ops/Management, Level 4-5: Staff
   if (hasPermission(userRole, 5)) {
-    // If they are an internal tier, push them to the right work portal
     if (hasPermission(userRole, 1)) {
       redirect(`/${locale}/admin/executive`);
+    } else if (hasPermission(userRole, 2)) {
+      redirect(`/${locale}/admin/operations`);
     } else if (hasPermission(userRole, 3)) {
       redirect(`/${locale}/internal/manager`);
-    } else {
+    } else if (hasPermission(userRole, 4)) {
       redirect(`/${locale}/internal/staff`);
+    } else {
+      redirect(`/${locale}/internal/associate`);
     }
   }
   return (

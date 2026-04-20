@@ -3,23 +3,25 @@
 import { LogOut } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { SidebarMenuButton } from "@/components/ui/sidebar";
 
 export function LogoutButton({ label }: { label: string }) {
   const router = useRouter();
+  const t = useTranslations("Common");
 
   const handleLogout = async () => {
     try {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
       
-      toast.success("Signed out successfully");
+      toast.success(t("logoutSuccess"));
       // Redirect to home/login and refresh to clear middleware cache
       router.push("/");
       router.refresh();
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Error signing out";
+      const message = error instanceof Error ? error.message : t("logoutError");
       toast.error(message);
     }
   };

@@ -15,7 +15,14 @@
     "groups": {
       "business": "Business Essentials",
       "innovation": "Innovation & Growth",
-      "account": "Account Management"
+      "account": "Account Management",
+      "system": "System",
+      "strategy": "Strategy & Intelligence",
+      "operations": "Strategic Operations",
+      "management": "Management",
+      "workHub": "Work Hub",
+      "onboarding": "Onboarding",
+      "exit": "Exit Portal"
     },
     "footer": {
       "plan": "Active Strategy",

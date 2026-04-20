@@ -25,7 +25,12 @@
     "unauthorized": "Unauthorized Access",
     "more": "More",
     "previousSlide": "Previous slide",
-    "nextSlide": "Next slide"
+    "nextSlide": "Next slide",
+    "logoutSuccess": "Signed out successfully",
+    "logoutError": "Error signing out",
+    "switchLanguage": "Switch Language",
+    "english": "English",
+    "hindi": "हिन्दी (Hindi)"
   },
   "Stats": {
     "formalization": {

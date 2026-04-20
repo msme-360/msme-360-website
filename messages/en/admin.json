@@ -1,30 +1,49 @@
 {
   "Admin": {
-    "HiringPortal": {
-      "title": "Hiring Vault",
-      "subtitle": "Manage candidate pipeline and workforce intake.",
-      "refresh": "Refresh Pipeline",
-      "searchPlaceholder": "Search candidates...",
-      "filters": "Filters",
-      "loading": "Loading candidates...",
-      "noCandidates": "No candidates found in this stage.",
-      "totalApplied": "Total Applied",
-      "pendingReview": "Pending Review",
-      "hired": "Hired",
-      "candidateRow": {
-        "resume": "Resume",
-        "shortlist": "Shortlist",
-        "reject": "Reject",
-        "hire": "Hire",
-        "finalHire": "Final Hire",
-        "remote": "Remote"
-      },
-      "toasts": {
-        "fetchFailed": "Failed to load candidates",
-        "hiredSuccess": "{name} has been hired. They can now activate their account via Login.",
-        "actionSuccess": "Candidate {action} successfully.",
-        "actionFailed": "Action failed. Please check permissions."
+    "audit": {
+      "title": "Audit Logs",
+      "subtitle": "Real-time tracking of all system operations, role modifications, and administrative activities.",
+      "export": "Export Logs",
+      "security": "Security Audit",
+      "health": "System Health",
+      "alerts": "Active Alerts",
+      "compliance": "Compliance Score",
+      "complianceOptimal": "Optimal",
+      "complianceNote": "All governance protocols are currently within acceptable bounds.",
+      "search": "Search logs...",
+      "filter": "Filter",
+      "table": {
+        "action": "Action",
+        "user": "Performed By",
+        "target": "Target",
+        "timestamp": "Timestamp",
+        "status": "Status"
       }
+    },
+    "support": {
+      "title": "Support Queue",
+      "subtitle": "Monitor and resolve incoming support requests, technical issues, and governance inquiries.",
+      "filters": "Filters",
+      "activeTickets": "Active Tickets",
+      "newOrders": "New Orders",
+      "resolved": "Resolved",
+      "mttr": "MTTR",
+      "ticketsAwaiting": "Tickets awaiting initial response.",
+      "closedWeek": "Successfully closed this week.",
+      "avgTime": "Average resolution time.",
+      "search": "Search ticket ID or user name...",
+      "sortBy": "Sort by:",
+      "view": "View",
+      "showFull": "Show Full Queue"
+    },
+    "team": {
+      "title": "Meet the MSME 360 Family",
+      "subtitle": "A dedicated group of dreamers, builders, and problem-solvers working together to empower micro, small, and medium enterprises across the nation.",
+      "search": "Search teammate by name or role...",
+      "discover": "Discover",
+      "cta": "Want to join the mission?",
+      "ctaSub": "We are always looking for passionate individuals to build with us.",
+      "ctaButton": "Open Positions"
     }
   }
 }

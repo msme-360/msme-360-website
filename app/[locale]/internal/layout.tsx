@@ -44,13 +44,18 @@ async function InternalLayoutInner({
   const profile = await getProfile(user.id);
   const userRole = profile?.role || 'user';
 
-  // REDIRECTION GUARD: Portal Isolation
-  // 1. Governance/Executives (Level 0-1) belong in Admin
+  // ROLE-BASED REDIRECTION SYSTEM
+  // 1. Governance/Executives (Level 0-1) belong in Admin Strategy Portal
   if (hasPermission(userRole, 1)) {
     redirect(`/${locale}/admin/executive`);
   }
 
-  // 2. External Users (Level 6) belong in Dashboard
+  // 2. Directors (Level 2) belong in Admin Strategic Operations
+  if (hasPermission(userRole, 2)) {
+    redirect(`/${locale}/admin/operations`);
+  }
+
+  // 3. External Users (Level 6) belong in Dashboard
   if (!hasPermission(userRole, 5)) {
     redirect(`/${locale}/dashboard`);
   }

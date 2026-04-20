@@ -41,9 +41,14 @@ async function AdminLayoutInner({
   const profile = await getProfile(user.id);
   const userRole = profile?.role || 'user';
 
-  // REDIRECTION GUARD: Strict Isolation for Governance (Level 0-1)
-  // Non-Executives (Level 2+) are rerouted to their respective Working Portals
+  // ROLE-BASED REDIRECTION SYSTEM
+  // Level 0-1: Allowed to stay (Governance/Executive)
+  // Level 2: Redirect to Operations Hub
+  // Level 3-5: Redirect to their specific Internal Hubs
+  // Level 6: Boot to User Dashboard
+
   if (hasPermission(userRole, 5) && !hasPermission(userRole, 1)) {
+    // Role is internal staff (L2-L5) but not Executive (L0-L1)
     if (hasPermission(userRole, 2)) {
       redirect(`/${locale}/admin/operations`);
     } else if (hasPermission(userRole, 3)) {
@@ -53,6 +58,11 @@ async function AdminLayoutInner({
     } else {
       redirect(`/${locale}/internal/associate`);
     }
+  }
+
+  if (!hasPermission(userRole, 5)) {
+    // Level 6 or unknown
+    redirect(`/${locale}/dashboard`);
   }
 
   // Base permission check (redundant given the guard above, but kept for depth security)
