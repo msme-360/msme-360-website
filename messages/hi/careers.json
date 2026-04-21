@@ -52,6 +52,39 @@
     "testimonials": {
       "title": "MSME 360 में जीवन",
       "subtitle": "अपनी यात्रा और प्रभाव के बारे में हमारी टीम के सदस्यों से सुनें।"
+    },
+    "ApplyForm": {
+      "personal": {
+        "title": "व्यक्तिगत जानकारी",
+        "nameLabel": "पूरा नाम",
+        "namePlaceholder": "उदा. नेहा कुमारी",
+        "emailLabel": "ईमेल पता",
+        "emailPlaceholder": "उदा. neha.kumari@example.com",
+        "phoneLabel": "फ़ोन (वैकल्पिक)",
+        "phonePlaceholder": "उदा. +91 9876543210",
+        "statusLabel": "वर्तमान स्थिति",
+        "statusPlaceholder": "उदा. तृतीय वर्ष CS छात्र"
+      },
+      "education": {
+        "title": "शैक्षणिक विवरण",
+        "uniLabel": "विश्वविद्यालय / कॉलेज का नाम",
+        "uniPlaceholder": "उदा. IIT दिल्ली",
+        "degreeLabel": "डिग्री / मेजर",
+        "degreePlaceholder": "उदा. बी.टेक CS",
+        "gradLabel": "अपेक्षित स्नातक वर्ष",
+        "gradPlaceholder": "वर्ष चुनें"
+      },
+      "availability": {
+        "title": "उपलब्धता",
+        "dateLabel": "शीघ्र आरंभ तिथि",
+        "datePlaceholder": "तिथि चुनें"
+      },
+      "terms": {
+        "title": "नियम और प्रतिबद्धता",
+        "commitment": "मैं इस इंटर्नशिप के लिए न्यूनतम <important>2 महीने</important> की प्रतिबद्धता देता हूं और वास्तविक उत्पाद बनाने के लिए अपना सर्वश्रेष्ठ दूंगा।",
+        "expectations": "मुझे पता है कि यह एक <important>स्व-संचालित कार्यक्रम</important> है। मैं जरूरत पड़ने पर स्व-शिक्षा लूंगा और दैनिक आधार पर अपनी प्रगति साझा करूंगा।",
+        "attendance": "मैं समझता हूं कि प्रमाण पत्र केवल तभी दिया जाएगा जब मैं <important>85%+ उपस्थिति</important> बनाए रखूंगा और निर्धारित मील के पत्थर पूरे करूंगा।"
+      }
     }
   }
 }

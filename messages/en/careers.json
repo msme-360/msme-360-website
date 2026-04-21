@@ -52,6 +52,39 @@
     "testimonials": {
       "title": "Life at MSME 360",
       "subtitle": "Hear from our team members about their journey and impact."
+    },
+    "ApplyForm": {
+      "personal": {
+        "title": "Personal Details",
+        "nameLabel": "Full Name",
+        "namePlaceholder": "e.g. Jane Doe",
+        "emailLabel": "Email Address",
+        "emailPlaceholder": "e.g. jane.doe@example.com",
+        "phoneLabel": "Phone (Optional)",
+        "phonePlaceholder": "e.g. +91 9876543210",
+        "statusLabel": "Current Status",
+        "statusPlaceholder": "e.g. 3rd Year CS Student"
+      },
+      "education": {
+        "title": "Educational Details",
+        "uniLabel": "University / College Name",
+        "uniPlaceholder": "e.g. IIT Delhi",
+        "degreeLabel": "Degree / Major",
+        "degreePlaceholder": "e.g. B.Tech CS",
+        "gradLabel": "Expected Graduation Year",
+        "gradPlaceholder": "Select Year"
+      },
+      "availability": {
+        "title": "Availability",
+        "dateLabel": "Earliest Start Date",
+        "datePlaceholder": "Pick a date"
+      },
+      "terms": {
+        "title": "Terms & Commitment",
+        "commitment": "I commit to a minimum of <important>2 months</important> for this internship and will give my best to build real products.",
+        "expectations": "I am aware that this is a <important>self-driven program</important>. I will self-learn where needed and communicate my progress daily.",
+        "attendance": "I understand that a certificate will only be awarded if I maintain <important>85%+ attendance</important> and complete assigned milestones."
+      }
     }
   }
 }

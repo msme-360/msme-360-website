@@ -21,6 +21,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 
 import { DashboardProfile } from "@/types/dashboard";
+import { useTranslations } from "next-intl";
 
 interface ProfileTabContentProps {
   profile: DashboardProfile;
@@ -28,12 +29,13 @@ interface ProfileTabContentProps {
 
 export function ProfileTabContent({ profile }: ProfileTabContentProps) {
   const { locale } = useParams();
+  const t = useTranslations("Profile");
 
   const infoItems = [
-    { label: "Personnel ID", value: profile.id, icon: Hash, mono: true },
-    { label: "Official Email", value: profile.email || "N/A", icon: Mail },
-    { label: "Department", value: profile.department || "General Operations", icon: Building2 },
-    { label: "Location", value: profile.location || "MSME 360 Remote", icon: MapPin },
+    { label: t("personnel.items.id"), value: profile.id, icon: Hash, mono: true },
+    { label: t("personnel.items.email"), value: profile.email || t("personnel.items.emailDefault", { defaultValue: "N/A" }), icon: Mail },
+    { label: t("personnel.items.department"), value: profile.department || t("personnel.items.deptDefault"), icon: Building2 },
+    { label: t("personnel.items.location"), value: profile.location || t("personnel.items.locDefault"), icon: MapPin },
   ];
 
   return (
@@ -53,13 +55,13 @@ export function ProfileTabContent({ profile }: ProfileTabContentProps) {
                  </div>
                )}
             </div>
-            <h3 className="text-xl font-bold font-display">{profile.full_name || "New Personnel"}</h3>
+            <h3 className="text-xl font-bold font-display">{profile.full_name || t("personnel.card.newPersonnel")}</h3>
             <p className="text-xs font-black uppercase text-primary tracking-widest mt-1 mb-4">{profile.role.replace('_', ' ')}</p>
             
             <div className="pt-4 border-t border-white/5">
               <Link href={`/${locale}/dashboard/profile`}>
                 <Badge variant="outline" className="text-[10px] font-black uppercase tracking-tighter bg-white/5 border-white/10 hover:bg-primary/10 hover:border-primary/30 transition-all gap-2 cursor-pointer py-1.5 px-4">
-                  Manage Business Identity <ExternalLink className="w-3 h-3" />
+                  {t("personnel.card.manageBusiness")} <ExternalLink className="w-3 h-3" />
                 </Badge>
               </Link>
             </div>
@@ -94,14 +96,14 @@ export function ProfileTabContent({ profile }: ProfileTabContentProps) {
                   <Shield className="w-6 h-6 text-primary" />
                 </div>
                 <div>
-                   <h4 className="font-bold text-sm">Security Verification Status</h4>
+                   <h4 className="font-bold text-sm">{t("personnel.security.title")}</h4>
                    <p className="text-xs text-muted-foreground leading-relaxed">
-                      Your identity is {profile.is_verified ? 'fully verified within the MSME 360 workforce ledger' : 'currently pending departmental verification'}.
+                      {t("personnel.security.title")} {profile.is_verified ? t("personnel.security.verifiedMsg") : t("personnel.security.pendingMsg")}.
                    </p>
                 </div>
               </div>
               <Badge className={profile.is_verified ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/30" : "bg-orange-500/20 text-orange-400 border-orange-500/30"}>
-                {profile.is_verified ? "VERIFIED PROTOCOL" : "PENDING AUDIT"}
+                {profile.is_verified ? t("personnel.security.verifiedBadge") : t("personnel.security.pendingBadge")}
               </Badge>
             </CardContent>
           </Card>
@@ -119,22 +121,22 @@ export function ProfileTabContent({ profile }: ProfileTabContentProps) {
                 <div className="space-y-1">
                    <h4 className="text-lg font-bold flex items-center gap-2 text-white">
                       <Zap className="w-5 h-5 text-indigo-400" />
-                      Performance Quick-Look
+                      {t("personnel.performance.title")}
                    </h4>
-                   <p className="text-xs text-muted-foreground uppercase tracking-widest font-black">L1 Associate Operational Context</p>
+                   <p className="text-xs text-muted-foreground uppercase tracking-widest font-black">{t("personnel.performance.l1Context")}</p>
                 </div>
                 <div className="flex gap-4 items-center">
                    <div className="text-center px-4 border-r border-white/5">
-                      <p className="text-[10px] font-black text-muted-foreground uppercase">Velocity</p>
+                      <p className="text-[10px] font-black text-muted-foreground uppercase">{t("personnel.performance.velocity")}</p>
                       <p className="text-lg font-bold text-white">88%</p>
                    </div>
                    <div className="text-center px-4">
-                      <p className="text-[10px] font-black text-muted-foreground uppercase">Sync</p>
+                      <p className="text-[10px] font-black text-muted-foreground uppercase">{t("personnel.performance.sync")}</p>
                       <p className="text-lg font-bold text-white">92%</p>
                    </div>
                    <Link href={`/${locale}/internal/performance`}>
                       <Button size="sm" className="bg-indigo-500 hover:bg-indigo-600 text-white font-bold uppercase tracking-widest text-[10px] h-10 px-6 rounded-xl gap-2">
-                         View Full Audit
+                         {t("personnel.performance.viewAudit")}
                          <ChevronRight className="w-3 h-3" />
                       </Button>
                    </Link>
@@ -144,7 +146,7 @@ export function ProfileTabContent({ profile }: ProfileTabContentProps) {
              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
                 <div className="space-y-3 font-medium">
                    <div className="flex justify-between text-xs uppercase tracking-tighter">
-                      <span className="flex items-center gap-2 text-white/60"><Target className="w-3 h-3 text-indigo-400" /> Onboarding Path</span>
+                      <span className="flex items-center gap-2 text-white/60"><Target className="w-3 h-3 text-indigo-400" /> {t("personnel.performance.onboardingPath")}</span>
                       <span className="text-indigo-400 font-bold">75% Complete</span>
                    </div>
                    <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
@@ -153,8 +155,8 @@ export function ProfileTabContent({ profile }: ProfileTabContentProps) {
                 </div>
                 <div className="space-y-3 font-medium">
                    <div className="flex justify-between text-xs uppercase tracking-tighter">
-                      <span className="flex items-center gap-2 text-white/60"><TrendingUp className="w-3 h-3 text-emerald-400" /> Mission Reliability</span>
-                      <span className="text-emerald-400 font-black">Industrial Grade</span>
+                      <span className="flex items-center gap-2 text-white/60"><TrendingUp className="w-3 h-3 text-emerald-400" /> {t("personnel.performance.missionReliability")}</span>
+                      <span className="text-emerald-400 font-black">{t("personnel.performance.industrialGrade")}</span>
                    </div>
                    <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
                       <div className="h-full bg-emerald-500 w-[95%]" />

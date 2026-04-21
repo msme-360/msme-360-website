@@ -1,13 +1,16 @@
 import { Metadata } from 'next';
 import HelpCenterClient from './HelpCenterClient';
 import Script from 'next/script';
+import { fetchSupportTickets } from '../actions';
 
 export const metadata: Metadata = {
   title: 'Support Center | MSME 360',
   description: 'Get answers to common FAQ about Udyam registration, DPIIT Startup India, and MSME loans. Chat with experts and scale your business.',
 };
 
-export default function HelpCenterPage() {
+export default async function HelpCenterPage() {
+  const initialTickets = await fetchSupportTickets();
+  
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
@@ -46,7 +49,7 @@ export default function HelpCenterPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <HelpCenterClient />
+      <HelpCenterClient initialTickets={initialTickets} />
     </>
   );
 }

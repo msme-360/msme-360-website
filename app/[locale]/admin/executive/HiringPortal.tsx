@@ -1,39 +1,17 @@
 "use client";
 
-import { 
-  Search, 
-  Filter, 
-  MapPin, 
-  GraduationCap, 
-  ExternalLink,
-  CheckCircle2,
-  Clock,
-  Briefcase
-} from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import { Search, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { useState, useMemo } from "react";
 import { supabase } from "@/lib/supabase";
 import { logger } from "@/lib/logger";
 import { useTranslations } from "next-intl";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-
-interface Application {
-  id: string;
-  full_name: string;
-  email: string;
-  role: string;
-  university: string;
-  experience_level: string;
-  status: 'pending' | 'shortlisted' | 'rejected' | 'hired';
-  applied_at: string;
-  designation?: string;
-  bio?: string;
-  phone?: string;
-}
+import { Application } from "./components/HiringPortalTypes";
+import { CandidateRow } from "./components/CandidateRow";
+import { StatusFilterCard } from "./components/StatusFilterCard";
 
 export function HiringPortal() {
   const t = useTranslations("Admin.HiringPortal");
@@ -55,7 +33,6 @@ export function HiringPortal() {
 
   const handleAction = async (id: string, email: string, action: 'shortlisted' | 'rejected' | 'hired', details: Application) => {
     try {
-      // 1. Update Application Status
       const { error: updateError } = await supabase
         .from('intern_applications')
         .update({ status: action, reviewed_at: new Date().toISOString() })
@@ -63,7 +40,6 @@ export function HiringPortal() {
 
       if (updateError) throw updateError;
 
-      // 2. If 'hired', create the profile shell for activation
       if (action === 'hired') {
         const { error: profileError } = await supabase
           .from('profiles')
@@ -71,8 +47,8 @@ export function HiringPortal() {
             email: email,
             full_name: details.full_name,
             role: 'user',
-            department: 'Unassigned', // To be assigned by Admin later
-            designation: details.role, // Use the role they applied for
+            department: 'Unassigned',
+            designation: details.role,
             phone: details.phone || '',
           }]);
 
@@ -142,106 +118,10 @@ export function HiringPortal() {
               key={app.id} 
               app={app} 
               onAction={(action) => handleAction(app.id, app.email, action, app)} 
-              t={t}
             />
           ))}
         </div>
       </div>
     </div>
-  );
-}
-
-function CandidateRow({ app, onAction, t }: { app: Application; onAction: (a: 'shortlisted' | 'rejected' | 'hired') => void; t: ReturnType<typeof useTranslations> }) {
-  const statusColors: Record<Application['status'], "secondary" | "outline" | "destructive" | "default"> = {
-    pending: "secondary",
-    shortlisted: "outline",
-    rejected: "destructive",
-    hired: "default"
-  };
-
-  return (
-    <div className="p-6 hover:bg-secondary/5 transition-colors flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
-      <div className="flex items-start gap-4">
-        <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-lg font-bold text-primary">
-          {app.full_name.charAt(0)}
-        </div>
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <h4 className="font-bold text-lg">{app.full_name}</h4>
-            <Badge variant={statusColors[app.status]} className="capitalize text-[10px] h-5">
-              {t(`candidateRow.${app.status}` as "candidateRow.pending" | "candidateRow.shortlisted" | "candidateRow.rejected" | "candidateRow.hired")}
-            </Badge>
-          </div>
-          <p className="text-sm text-muted-foreground flex items-center gap-2">
-            <Briefcase className="w-3.5 h-3.5" /> {app.role} 
-            <span className="mx-1">•</span> 
-            <GraduationCap className="w-3.5 h-3.5" /> {app.university}
-          </p>
-          <div className="flex flex-wrap gap-4 mt-2">
-            <div className="text-xs text-muted-foreground flex items-center gap-1.5 font-medium">
-                <Clock className="w-3.5 h-3.5" /> {new Date(app.applied_at).toLocaleDateString()}
-            </div>
-            <div className="text-xs text-muted-foreground flex items-center gap-1.5 font-medium">
-                <MapPin className="w-3.5 h-3.5" /> {t("candidateRow.remote")}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
-        <Button variant="ghost" size="sm" className="rounded-xl h-9" asChild>
-            <a href={`mailto:${app.email}`}><ExternalLink className="w-4 h-4 mr-2" /> {t("candidateRow.resume")}</a>
-        </Button>
-        {app.status === 'pending' && (
-          <>
-            <Button variant="outline" size="sm" className="rounded-xl h-9 text-amber-600 border-amber-200 hover:bg-amber-50" onClick={() => onAction('shortlisted')}>
-                {t("candidateRow.shortlist")}
-            </Button>
-            <Button variant="outline" size="sm" className="rounded-xl h-9 text-destructive border-destructive/20 hover:bg-destructive/5" onClick={() => onAction('rejected')}>
-                {t("candidateRow.reject")}
-            </Button>
-            <Button size="sm" className="rounded-xl h-9 bg-primary" onClick={() => onAction('hired')}>
-                <CheckCircle2 className="w-4 h-4 mr-2" /> {t("candidateRow.hire")}
-            </Button>
-          </>
-        )}
-        {app.status === 'shortlisted' && (
-          <Button size="sm" className="rounded-xl h-9 bg-primary" onClick={() => onAction('hired')}>
-            <CheckCircle2 className="w-4 h-4 mr-2" /> {t("candidateRow.finalHire")}
-          </Button>
-        )}
-      </div>
-    </div>
-  );
-}
-
-interface StatusFilterCardProps {
-  count: number;
-  label: string;
-  active: boolean;
-  onClick: () => void;
-  color: 'primary' | 'amber' | 'green';
-}
-
-function StatusFilterCard({ count, label, active, onClick, color }: StatusFilterCardProps) {
-  const colors: Record<StatusFilterCardProps['color'], string> = {
-    primary: active ? "border-primary bg-primary/5" : "border-border/50",
-    amber: active ? "border-amber-500 bg-amber-500/5" : "border-border/50",
-    green: active ? "border-green-500 bg-green-500/5" : "border-border/50",
-  };
-
-  const textColors: Record<StatusFilterCardProps['color'], string> = {
-    primary: active ? "text-primary" : "text-muted-foreground",
-    amber: active ? "text-amber-500" : "text-muted-foreground",
-    green: active ? "text-green-500" : "text-muted-foreground",
-  };
-
-  return (
-    <Card className={`cursor-pointer transition-all hover:border-primary/30 ${colors[color]}`} onClick={onClick}>
-      <CardContent className="p-4 py-3 flex items-center justify-between">
-        <span className={`text-sm font-semibold ${textColors[color]}`}>{label}</span>
-        <span className="text-xl font-bold">{count}</span>
-      </CardContent>
-    </Card>
   );
 }

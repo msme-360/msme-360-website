@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useParams } from "next/navigation";
-import { Rocket, Twitter, Linkedin } from "lucide-react";
+import { Rocket, Linkedin } from "lucide-react";
 
 export function Footer() {
   const [isMounted, setIsMounted] = useState(false);
@@ -80,7 +80,7 @@ export function Footer() {
               ))}
             </div>
             <p className="mt-6 text-xs text-muted-foreground">
-              {t("contact.label")} contact.msme360@gmail.com
+              {t("contact.label")} {t("contact.email")}
             </p>
           </div>
         </div>

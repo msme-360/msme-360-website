@@ -2,6 +2,7 @@ import "server-only";
 import { createServiceClient } from "@/lib/supabase-server";
 import { logger } from "@/lib/logger";
 import { DashboardProfile } from "@/types/dashboard";
+import { FounderUpdate, PostDB } from "@/types/community";
 
 // --- Queries ---
 // These are "pure" queries that don't read cookies.
@@ -101,7 +102,7 @@ export async function getFounderUpdates() {
 
     if (error) throw error;
     
-    return data.map((post: { id: string; founder_name: string; company_name: string; content: string; type: string; category: string }) => ({
+    return data.map((post: PostDB): FounderUpdate => ({
       id: post.id,
       founder: post.founder_name,
       company: post.company_name,

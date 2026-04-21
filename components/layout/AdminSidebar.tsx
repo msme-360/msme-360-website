@@ -1,26 +1,10 @@
 "use client";
 
+import { Sidebar } from "@/components/ui/sidebar";
 import {
-  Sidebar,
-} from "@/components/ui/sidebar";
-import { 
-  ShieldCheck, 
-  Briefcase, 
-  Cpu, 
-  BarChart3,
-  Users,
-  Building2,
-  Lock,
-  Target,
-  Clock,
-  Bell,
-  PieChart,
-  LineChart as TrendingUp,
-  LineChart,
-  UserPlus,
-  LifeBuoy,
-  type LucideIcon,
-  History
+  ShieldCheck, Briefcase, Cpu, BarChart3, Users, Building2,
+  Lock, Target, Clock, Bell, PieChart, LineChart as TrendingUp, LineChart,
+  UserPlus, LifeBuoy, type LucideIcon, History, User
 } from "lucide-react";
 import { useParams, useSearchParams, usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -65,7 +49,7 @@ export function AdminSidebar({ userId, serverRole }: { userId: string, serverRol
   const level = activeRoleData.level;
   
   // Portal Detection logic for strict siloing
-  const isGovernancePortal = pathname.includes('/admin/governance') || pathname.includes('/admin/roles') || pathname.includes('/admin/attendance') || pathname.includes('/admin/audit');
+  const isGovernancePortal = pathname.includes('/admin/governance') || pathname.includes('/admin/roles') || pathname.includes('/admin/attendance') || pathname.includes('/admin/audit') || pathname.includes('/admin/identity');
   const isExecutivePortal = pathname.includes('/admin/executive');
   const isOperationsPortal = pathname.includes('/admin/operations') || pathname.includes('/admin/tech');
   const isManagementPortal = pathname.includes('/internal/manager') || pathname.includes('/internal/analytics');
@@ -87,9 +71,17 @@ export function AdminSidebar({ userId, serverRole }: { userId: string, serverRol
       visible: isGovernance && isGovernancePortal,
       items: [
         { title: "Control Center", icon: ShieldCheck, url: `/${locale}/admin/governance` },
-        { title: "Role Manager", icon: Lock, url: `/${locale}/admin/roles` },
-        { title: "Participation Ledger", icon: Clock, url: `/${locale}/admin/attendance` },
-        { title: "Audit Logs", icon: History, url: `/${locale}/admin/audit` },
+        { 
+          title: "Role Manager", 
+          icon: Lock, 
+          url: `/${locale}/admin/roles`,
+          subItems: [
+            { title: "Personnel Directory", url: `/${locale}/admin/roles`, icon: Users, id: 'directory' },
+            { title: "Access Audit", url: `/${locale}/admin/roles/audit`, icon: Clock, id: 'audit' },
+          ]
+        },
+        { title: "Master Ledger", icon: Clock, url: `/${locale}/admin/attendance` },
+        { title: "System History", icon: History, url: `/${locale}/admin/audit` },
       ]
     },
     {
@@ -101,10 +93,10 @@ export function AdminSidebar({ userId, serverRole }: { userId: string, serverRol
           icon: BarChart3, 
           url: `/${locale}/admin/executive`,
           subItems: [
-            { title: "Strategy", url: `/${locale}/admin/executive?tab=strategy`, icon: Target, id: 'strategy' },
-            { title: "Performance", url: `/${locale}/admin/executive?tab=performance`, icon: LineChart, id: 'performance' },
-            { title: "Workforce", url: `/${locale}/admin/executive?tab=workforce`, icon: UserPlus, id: 'workforce' },
-            { title: "Hiring", url: `/${locale}/admin/executive?tab=hiring`, icon: Briefcase, id: 'hiring' },
+            { title: "Strategy", url: `/${locale}/admin/executive`, icon: Target, id: 'strategy' },
+            { title: "Performance", url: `/${locale}/admin/executive/performance`, icon: LineChart, id: 'performance' },
+            { title: "Workforce", url: `/${locale}/admin/executive/workforce`, icon: UserPlus, id: 'workforce' },
+            { title: "Hiring", url: `/${locale}/admin/executive/hiring`, icon: Briefcase, id: 'hiring' },
           ]
         },
       ]
@@ -144,10 +136,11 @@ export function AdminSidebar({ userId, serverRole }: { userId: string, serverRol
       ]
     },
     {
-      label: "Profile", // Common identity group
+      label: "Profile & Identity",
       visible: true,
       items: [
-        { title: "Identity Settings", icon: UserCircle, url: `/${locale}/dashboard/profile` },
+        { title: "Personnel Card", icon: User, url: `/${locale}/admin/identity` },
+        { title: "Business Identity", icon: UserCircle, url: `/${locale}/dashboard/profile` },
         { title: "Notifications", icon: Bell, url: `/${locale}/internal/notifications` },
       ]
     }

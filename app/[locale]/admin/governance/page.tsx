@@ -19,7 +19,7 @@ export default async function GovernanceCenterPage({ params }: { params: { local
 
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <GovernanceClient profile={profile} />
+      <GovernanceClient />
     </div>
   );
 }

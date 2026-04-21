@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import CommunityClient, { type FounderUpdate } from "./CommunityClient";
+import { CommunityClient, type FounderUpdate } from "./CommunityClient";
 import { getFounderUpdates } from "@/app/[locale]/dashboard/queries";
 import { Suspense } from "react";
 import { headers } from "next/headers";

@@ -9,6 +9,40 @@
       "title": "Register for Udyam MSME",
       "description": "Start your journey by getting your official Udyam Registration. This enables you to access government schemes and subsidies.",
       "cta": "Get Started"
+    },
+    "Community": {
+      "badge": "Elite Founder Network",
+      "title": "The Community Circle",
+      "description": "Collaborate with fellow MSME founders, share strategic wins, and scale together through peer-to-peer intelligence.",
+      "updates": {
+        "newUpdate": "Draft Founder Update",
+        "postAction": "Share Strategy"
+      },
+      "spotlight": {
+        "badge": "FOUNDER SPOTLIGHT",
+        "title": "Scaling Through Resilience",
+        "cta": "Read Blueprint"
+      },
+      "mentorship": {
+        "title": "Strategic Expert Office",
+        "book": "Secure Slot",
+        "booked": "Confirmed",
+        "success": "Request Submitted",
+        "noSlots": "Next cohort opening soon."
+      },
+      "circles": {
+        "title": "Networking Circles",
+        "membersActive": "{count} Active Personnel",
+        "browse": "Explore Circles"
+      },
+      "networking": {
+        "title": "Direct Peer Networking",
+        "description": "Connect 1:1 with verified founders in your industry sector for deep-tech collaboration.",
+        "cta": "Initialize Protocol"
+      },
+      "governance": {
+        "title": "COMMUNITY GOVERNANCE"
+      }
     }
   }
 }

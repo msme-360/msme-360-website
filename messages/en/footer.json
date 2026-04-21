@@ -17,7 +17,8 @@
       }
     },
     "contact": {
-      "label": "Contact us:"
+      "label": "Contact us:",
+      "email": "contact.msme360@gmail.com"
     },
     "copyright": "© {year} MSME 360 Enablement Pvt Ltd. All rights reserved."
   }

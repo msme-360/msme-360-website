@@ -23,6 +23,40 @@
       "successToast": "Profile updated successfully!",
       "errorToast": "Failed to update profile.",
       "generalError": "An error occurred while saving."
+    },
+    "personnel": {
+      "tabs": {
+        "profile": "Personnel Profile"
+      },
+      "card": {
+        "newPersonnel": "New Personnel",
+        "manageBusiness": "Manage Business Identity"
+      },
+      "items": {
+        "id": "Personnel ID",
+        "email": "Official Email",
+        "department": "Department",
+        "location": "Location",
+        "deptDefault": "General Operations",
+        "locDefault": "MSME 360 Remote"
+      },
+      "security": {
+        "title": "Security Verification Status",
+        "verifiedMsg": "fully verified within the MSME 360 workforce ledger",
+        "pendingMsg": "currently pending departmental verification",
+        "verifiedBadge": "VERIFIED PROTOCOL",
+        "pendingBadge": "PENDING AUDIT"
+      },
+      "performance": {
+        "title": "Performance Quick-Look",
+        "l1Context": "L1 Associate Operational Context",
+        "velocity": "Velocity",
+        "sync": "Sync",
+        "viewAudit": "View Full Audit",
+        "onboardingPath": "Onboarding Path",
+        "missionReliability": "Mission Reliability",
+        "industrialGrade": "Industrial Grade"
+      }
     }
   }
 }
