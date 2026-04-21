@@ -6,6 +6,7 @@ import { RestrictedAccess } from "@/components/auth/RestrictedAccess";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { getPlatformMetrics } from "../../actions";
 
 export default function ExecutivePortalPage({
   params
@@ -29,6 +30,7 @@ async function ExecutivePortalContent({
   if (!user) redirect(`/${locale}/auth/login`);
   
   const profile = await getProfileDirect(user.id);
+  const metrics = await getPlatformMetrics('governance'); // Executive hub usually strategic or governance metrics
   const userRole = profile?.role || "user";
 
   // --- Hub Silo Guard ---
@@ -52,7 +54,7 @@ async function ExecutivePortalContent({
 
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <RoleUnifiedDashboard profile={profile as any} />
+      <RoleUnifiedDashboard profile={profile} initialMetrics={metrics} />
     </div>
   );
 }

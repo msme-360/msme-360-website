@@ -1,6 +1,6 @@
 import { getUser as getAuthUser } from "@/lib/supabase-server";
 import { getProfile as getProfileDirect } from "@/app/[locale]/dashboard/queries";
-import { GovernanceClient, type BoardResolution, type GovernanceMetric } from "../GovernanceClient";
+import { GovernanceClient } from "../GovernanceClient";
 import { hasPermission } from "@/lib/constants/roles";
 import { RestrictedAccess } from "@/components/auth/RestrictedAccess";
 import { redirect } from "next/navigation";
@@ -51,11 +51,15 @@ async function GovernancePortalContent({
     redirect(`/${locale}/admin/governance/${userRole}`);
   }
 
-  const { resolutions, metrics }: { resolutions: BoardResolution[], metrics: GovernanceMetric[] } = await getGovernanceData();
+  const { resolutions, metrics, nicCodes } = await getGovernanceData();
 
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <GovernanceClient initialResolutions={resolutions} initialMetrics={metrics} />
+      <GovernanceClient 
+        initialResolutions={resolutions} 
+        initialMetrics={metrics} 
+        nicCodes={nicCodes} 
+      />
     </div>
   );
 }

@@ -1,15 +1,8 @@
 "use client";
 
 import { 
-  LifeBuoy, 
-  Search, 
-  Filter, 
-  MessageSquare,
-  AlertCircle,
-  CheckCircle2,
-  Clock,
-  ChevronRight,
-  MoreVertical
+  LifeBuoy, Search, Filter, MessageSquare,
+  AlertCircle, CheckCircle2, Clock, ChevronRight, MoreVertical
 } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -17,15 +10,13 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useTranslations } from "next-intl";
 
-const MOCK_TICKETS = [
-  { id: "T-1024", subject: "KYC Verification Delayed", user: "Acme Corp", priority: "high", status: "open", time: "10m ago" },
-  { id: "T-1025", subject: "Payment Gateway Error", user: "Retail Hub", priority: "urgent", status: "pending", time: "25m ago" },
-  { id: "T-1026", subject: "Role Access Migration", user: "Internal (Staff)", priority: "medium", status: "open", time: "1h ago" },
-  { id: "T-1027", subject: "Data Export Request", user: "Director Ops", priority: "low", status: "closed", time: "2h ago" },
-  { id: "T-1028", subject: "UI Bug in Dashboard", user: "Early Adopter", priority: "medium", status: "open", time: "4h ago" },
-];
+import { Database } from "@/types/supabase";
 
-export function SupportClient() {
+type SupportTicket = Database['public']['Tables']['support_tickets']['Row'] & {
+  profiles?: { full_name: string | null } | null;
+};
+
+export function SupportClient({ initialTickets = [] }: { initialTickets?: SupportTicket[] }) {
   const t = useTranslations("Admin.support");
 
   return (
@@ -100,24 +91,24 @@ export function SupportClient() {
           </div>
         </div>
         <div className="divide-y divide-border/50">
-          {MOCK_TICKETS.map((ticket) => (
+          {initialTickets.map((ticket) => (
             <div key={ticket.id} className="p-4 hover:bg-muted/30 transition-all group flex items-center justify-between">
               <div className="flex items-start gap-4">
                 <div className={`p-2 rounded-lg ${
-                  ticket.priority === 'urgent' ? 'bg-red-500/10 text-red-500' : 
-                  ticket.priority === 'high' ? 'bg-accent/10 text-accent' : 
+                  ticket.category === 'Technical' ? 'bg-red-500/10 text-red-500' : 
+                  ticket.category === 'Billing' ? 'bg-accent/10 text-accent' : 
                   'bg-primary/10 text-primary'
                 }`}>
                   <AlertCircle className="w-5 h-5" />
                 </div>
                 <div>
                   <div className="flex items-center gap-2 mb-0.5">
-                    <span className="text-[10px] font-mono text-muted-foreground bg-muted px-1.5 py-0.5 rounded uppercase">{ticket.id}</span>
+                    <span className="text-[10px] font-mono text-muted-foreground bg-muted px-1.5 py-0.5 rounded uppercase">{ticket.id.substring(0, 8)}</span>
                     <h3 className="font-bold text-sm group-hover:text-primary transition-colors">{ticket.subject}</h3>
                   </div>
                   <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                    <span className="font-medium text-foreground">{ticket.user}</span>
-                    <span className="flex items-center gap-1 opacity-70"><Clock className="w-3 h-3" /> {ticket.time}</span>
+                    <span className="font-medium text-foreground">{ticket.profiles?.full_name || "User"}</span>
+                    <span className="flex items-center gap-1 opacity-70"><Clock className="w-3 h-3" /> {new Date(ticket.created_at).toLocaleDateString()}</span>
                     <span className={`flex items-center gap-1 ${
                        ticket.status === 'open' ? 'text-accent' : 
                        ticket.status === 'closed' ? 'text-primary' : 'text-orange-500'

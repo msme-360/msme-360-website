@@ -3,7 +3,6 @@
 import { Sidebar } from "@/components/ui/sidebar";
 import { Bell, type LucideIcon} from "lucide-react";
 import { useParams, useSearchParams, usePathname } from "next/navigation";
-import { useTranslations } from "next-intl";
 import { useRole } from "@/hooks/useRole";
 import { getRoleById } from "@/lib/constants/roles";
 import { AdminSidebarHeader } from "./sidebars/AdminSidebarHeader";
@@ -32,7 +31,6 @@ interface NavGroup {
 }
 
 export function AdminSidebar({ userId, serverRole }: { userId: string, serverRole?: string }) {
-  const t = useTranslations("Navigation");
   const params = useParams();
   const searchParams = useSearchParams();
   const pathname = usePathname();

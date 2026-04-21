@@ -1,5 +1,7 @@
 import { TeamClient } from "./TeamClient";
+import { getTeamMembers } from "../actions";
 
-export default function TeamIntrosPage() {
-  return <TeamClient />;
+export default async function TeamIntrosPage() {
+  const team = await getTeamMembers();
+  return <TeamClient initialTeam={team} />;
 }

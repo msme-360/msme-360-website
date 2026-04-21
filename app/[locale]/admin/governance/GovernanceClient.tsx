@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { AdminViewWrapper } from "@/components/layout/AdminViewWrapper";
 import { formatDistanceToNow } from "date-fns";
+import { Database } from "@/types/supabase";
 
 export interface BoardResolution {
   id: string;
@@ -35,9 +36,12 @@ export interface GovernanceMetric {
   status: string;
 }
 
+export type NICCode = Database['public']['Tables']['nic_codes']['Row'];
+
 interface GovernanceClientProps {
   initialResolutions: BoardResolution[];
   initialMetrics: GovernanceMetric[];
+  nicCodes: NICCode[];
 }
 
 const ICON_MAP: Record<string, React.ElementType> = {
@@ -47,7 +51,7 @@ const ICON_MAP: Record<string, React.ElementType> = {
   "Access Controls": Lock,
 };
 
-export function GovernanceClient({ initialResolutions, initialMetrics }: GovernanceClientProps) {
+export function GovernanceClient({ initialResolutions, initialMetrics, nicCodes }: GovernanceClientProps) {
   return (
     <AdminViewWrapper
       title="Governance Center"
@@ -171,6 +175,48 @@ export function GovernanceClient({ initialResolutions, initialMetrics }: Governa
             </CardContent>
           </Card>
         </div>
+
+        <Card className="glass-card border-white/10 overflow-hidden bg-white/[0.01]">
+          <CardHeader className="bg-white/[0.02] border-b border-white/5">
+            <div className="flex items-center gap-2">
+              <Scale className="w-5 h-5 text-primary" />
+              <CardTitle className="text-lg">Business Classification Registry (NIC)</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-sm">
+                <thead className="bg-white/5 text-[10px] uppercase tracking-widest font-bold">
+                  <tr>
+                    <th className="px-6 py-4">Code</th>
+                    <th className="px-6 py-4">Category</th>
+                    <th className="px-6 py-4">Description</th>
+                    <th className="px-6 py-4">Compliance Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/5">
+                  {nicCodes.map((nic) => (
+                    <tr key={nic.id} className="hover:bg-white/[0.02] transition-colors group">
+                      <td className="px-6 py-4 font-mono font-bold text-primary">{nic.code}</td>
+                      <td className="px-6 py-4 font-medium">{nic.category}</td>
+                      <td className="px-6 py-4 text-muted-foreground text-xs">{nic.description}</td>
+                      <td className="px-6 py-4">
+                        <Badge className="bg-green-500/10 text-green-500 border-none text-[9px] uppercase font-black">Verified</Badge>
+                      </td>
+                    </tr>
+                  ))}
+                  {nicCodes.length === 0 && (
+                    <tr>
+                      <td colSpan={4} className="px-6 py-10 text-center text-muted-foreground italic text-xs">
+                        No NIC codes registered in system.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </AdminViewWrapper>
   );

@@ -17,6 +17,12 @@ export interface TrendMetric {
 }
 
 export interface PerformanceData {
+  official?: {
+    productivity_score: number;
+    quality_score: number;
+    leadership_score: number;
+    comments: string | null;
+  } | null;
   taskStats: TaskStats;
   attendanceStats: AttendanceStats;
 }

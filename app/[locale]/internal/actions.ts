@@ -227,38 +227,56 @@ export async function updateChecklistItem(itemId: string, isCompleted: boolean) 
 export async function getPerformanceData(userId: string) {
   const supabase = await createServiceClient();
   
-  // 1. Get task stats
+  // 1. Get official metrics
+  const { data: metrics } = await supabase
+    .from('performance_metrics')
+    .select('*')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  // 2. Get task stats (complementary)
   const { data: tasks } = await supabase
     .from('tasks')
-    .select('status, priority')
+    .select('status')
     .eq('assigned_to', userId);
     
   const totalTasks = tasks?.length || 0;
   const completedTasks = tasks?.filter(t => t.status === 'completed').length || 0;
+  const inProgressTasks = tasks?.filter(t => t.status === 'in_progress').length || 0;
 
-  const taskStats = {
-    total: totalTasks,
-    completed: completedTasks,
-    in_progress: tasks?.filter(t => t.status === 'in_progress').length || 0,
-    completion_rate: totalTasks ? Math.round((completedTasks / totalTasks) * 100) : 0
-  };
-
-  // 2. Get attendance consistency
+  // 3. Get attendance consistency
   const { data: attendance } = await supabase
     .from('attendance_logs')
     .select('check_in')
     .eq('user_id', userId);
-    
-  // Calculated against a standard 22-day working month
-  const attendanceStats = {
-    total_days: attendance?.length || 0,
-    consistency: attendance?.length ? Math.min(Math.round((attendance.length / 22) * 100), 100) : 0 
-  };
 
   return {
-    taskStats,
-    attendanceStats
+    official: metrics || null,
+    taskStats: {
+      total: totalTasks,
+      completed: completedTasks,
+      in_progress: inProgressTasks,
+      completion_rate: totalTasks ? Math.round((completedTasks / totalTasks) * 100) : 0
+    },
+    attendanceStats: {
+      total_days: attendance?.length || 0,
+      consistency: attendance?.length ? Math.min(Math.round((attendance.length / 22) * 100), 100) : 0 
+    }
   };
+}
+
+export async function getPromotionStatus(userId: string) {
+  const supabase = await createServiceClient();
+  const { data, error } = await supabase
+    .from('promotion_pipeline')
+    .select('*')
+    .eq('user_id', userId)
+    .maybeSingle();
+    
+  if (error) return null;
+  return data;
 }
 
 export async function getPerformanceTrends(userId: string) {
@@ -301,4 +319,39 @@ export async function getPerformanceTrends(userId: string) {
   });
 
   return trendData.reverse();
+}
+
+export async function getTeamMembers() {
+  const supabase = await createServiceClient();
+  const { data, error } = await supabase
+    .from('team_members')
+    .select('*, profiles(avatar_url)')
+    .order('created_at', { ascending: true });
+    
+  if (error) return [];
+  return data || [];
+}
+
+export async function getAnnouncements() {
+  const supabase = await createServiceClient();
+  const { data, error } = await supabase
+    .from('announcements')
+    .select('*')
+    .order('created_at', { ascending: false });
+    
+  if (error) return [];
+  return data || [];
+}
+
+export async function getPlatformMetrics(category?: string) {
+  const supabase = await createServiceClient();
+  let query = supabase.from('platform_metrics').select('*');
+  
+  if (category) {
+    query = query.eq('category', category);
+  }
+  
+  const { data, error } = await query.order('label', { ascending: true });
+  if (error) return [];
+  return data || [];
 }

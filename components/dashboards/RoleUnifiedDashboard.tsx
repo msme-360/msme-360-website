@@ -7,14 +7,28 @@ import { Progress } from "@/components/ui/progress";
 import { AdminViewWrapper } from "@/components/layout/AdminViewWrapper";
 import { ROLE_DASHBOARD_CONFIGS } from "@/lib/constants/dashboardConfigs";
 import { ArrowUpRight } from "lucide-react";
+import { Database } from "@/types/supabase";
 import { DashboardProfile } from "@/types/dashboard";
+
+type PlatformMetric = Database['public']['Tables']['platform_metrics']['Row'];
 
 interface RoleUnifiedDashboardProps {
   profile: DashboardProfile;
+  initialMetrics?: PlatformMetric[];
 }
 
-export function RoleUnifiedDashboard({ profile }: RoleUnifiedDashboardProps) {
-  const config = ROLE_DASHBOARD_CONFIGS[profile.role] || ROLE_DASHBOARD_CONFIGS.ceo; // Fallback to CEO for now if config missing
+export function RoleUnifiedDashboard({ profile, initialMetrics }: RoleUnifiedDashboardProps) {
+  const config = ROLE_DASHBOARD_CONFIGS[profile.role] || ROLE_DASHBOARD_CONFIGS.ceo; 
+
+  // Merge DB metrics with config if available
+  const displayMetrics = initialMetrics && initialMetrics.length > 0 
+    ? initialMetrics.map(m => ({
+        label: m.label,
+        value: m.value,
+        change: m.change || undefined,
+        icon: config.metrics.find(cm => cm.label === m.label)?.icon || config.metrics[0].icon
+      }))
+    : config.metrics;
 
   return (
     <AdminViewWrapper
@@ -26,7 +40,7 @@ export function RoleUnifiedDashboard({ profile }: RoleUnifiedDashboardProps) {
       <div className="space-y-10">
         {/* Bespoke Metrics Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
-          {config.metrics.map((m, i) => (
+          {displayMetrics.map((m, i) => (
             <motion.div
               key={m.label}
               initial={{ opacity: 0, y: 20 }}
@@ -58,7 +72,7 @@ export function RoleUnifiedDashboard({ profile }: RoleUnifiedDashboardProps) {
 
         {/* Feature Sections */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {config.features.map((feature, i) => (
+          {config.features.map((feature) => (
             <Card key={feature.title} className="glass-card border-white/10 overflow-hidden bg-white/[0.01]">
               <CardHeader className="bg-white/[0.02] border-b border-white/5">
                 <div className="flex items-center gap-2">

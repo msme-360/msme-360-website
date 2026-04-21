@@ -7,6 +7,7 @@ import { redirect } from "next/navigation";
 import { AdminViewWrapper } from "@/components/layout/AdminViewWrapper";
 import { Suspense } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { getWorkforce } from "@/lib/queries/workforce";
 
 export default function ExecutiveWorkforcePage({
   params
@@ -51,6 +52,9 @@ async function ExecutiveWorkforceContent({
     redirect(`/${locale}/admin/executive/workforce/${userRole}`);
   }
 
+  // Fetch Real Data
+  const profiles = await getWorkforce();
+
   return (
     <AdminViewWrapper
       title="Workforce Management"
@@ -59,7 +63,7 @@ async function ExecutiveWorkforceContent({
       authorityLevel="L1 Executive"
     >
       <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-        <WorkforceManager />
+        <WorkforceManager profiles={profiles} />
       </div>
     </AdminViewWrapper>
   );

@@ -4,6 +4,7 @@ import { StaffPortalClient } from "../StaffPortalClient";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { getAnnouncements } from "../../actions";
 
 export default function StaffPortalPage({
   params
@@ -27,6 +28,7 @@ async function StaffPortalContent({
   if (!user) redirect(`/${locale}/auth/login`);
   
   const profile = await getProfile(user.id);
+  const announcements = await getAnnouncements();
   const userRole = profile?.role || "user";
 
   // --- Hub Silo Guard ---
@@ -44,7 +46,7 @@ async function StaffPortalContent({
 
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <StaffPortalClient profile={profile} />
+      <StaffPortalClient profile={profile} initialAnnouncements={announcements} />
     </div>
   );
 }

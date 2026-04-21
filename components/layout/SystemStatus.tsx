@@ -1,8 +1,5 @@
 "use client";
 
-import React from "react";
-import { cn } from "@/lib/utils";
-
 export function SystemStatus() {
   return (
     <div className="flex items-center gap-2 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 group cursor-default">

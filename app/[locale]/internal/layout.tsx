@@ -5,7 +5,7 @@ import { AdminSidebar } from "@/components/layout/AdminSidebar";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { RestrictedAccess } from "@/components/auth/RestrictedAccess";
 import { redirect } from "next/navigation";
-import { hasPermission, getRoleById } from "@/lib/constants/roles";
+import { getRoleById } from "@/lib/constants/roles";
 import DashboardLoading from "@/app/[locale]/dashboard/loading";
 
 import { getTranslations } from "next-intl/server";

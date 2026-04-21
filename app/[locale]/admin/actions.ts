@@ -186,12 +186,13 @@ export async function getAuditLogs(): Promise<AuditLog[]> {
 /**
  * GOVERNANCE ACTIONS
  */
-export async function getGovernanceData(): Promise<{ resolutions: BoardResolution[], metrics: GovernanceMetric[] }> {
+export async function getGovernanceData() {
   const supabase = await createServiceClient();
   
-  const [{ data: resolutions }, { data: rawMetrics }] = await Promise.all([
+  const [{ data: resolutions }, { data: rawMetrics }, { data: nicCodes }] = await Promise.all([
     supabase.from('board_resolutions').select('*, profiles(full_name)').order('created_at', { ascending: false }),
-    supabase.from('platform_metrics').select('*').eq('category', 'governance')
+    supabase.from('platform_metrics').select('*').eq('category', 'governance'),
+    supabase.from('nic_codes').select('*').order('code', { ascending: true })
   ]);
 
   const metrics: GovernanceMetric[] = (rawMetrics || []).map(m => ({
@@ -209,7 +210,11 @@ export async function getGovernanceData(): Promise<{ resolutions: BoardResolutio
     status: "Active" 
   });
 
-  return { resolutions: (resolutions as unknown as BoardResolution[]) || [], metrics };
+  return { 
+    resolutions: (resolutions as unknown as BoardResolution[]) || [], 
+    metrics,
+    nicCodes: nicCodes || []
+  };
 }
 
 /**
@@ -258,4 +263,72 @@ export async function getTechnicalHealthMetrics(): Promise<{ sysStats: SysStat[]
   });
 
   return { sysStats, services };
+}
+/**
+ * COMPLIANCE & OPERATIONS ACTIONS
+ */
+export async function getComplianceTasks() {
+  const supabase = await createServiceClient();
+  const { data, error } = await supabase
+    .from('compliance_tasks')
+    .select('*')
+    .order('due_date', { ascending: true });
+    
+  if (error) return [];
+  return data || [];
+}
+
+/**
+ * SUPPORT ACTIONS
+ */
+export async function getSupportTickets() {
+  const supabase = await createServiceClient();
+  const { data, error } = await supabase
+    .from('support_tickets')
+    .select('*, profiles(full_name)')
+    .order('created_at', { ascending: false });
+    
+  if (error) return [];
+  return data || [];
+}
+
+/**
+ * STRATEGY & GTM ACTIONS
+ */
+export async function getGTMCampaigns() {
+  const supabase = await createServiceClient();
+  const { data, error } = await supabase
+    .from('gtm_campaigns')
+    .select('*')
+    .order('created_at', { ascending: false });
+    
+  if (error) return [];
+  return data || [];
+}
+
+/**
+ * NIC CODE DIRECTORY
+ */
+export async function getNICCodes() {
+  const supabase = await createServiceClient();
+  const { data, error } = await supabase
+    .from('nic_codes')
+    .select('*')
+    .order('code', { ascending: true });
+    
+  if (error) return [];
+  return data || [];
+}
+
+export async function getPlatformMetrics(category?: string) {
+  const supabase = await createServiceClient();
+  let query = supabase.from('platform_metrics').select('*');
+  
+  if (category) {
+    query = query.eq('category', category);
+  }
+  
+  const { data, error } = await query.order('label', { ascending: true });
+  if (error) return [];
+  return data || [];
 }
