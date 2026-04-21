@@ -12,21 +12,25 @@ import {
   BookOpen,
   MessageSquare,
   Sparkles,
-  Trophy
+  Trophy,
+  User,
+  LayoutDashboard
 } from "lucide-react";
 import { motion } from "framer-motion";
+import { 
+  Tabs, 
+  TabsContent, 
+  TabsList, 
+  TabsTrigger 
+} from "@/components/ui/tabs";
+import { ProfileTabContent } from "@/components/dashboard/ProfileTabContent";
+import { DashboardProfile } from "@/types/dashboard";
 
-interface Profile {
-  id: string;
-  full_name?: string;
-  role: string;
-  department?: string;
-  avatar_url?: string;
-  email?: string;
-  location?: string;
+interface StaffPortalClientProps {
+  profile: DashboardProfile;
 }
 
-export function StaffPortalClient({ profile }: { profile: Profile }) {
+export function StaffPortalClient({ profile }: StaffPortalClientProps) {
   const announcements = [
     { id: 1, title: "Q3 Strategic Pivot", date: "Oct 18", type: "Strategy", content: "Join us for the town hall today at 4 PM to discuss our new AI-first approach." },
     { id: 2, title: "Internship Program Success", date: "Oct 15", type: "Growth", content: "We've onboarded 12 new interns across tech and marketing. Say hi in the Slack channel!" },
@@ -34,7 +38,30 @@ export function StaffPortalClient({ profile }: { profile: Profile }) {
   ];
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-8 pb-20">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <h2 className="text-3xl font-display font-bold tracking-tight">Staff Workspace</h2>
+          <p className="text-muted-foreground text-sm font-medium">Internal coordination and productivity hub.</p>
+        </div>
+        <Badge variant="outline" className="bg-primary/5 border-primary/20 text-primary px-3 py-1 font-bold uppercase tracking-widest text-[10px]">
+          Execution Tier: L2-L3
+        </Badge>
+      </div>
+
+      <Tabs defaultValue="workspace" className="space-y-8">
+        <TabsList className="bg-white/5 border border-white/10 p-1 rounded-xl">
+          <TabsTrigger value="workspace" className="rounded-lg gap-2 text-xs font-bold uppercase tracking-widest px-4 py-2 data-[state=active]:bg-primary data-[state=active]:text-white">
+            <LayoutDashboard className="w-3.5 h-3.5" />
+            Workspace Hub
+          </TabsTrigger>
+          <TabsTrigger value="profile" className="rounded-lg gap-2 text-xs font-bold uppercase tracking-widest px-4 py-2 data-[state=active]:bg-primary data-[state=active]:text-white">
+            <User className="w-3.5 h-3.5" />
+            WorkHub Profile
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="workspace" className="space-y-10 outline-none">
       {/* Hero Welcome */}
       <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary/10 via-background to-accent/5 p-10 border border-white/10">
         <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 blur-3xl rounded-full" />
@@ -142,6 +169,12 @@ export function StaffPortalClient({ profile }: { profile: Profile }) {
            </Card>
         </div>
       </div>
+        </TabsContent>
+
+        <TabsContent value="profile" className="outline-none">
+          <ProfileTabContent profile={profile} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

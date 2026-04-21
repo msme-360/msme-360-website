@@ -2,6 +2,7 @@ import React from "react";
 import { getUser as getAuthUser } from "@/lib/supabase-server";
 import { getProfile as getProfileDirect } from "@/app/[locale]/dashboard/queries";
 import { HiringPortalClient } from "./HiringPortalClient";
+import { getApplicants } from "@/app/[locale]/admin/actions";
 import { getRoleById, hasPermission } from "@/lib/constants/roles";
 import { RestrictedAccess } from "@/components/auth/RestrictedAccess";
 import { redirect } from "next/navigation";
@@ -21,9 +22,15 @@ export default async function HiringPortalPage({ params }: { params: { locale: s
     return <RestrictedAccess requiredLevel="HR Management" />;
   }
 
+  const applicants = await getApplicants();
+  
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <HiringPortalClient />
+      <HiringPortalClient 
+        initialApplicants={applicants} 
+        userId={user.id}
+        profile={profile}
+      />
     </div>
   );
 }

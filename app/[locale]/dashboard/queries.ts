@@ -1,6 +1,7 @@
 import "server-only";
 import { createServiceClient } from "@/lib/supabase-server";
 import { logger } from "@/lib/logger";
+import { DashboardProfile } from "@/types/dashboard";
 
 // --- Queries ---
 // These are "pure" queries that don't read cookies.
@@ -127,7 +128,7 @@ export async function getAvailableMentorshipSlots() {
   ];
 }
 
-export async function getProfile(userId: string, userEmail?: string) {
+export async function getProfile(userId: string, userEmail?: string): Promise<DashboardProfile> {
   try {
     const supabase = await createServiceClient();
     const { data, error } = await supabase
@@ -138,30 +139,36 @@ export async function getProfile(userId: string, userEmail?: string) {
 
     if (error && error.code !== 'PGRST116') throw error;
 
-    const defaults = {
+    const defaults: DashboardProfile = {
+      id: userId,
       company_name: "Amet Innovations Pvt Ltd",
+      legalName: "Amet Innovations Private Limited",
+      establishedDate: "2024-01-15",
       category: "Technology / Software",
-      udyam_number: "UDYAM-MH-01-XXXXXXX",
+      udyam_number: "UDYAM-MH-01-0012345",
       email: userEmail || "founder@ametinn.com",
       location: "Bangalore, Karnataka, India",
-      website: "www.ametinn.com"
+      website: "https://ametinn.com",
+      role: 'user'
     };
 
     if (!data) return defaults;
     
-    // In the new schema, business_category maps to category if we prefer code-side mapping, 
-    // but here I'm standardizing the DB to use 'category' directly.
-    return { ...defaults, ...data };
+    return { ...defaults, ...data } as DashboardProfile;
   } catch (error) {
     logger.error("getProfile error", "queries.ts", error);
     return {
+      id: userId,
       company_name: "Amet Innovations Pvt Ltd",
+      legalName: "Amet Innovations Private Limited",
+      establishedDate: "2024-01-15",
       category: "Technology / Software",
-      udyam_number: "UDYAM-MH-01-XXXXXXX",
+      udyam_number: "UDYAM-MH-01-0012345",
       email: userEmail || "founder@ametinn.com",
       location: "Bangalore, Karnataka, India",
-      website: "www.ametinn.com"
-    };
+      website: "https://ametinn.com",
+      role: 'user'
+    } as DashboardProfile;
   }
 }
 

@@ -19,7 +19,7 @@ export default async function ExecutivePortalPage({ params }: { params: { locale
 
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <ExecutivePortalClient />
+      <ExecutivePortalClient profile={profile} />
     </div>
   );
 }

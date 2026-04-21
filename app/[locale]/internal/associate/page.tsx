@@ -3,6 +3,7 @@ import { getProfile } from "@/app/[locale]/dashboard/queries";
 import { AssociateClient } from "./AssociateClient";
 import { redirect } from "next/navigation";
 import { hasPermission } from "@/lib/constants/roles";
+import { getTasks, getAttendanceLogs, getOnboardingChecklist } from "@/app/[locale]/internal/actions";
 
 export default async function AssociatePortalPage({ 
   params 
@@ -20,9 +21,20 @@ export default async function AssociatePortalPage({
     redirect(`/${locale}/dashboard`);
   }
 
+  const [tasks, attendance, checklist] = await Promise.all([
+    getTasks(user.id),
+    getAttendanceLogs(user.id),
+    getOnboardingChecklist(user.id)
+  ]);
+  
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <AssociateClient profile={profile} />
+      <AssociateClient 
+        profile={profile} 
+        initialTasks={tasks}
+        initialAttendance={attendance}
+        initialChecklist={checklist}
+      />
     </div>
   );
 }

@@ -14,6 +14,7 @@ import { useForm } from "@tanstack/react-form";
 import { z } from "zod";
 import { logger } from "@/lib/logger";
 
+import { type DashboardProfile } from "@/types/dashboard";
 import { 
   AlertDialog, 
   AlertDialogAction, 
@@ -26,14 +27,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 interface ProfileFormProps {
-  initialProfile: {
-    company_name: string;
-    category: string;
-    udyam_number: string;
-    email: string;
-    location: string;
-    website: string;
-  };
+  initialProfile: DashboardProfile;
 }
 
 const profileFormSchema = z.object({
@@ -75,26 +69,34 @@ export function ProfileForm({ initialProfile }: ProfileFormProps) {
 
   const form = useForm({
     defaultValues: {
-      company_name: initialProfile.company_name,
-      category: initialProfile.category,
-      email: initialProfile.email,
-      location: initialProfile.location,
-      website: initialProfile.website || "",
+      company_name: initialProfile.company_name ?? "",
+      category: initialProfile.category ?? "",
+      email: initialProfile.email ?? "",
+      location: initialProfile.location ?? "",
+      website: initialProfile.website ?? "",
     },
     validators: {
       onChange: profileFormSchema,
     },
     onSubmit: async ({ value }) => {
+      const strictlyTypedValue = {
+        company_name: value.company_name ?? "",
+        category: value.category ?? "",
+        email: value.email ?? "",
+        location: value.location ?? "",
+        website: value.website ?? "",
+      };
+
       const isSensitiveChange = 
-        value.email !== initialProfile.email || 
-        value.category !== initialProfile.category || 
-        value.company_name !== initialProfile.company_name;
+        strictlyTypedValue.email !== (initialProfile.email ?? "") || 
+        strictlyTypedValue.category !== (initialProfile.category ?? "") || 
+        strictlyTypedValue.company_name !== (initialProfile.company_name ?? "");
 
       if (isSensitiveChange) {
-        setPendingValues(value);
+        setPendingValues(strictlyTypedValue);
         setShowConfirmDialog(true);
       } else {
-        await executeUpdate(value);
+        await executeUpdate(strictlyTypedValue);
       }
     },
   });

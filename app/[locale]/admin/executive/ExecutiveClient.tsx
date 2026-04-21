@@ -9,20 +9,35 @@ import {
   ArrowUpRight,
   Target,
   History,
-  Building2
+  Building2,
+  User,
+  LayoutDashboard
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { useSearchParams } from "next/navigation";
-import { Tabs, TabsContent } from "@/components/ui/tabs";
+import { useSearchParams, useRouter, useParams } from "next/navigation";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TalentIntelligenceHub } from "./TalentIntelligenceHub";
 import { WorkforceManager } from "./WorkforceManager";
 import { HiringPortal } from "./HiringPortal";
 import { Progress } from "@/components/ui/progress";
+import { ProfileTabContent } from "@/components/dashboard/ProfileTabContent";
+import { DashboardProfile } from "@/types/dashboard";
 
-export function ExecutivePortalClient() {
+interface ExecutivePortalClientProps {
+  profile: DashboardProfile;
+}
+
+export function ExecutivePortalClient({ profile }: ExecutivePortalClientProps) {
   const searchParams = useSearchParams();
+  const router = useRouter();
+  const params = useParams();
+  const locale = params.locale as string;
   const currentTab = searchParams.get('tab') || 'strategy';
+
+  const handleTabChange = (val: string) => {
+    router.push(`/${locale}/admin/executive?tab=${val}`);
+  };
 
   const metrics = [
     { label: "Total MSME Presence", value: "4,281", change: "+12.5%", icon: Building2 },
@@ -50,7 +65,29 @@ export function ExecutivePortalClient() {
         </div>
       </div>
 
-      <Tabs value={currentTab} className="w-full">
+      <Tabs value={currentTab} onValueChange={handleTabChange} className="w-full space-y-8">
+        <TabsList className="bg-white/5 border border-white/10 p-1 rounded-xl">
+          <TabsTrigger value="strategy" className="rounded-lg gap-2 text-xs font-bold uppercase tracking-widest px-4 py-2 data-[state=active]:bg-primary data-[state=active]:text-white">
+            <LayoutDashboard className="w-3.5 h-3.5" />
+            Strategy
+          </TabsTrigger>
+          <TabsTrigger value="performance" className="rounded-lg gap-2 text-xs font-bold uppercase tracking-widest px-4 py-2 data-[state=active]:bg-primary data-[state=active]:text-white">
+            <Zap className="w-3.5 h-3.5" />
+            Performance
+          </TabsTrigger>
+          <TabsTrigger value="workforce" className="rounded-lg gap-2 text-xs font-bold uppercase tracking-widest px-4 py-2 data-[state=active]:bg-primary data-[state=active]:text-white">
+            <Users className="w-3.5 h-3.5" />
+            Workforce
+          </TabsTrigger>
+          <TabsTrigger value="hiring" className="rounded-lg gap-2 text-xs font-bold uppercase tracking-widest px-4 py-2 data-[state=active]:bg-primary data-[state=active]:text-white">
+            <Building2 className="w-3.5 h-3.5" />
+            Hiring
+          </TabsTrigger>
+          <TabsTrigger value="profile" className="rounded-lg gap-2 text-xs font-bold uppercase tracking-widest px-4 py-2 data-[state=active]:bg-primary data-[state=active]:text-white">
+            <User className="w-3.5 h-3.5" />
+            Identity
+          </TabsTrigger>
+        </TabsList>
         <TabsContent value="strategy" className="space-y-10 focus-visible:outline-none mt-0">
           {/* High-Level Metrics */}
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
@@ -153,6 +190,10 @@ export function ExecutivePortalClient() {
 
         <TabsContent value="hiring" className="focus-visible:outline-none mt-0">
           <HiringPortal />
+        </TabsContent>
+
+        <TabsContent value="profile" className="focus-visible:outline-none mt-0">
+          <ProfileTabContent profile={profile} />
         </TabsContent>
       </Tabs>
     </div>

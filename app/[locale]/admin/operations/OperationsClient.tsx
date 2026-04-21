@@ -10,22 +10,27 @@ import {
   Target,
   ArrowRight,
   TrendingUp,
-  ShieldAlert
+  ShieldAlert,
+  User,
+  LayoutDashboard
 } from "lucide-react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { 
+  Tabs, 
+  TabsContent, 
+  TabsList, 
+  TabsTrigger 
+} from "@/components/ui/tabs";
+import { ProfileTabContent } from "@/components/dashboard/ProfileTabContent";
+import { DashboardProfile } from "@/types/dashboard";
 
-interface Profile {
-  id: string;
-  full_name?: string;
-  role: string;
-  department?: string;
-  avatar_url?: string;
-  email?: string;
+interface OperationsClientProps {
+  profile: DashboardProfile;
 }
 
-export function OperationsClient({ profile }: { profile: Profile }) {
+export function OperationsClient({ profile }: OperationsClientProps) {
   const { locale } = useParams();
   
   const stats = [
@@ -35,7 +40,30 @@ export function OperationsClient({ profile }: { profile: Profile }) {
   ];
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-8 pb-20">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <h2 className="text-3xl font-display font-bold tracking-tight">Operations Hub</h2>
+          <p className="text-muted-foreground text-sm font-medium">Strategic infrastructure and departmental oversight.</p>
+        </div>
+        <Badge variant="outline" className="bg-blue-500/10 border-blue-500/20 text-blue-400 px-3 py-1 font-bold uppercase tracking-widest text-[10px]">
+          Authority Level: L5
+        </Badge>
+      </div>
+
+      <Tabs defaultValue="operations" className="space-y-8">
+        <TabsList className="bg-white/5 border border-white/10 p-1 rounded-xl">
+          <TabsTrigger value="operations" className="rounded-lg gap-2 text-xs font-bold uppercase tracking-widest px-4 py-2 data-[state=active]:bg-blue-500 data-[state=active]:text-white">
+            <LayoutDashboard className="w-3.5 h-3.5" />
+            Operations Hub
+          </TabsTrigger>
+          <TabsTrigger value="profile" className="rounded-lg gap-2 text-xs font-bold uppercase tracking-widest px-4 py-2 data-[state=active]:bg-blue-500 data-[state=active]:text-white">
+            <User className="w-3.5 h-3.5" />
+            Strategic Profile
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="operations" className="space-y-10 outline-none">
       {/* Operations Header */}
       <section className="relative overflow-hidden rounded-3xl bg-slate-900 p-10 border border-white/5 shadow-2xl">
         <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500/10 blur-3xl rounded-full -mr-20 -mt-20" />
@@ -146,6 +174,12 @@ export function OperationsClient({ profile }: { profile: Profile }) {
           </CardContent>
         </Card>
       </div>
+        </TabsContent>
+
+        <TabsContent value="profile" className="outline-none">
+          <ProfileTabContent profile={profile} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

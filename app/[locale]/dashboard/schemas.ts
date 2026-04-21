@@ -4,6 +4,8 @@ import { z } from "zod";
 
 export const profileSchema = z.object({
   company_name: z.string().min(2).optional(),
+  legalName: z.string().optional(),
+  establishedDate: z.string().optional(),
   category: z.string().optional(),
   udyam_number: z.string().optional(),
   email: z.email().optional(),
