@@ -6,9 +6,10 @@ import { RestrictedAccess } from "@/components/auth/RestrictedAccess";
 import { redirect } from "next/navigation";
 import { AdminViewWrapper } from "@/components/layout/AdminViewWrapper";
 
-export default async function ExecutiveHiringPage({ params }: { params: { locale: string } }) {
+export default async function ExecutiveHiringPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
   const user = await getAuthUser();
-  if (!user) redirect(`/${params.locale}/auth/login`);
+  if (!user) redirect(`/${locale}/auth/login`);
   
   const profile = await getProfileDirect(user.id);
   const userRole = profile?.role || 'user';

@@ -15,21 +15,33 @@ import {
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 
-export function TechnicalPortalClient() {
-  const sysStats = [
-    { label: "Supabase Response", value: "84ms", status: "Optimal", color: "text-green-500", icon: Database },
-    { label: "AI Inference Latency", value: "1.2s", status: "Average", color: "text-blue-500", icon: Zap },
-    { label: "Platform Uptime", value: "99.98%", status: "Stable", color: "text-green-500", icon: Activity },
-    { label: "Error Rate (24h)", value: "0.04%", status: "Minimal", color: "text-green-500", icon: AlertCircle },
-  ];
+export interface SysStat {
+  label: string;
+  value: string;
+  status: string;
+  color: string;
+}
 
-  const services = [
-    { name: "Auth Service", status: "Operational", load: "12%", uptime: "100%" },
-    { name: "Realtime Sync", status: "Operational", load: "45%", uptime: "99.9%" },
-    { name: "MicroAI Engine", status: "Optimal", load: "68%", uptime: "99.2%" },
-    { name: "Edge Functions", status: "Operational", load: "18%", uptime: "100%" },
-  ];
+export interface ServiceStatus {
+  name: string;
+  status: string;
+  load: string;
+  uptime: string;
+}
 
+interface TechnicalPortalClientProps {
+  sysStats: SysStat[];
+  services: ServiceStatus[];
+}
+
+const ICON_MAP: Record<string, React.ElementType> = {
+  "Supabase Response": Database,
+  "AI Inference Latency": Zap,
+  "Platform Uptime": Activity,
+  "Error Rate (24h)": AlertCircle,
+};
+
+export function TechnicalPortalClient({ sysStats, services }: TechnicalPortalClientProps) {
   return (
     <div className="space-y-10">
        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -48,30 +60,33 @@ export function TechnicalPortalClient() {
 
       {/* System Health Overview */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {sysStats.map((s, i) => (
-          <motion.div
-            key={s.label}
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: i * 0.1 }}
-          >
-            <Card className="glass-card border-white/5 relative overflow-hidden group">
-               <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-30 transition-opacity">
-                  <s.icon className="w-12 h-12" />
-               </div>
-               <CardContent className="p-6">
-                  <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-4">{s.label}</p>
-                  <div className="flex items-baseline gap-2 mb-1">
-                    <span className="text-3xl font-display font-bold tabular-nums">{s.value}</span>
-                    <span className={`text-[10px] font-bold ${s.color} uppercase`}>{s.status}</span>
-                  </div>
-                  <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
-                    <div className={`h-full bg-current ${s.color.replace('text-', 'bg-')} opacity-50`} style={{ width: '70%' }} />
-                  </div>
-               </CardContent>
-            </Card>
-          </motion.div>
-        ))}
+        {sysStats.map((s, i) => {
+          const Icon = ICON_MAP[s.label] || Activity;
+          return (
+            <motion.div
+              key={s.label}
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: i * 0.1 }}
+            >
+              <Card className="glass-card border-white/5 relative overflow-hidden group">
+                 <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-30 transition-opacity">
+                    <Icon className="w-12 h-12" />
+                 </div>
+                 <CardContent className="p-6">
+                    <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-4">{s.label}</p>
+                    <div className="flex items-baseline gap-2 mb-1">
+                      <span className="text-3xl font-display font-bold tabular-nums">{s.value}</span>
+                      <span className={`text-[10px] font-bold ${s.color} uppercase`}>{s.status}</span>
+                    </div>
+                    <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
+                      <div className={`h-full bg-current ${s.color.replace('text-', 'bg-')} opacity-50`} style={{ width: '70%' }} />
+                    </div>
+                 </CardContent>
+              </Card>
+            </motion.div>
+          );
+        })}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -91,7 +106,7 @@ export function TechnicalPortalClient() {
                 {services.map((service) => (
                   <div key={service.name} className="p-4 flex items-center justify-between hover:bg-white/[0.01] transition-colors">
                     <div className="flex items-center gap-4">
-                       <div className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.4)]" />
+                       <div className={`w-2 h-2 rounded-full ${service.status === 'Operational' || service.status === 'Optimal' ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.4)]' : 'bg-yellow-500 Shadow-[0_0_8px_rgba(234,179,8,0.4)]'}`} />
                        <div className="space-y-0.5">
                           <p className="text-sm font-bold">{service.name}</p>
                           <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">{service.status}</p>

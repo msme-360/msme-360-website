@@ -5,7 +5,7 @@ import { UserCheck, Filter, Users } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 export default function GovernanceOverview() {
-  const t = useTranslations("Internal.Roles");
+  const t = useTranslations("Roles");
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
       <Card className="glass-card border-white/10 group hover:border-primary/30 transition-all">

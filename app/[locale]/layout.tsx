@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { Inter, Outfit } from "next/font/google";
 import "../globals.css";
 import { AuthProvider } from "@/components/providers/AuthProvider";
@@ -94,9 +95,11 @@ export default async function RootLayout({
                   disableTransitionOnChange
                   storageKey="msme360-theme"
                 >
-                  <ConditionalNavigation>
-                    {children}
-                  </ConditionalNavigation>
+                  <Suspense fallback={null}>
+                    <ConditionalNavigation>
+                      {children}
+                    </ConditionalNavigation>
+                  </Suspense>
                 </ThemeProvider>
               </QueryProvider>
             </AuthProvider>

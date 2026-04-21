@@ -34,8 +34,8 @@ export default function AccessAudit({ attendance }: AccessAuditProps) {
       <CardHeader className="border-b border-white/10 bg-white/[0.02]">
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle className="text-lg">{t("attendanceTable.title") || "Participation Archives"}</CardTitle>
-            <CardDescription>{t("attendanceTable.description") || "Organization-wide attendance logs and participation audit trails."}</CardDescription>
+            <CardTitle className="text-lg">{t("table.title") || "Participation Archives"}</CardTitle>
+            <CardDescription>{t("table.description") || "Organization-wide attendance logs and participation audit trails."}</CardDescription>
           </div>
           <Button variant="outline" size="sm" className="h-8 text-[10px] font-black uppercase bg-white/5 border-white/10 gap-2">
             <FileText className="w-3 h-3" />

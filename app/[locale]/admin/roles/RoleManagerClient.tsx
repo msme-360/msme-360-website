@@ -24,7 +24,7 @@ interface RoleManagerClientProps {
 }
 
 export function RoleManagerClient({ initialProfiles }: RoleManagerClientProps) {
-  const t = useTranslations("Internal.Roles");
+  const t = useTranslations("Roles");
   const [profiles, setProfiles] = useState(initialProfiles);
   const [search, setSearch] = useState("");
   const [updating, setUpdating] = useState<string | null>(null);

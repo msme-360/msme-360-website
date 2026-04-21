@@ -13,6 +13,7 @@ import { Task, AttendanceLog, TaskComment } from "./components/ManagerTypes";
 import ManagerHeader from "./components/ManagerHeader";
 import MissionBoard from "./components/MissionBoard";
 import AttendanceMonitor from "./components/AttendanceMonitor";
+import { RoleUnifiedDashboard } from "@/components/dashboards/RoleUnifiedDashboard";
 
 interface ManagerClientProps {
   profile: DashboardProfile;
@@ -104,6 +105,8 @@ export function ManagerClient({ profile, initialTasks, initialAttendance, team }
         </TabsList>
 
         <TabsContent value="management" className="space-y-10 outline-none">
+          <RoleUnifiedDashboard profile={profile} />
+          
           <ManagerHeader
             department={profile.department || ''}
             profileId={profile.id}

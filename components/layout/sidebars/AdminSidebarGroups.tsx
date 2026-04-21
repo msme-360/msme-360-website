@@ -1,6 +1,5 @@
 "use client";
 
-import React from "react";
 import Link from "next/link";
 import { 
   ChevronDown, 
@@ -44,13 +43,23 @@ export function AdminSidebarGroups({
   navGroups, 
   isExternal, 
   locale, 
-  currentTab 
+  currentTab,
+  pathname
 }: { 
   navGroups: NavGroup[]; 
   isExternal: boolean; 
   locale: string; 
   currentTab: string;
+  pathname: string;
 }) {
+  const normalizePath = (p: string) => {
+    if (!p) return "/";
+    // Strip /(en|hi) prefix and trailing slashes
+    return p.replace(/^\/(en|hi)/, "").replace(/\/$/, "") || "/";
+  };
+
+  const normalizedPath = normalizePath(pathname);
+
   return (
     <SidebarContent>
       {navGroups.filter(g => g.visible).map((group) => (
@@ -66,7 +75,11 @@ export function AdminSidebarGroups({
                     {item.subItems ? (
                       <>
                         <CollapsibleTrigger asChild>
-                          <SidebarMenuButton tooltip={item.title}>
+                          <SidebarMenuButton 
+                            tooltip={item.title}
+                            isActive={normalizedPath === normalizePath(item.url) || item.subItems.some(sub => normalizedPath === normalizePath(sub.url) || currentTab === sub.id)}
+                            className="data-[active=true]:border-l-[3px] data-[active=true]:border-primary data-[active=true]:rounded-l-none pl-3"
+                          >
                             <item.icon className="w-4 h-4" />
                             <span className="font-medium">{item.title}</span>
                             <ChevronDown className="ml-auto h-4 w-4 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-180" />
@@ -76,7 +89,11 @@ export function AdminSidebarGroups({
                           <SidebarMenuSub>
                             {item.subItems.map((sub) => (
                               <SidebarMenuSubItem key={sub.title}>
-                                <SidebarMenuSubButton asChild isActive={currentTab === sub.id}>
+                                <SidebarMenuSubButton 
+                                  asChild 
+                                  isActive={normalizedPath === normalizePath(sub.url) || currentTab === sub.id}
+                                  className="data-[active=true]:text-primary data-[active=true]:font-semibold"
+                                >
                                   <Link href={sub.url} className="flex items-center gap-3">
                                     <sub.icon className="w-3.5 h-3.5 opacity-70" />
                                     <span>{sub.title}</span>
@@ -88,7 +105,12 @@ export function AdminSidebarGroups({
                         </CollapsibleContent>
                       </>
                     ) : (
-                      <SidebarMenuButton asChild tooltip={item.title}>
+                      <SidebarMenuButton 
+                        asChild 
+                        tooltip={item.title} 
+                        isActive={normalizedPath === normalizePath(item.url) || (normalizePath(item.url) !== `/admin` && normalizedPath.startsWith(normalizePath(item.url) + '/'))}
+                        className="data-[active=true]:border-l-[3px] data-[active=true]:border-primary data-[active=true]:rounded-l-none pl-3"
+                      >
                         <Link href={item.url} className="flex items-center gap-3">
                           <item.icon className="w-4 h-4" />
                           <span className="font-medium">{item.title}</span>

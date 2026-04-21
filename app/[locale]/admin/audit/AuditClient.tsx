@@ -1,29 +1,32 @@
 "use client";
 
-import { 
-  History, 
-  Search, 
-  Filter, 
-  Download,
-  ShieldCheck,
-  Clock,
-  ArrowUpRight
-} from "lucide-react";
+import { History, Search, Filter, Download, ShieldCheck, Clock, ArrowUpRight } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useTranslations } from "next-intl";
+import { formatDistanceToNow } from "date-fns";
 
-const MOCK_LOGS = [
-  { id: 1, action: "Role Modified", user: "Super Admin", target: "Recruiter Role", time: "2 mins ago", status: "success" },
-  { id: 2, action: "System Config Update", user: "CTO", target: "Tech Infra", time: "15 mins ago", status: "success" },
-  { id: 3, action: "Audit Export", user: "Managing Partner", target: "Q1 Reports", time: "1 hour ago", status: "success" },
-  { id: 4, action: "Governance Check", user: "BOD", target: "Compliance Segment", time: "3 hours ago", status: "warning" },
-  { id: 5, action: "Security Patch Applied", user: "System", target: "Auth Service", time: "5 hours ago", status: "success" },
-];
+export interface AuditLog {
+  id: string;
+  action: string;
+  target: string | null;
+  status: 'success' | 'warning' | 'error';
+  created_at: string;
+  profiles: {
+    full_name: string | null;
+  } | null;
+}
 
-export function AuditClient() {
+interface AuditClientProps {
+  initialLogs: AuditLog[];
+}
+
+export function AuditClient({ initialLogs }: AuditClientProps) {
   const t = useTranslations("Admin.audit");
+
+  const alertCount = initialLogs.filter(log => log.status === 'error').length;
+  const warningCount = initialLogs.filter(log => log.status === 'warning').length;
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -66,18 +69,18 @@ export function AuditClient() {
         <Card className="glass-card border-accent/10">
           <CardHeader className="pb-2">
             <CardDescription className="text-[10px] uppercase tracking-widest font-bold text-accent">{t("alerts")}</CardDescription>
-            <CardTitle className="text-2xl font-display">0</CardTitle>
+            <CardTitle className="text-2xl font-display">{alertCount}</CardTitle>
           </CardHeader>
           <CardContent>
              <div className="h-1 w-full bg-accent/10 rounded-full overflow-hidden">
-              <div className="h-full bg-accent w-0" />
+              <div className={`h-full bg-accent ${alertCount > 0 ? 'w-full' : 'w-0'}`} />
             </div>
           </CardContent>
         </Card>
         <Card className="glass-card border-muted/10 md:col-span-2">
            <CardHeader className="pb-2">
             <CardDescription className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground">{t("compliance")}</CardDescription>
-            <CardTitle className="text-2xl font-display">{t("complianceOptimal")}</CardTitle>
+            <CardTitle className="text-2xl font-display">{warningCount > 0 ? t("complianceIssue") || "Action Required" : t("complianceOptimal")}</CardTitle>
           </CardHeader>
           <CardContent className="text-xs text-muted-foreground">
             {t("complianceNote")}
@@ -114,7 +117,7 @@ export function AuditClient() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/50">
-                {MOCK_LOGS.map((log) => (
+                {initialLogs.map((log) => (
                   <tr key={log.id} className="hover:bg-muted/30 transition-colors group">
                     <td className="px-6 py-4">
                       <div className="font-bold text-foreground">{log.action}</div>
@@ -122,23 +125,25 @@ export function AuditClient() {
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
                         <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-[10px] text-primary font-bold">
-                          {log.user.slice(0, 2).toUpperCase()}
+                          {(log.profiles?.full_name || "System").slice(0, 2).toUpperCase()}
                         </div>
-                        {log.user}
+                        {log.profiles?.full_name || "System"}
                       </div>
                     </td>
                     <td className="px-6 py-4 text-muted-foreground">
-                      {log.target}
+                      {log.target || "--"}
                     </td>
                     <td className="px-6 py-4 text-xs">
                       <div className="flex items-center gap-1.5 text-muted-foreground italic">
                         <Clock className="w-3 h-3" />
-                        {log.time}
+                        {formatDistanceToNow(new Date(log.created_at), { addSuffix: true })}
                       </div>
                     </td>
                     <td className="px-6 py-4">
                       <div className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-widest ${
-                        log.status === 'success' ? 'bg-primary/10 text-primary border border-primary/20' : 'bg-accent/10 text-accent border border-accent/20'
+                        log.status === 'success' ? 'bg-primary/10 text-primary border border-primary/20' : 
+                        log.status === 'warning' ? 'bg-yellow-500/10 text-yellow-500 border border-yellow-500/20' :
+                        'bg-accent/10 text-accent border border-accent/20'
                       }`}>
                         {log.status}
                       </div>
@@ -150,6 +155,13 @@ export function AuditClient() {
                     </td>
                   </tr>
                 ))}
+                {initialLogs.length === 0 && (
+                  <tr>
+                    <td colSpan={6} className="px-6 py-20 text-center text-muted-foreground italic">
+                      No logs recorded in the governance ledger.
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>

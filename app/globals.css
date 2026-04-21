@@ -34,6 +34,15 @@
   /* Custom Utilities */
   --shadow-glow: 0 0 20px -5px var(--color-primary);
   --shadow-glass: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+
+  /* Sidebar Design Tokens */
+  --color-sidebar-background: var(--color-background);
+  --color-sidebar-foreground: var(--color-foreground);
+  --color-sidebar-primary: var(--color-primary);
+  --color-sidebar-accent: oklch(0.2 0.04 260);
+  --color-sidebar-accent-foreground: var(--color-primary);
+  --color-sidebar-border: var(--color-border);
+  --color-sidebar-ring: var(--color-ring);
 }
 
 :root {

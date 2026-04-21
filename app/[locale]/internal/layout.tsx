@@ -5,7 +5,7 @@ import { AdminSidebar } from "@/components/layout/AdminSidebar";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { RestrictedAccess } from "@/components/auth/RestrictedAccess";
 import { redirect } from "next/navigation";
-import { hasPermission } from "@/lib/constants/roles";
+import { hasPermission, getRoleById } from "@/lib/constants/roles";
 import DashboardLoading from "@/app/[locale]/dashboard/loading";
 
 import { getTranslations } from "next-intl/server";
@@ -43,25 +43,30 @@ async function InternalLayoutInner({
 
   const profile = await getProfile(user.id);
   const userRole = profile?.role || 'user';
+  const level = getRoleById(userRole).level;
 
-  // ROLE-BASED REDIRECTION SYSTEM
-  // 1. Governance/Executives (Level 0-1) belong in Admin Strategy Portal
-  if (hasPermission(userRole, 1)) {
+  // 1. Governance (Level 0) belongs in Governance Control Center
+  if (level === 0) {
+    redirect(`/${locale}/admin/governance`);
+  }
+
+  // 2. Executives (Level 1 & 1.5) belong in Admin Strategy Portal
+  if (level === 1 || level === 1.5) {
     redirect(`/${locale}/admin/executive`);
   }
 
-  // 2. Directors (Level 2) belong in Admin Strategic Operations
-  if (hasPermission(userRole, 2)) {
+  // 3. Directors (Level 2) belong in Admin Strategic Operations
+  if (level === 2) {
     redirect(`/${locale}/admin/operations`);
   }
 
   // 3. External Users (Level 6) belong in Dashboard
-  if (!hasPermission(userRole, 5)) {
+  if (level === 6) {
     redirect(`/${locale}/dashboard`);
   }
 
   // Base permission for internal hub is now Level 5 (Associate/Intern)
-  if (!hasPermission(userRole, 5)) {
+  if (level > 5) {
     return <RestrictedAccess requiredLevel="Staff" />;
   }
 
