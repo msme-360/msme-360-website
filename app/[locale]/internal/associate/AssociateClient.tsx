@@ -23,6 +23,7 @@ import {
   LayoutDashboard
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useRouter } from "next/navigation";
 import { 
   getTaskComments, 
   addTaskComment, 
@@ -35,7 +36,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Textarea } from "@/components/ui/textarea";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Label } from "@/components/ui/label";
 import { 
@@ -82,11 +83,17 @@ interface AssociateClientProps {
   initialTasks: Task[];
   initialAttendance: AttendanceLog[];
   initialChecklist: OnboardingItem[];
+  mentor: {
+    full_name: string;
+    avatar_url: string | null;
+    designation: string;
+    department: string;
+  } | null;
 }
 
-export function AssociateClient({ profile, initialTasks, initialAttendance, initialChecklist }: AssociateClientProps) {
+export function AssociateClient({ profile, initialTasks, initialAttendance, initialChecklist, mentor }: AssociateClientProps) {
   const [tasks, setTasks] = useState(initialTasks);
-  const [attendance, setAttendance] = useState(initialAttendance);
+  const [attendance] = useState(initialAttendance);
   const [checklist, setChecklist] = useState(initialChecklist);
   const [loading, setLoading] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -97,6 +104,8 @@ export function AssociateClient({ profile, initialTasks, initialAttendance, init
   const [newComment, setNewComment] = useState("");
   const [isCommentsLoading, setIsCommentsLoading] = useState(false);
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
+
+  const router = useRouter();
 
   const fetchComments = React.useCallback(async (taskId: string) => {
     setIsCommentsLoading(true);
@@ -184,14 +193,8 @@ export function AssociateClient({ profile, initialTasks, initialAttendance, init
     const res = await logAttendance(profile.id, type);
     if (res.success) {
       toast.success(type === 'in' ? "Checked in successfully!" : "Checked out successfully!");
-      // Optimization: we could re-fetch or just update local state if we knew the return data
-      // For now, revalidation should handle most cases, but we'll manually update for instant feedback
-      const now = new Date().toISOString();
-      if (type === 'in') {
-        setAttendance([{ id: 'temp', check_in: now, check_out: null }, ...attendance]);
-      } else {
-        setAttendance(prev => prev.map(log => log.id === todayLog?.id ? { ...log, check_out: now } : log));
-      }
+      // Standard revalidation pattern
+      router.refresh();
     } else {
       toast.error(res.error || "Attendance system failure.");
     }
@@ -517,7 +520,7 @@ export function AssociateClient({ profile, initialTasks, initialAttendance, init
               </CardContent>
            </Card>
 
-           <Card className="glass-card bg-emerald-500/5 border-emerald-500/20 overflow-hidden relative group">
+            <Card className="glass-card bg-emerald-500/5 border-emerald-500/20 overflow-hidden relative group">
               <div className="absolute -right-4 -bottom-4 w-24 h-24 bg-emerald-500/10 blur-2xl rounded-full transition-all group-hover:scale-150 duration-700" />
               <CardHeader>
                  <CardTitle className="text-sm font-black uppercase tracking-widest flex items-center gap-2">
@@ -526,25 +529,41 @@ export function AssociateClient({ profile, initialTasks, initialAttendance, init
                  </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4 relative z-10">
-                 <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-emerald-500/20 border border-emerald-500/20 flex items-center justify-center text-emerald-400 font-bold text-xs ring-4 ring-emerald-500/5">
-                       SJ
+                 {mentor ? (
+                   <>
+                    <div className="flex items-center gap-3">
+                         <Avatar className="w-10 h-10 border border-emerald-500/20 ring-4 ring-emerald-500/5">
+                           {mentor.avatar_url && (
+                             <AvatarImage src={mentor.avatar_url} alt={mentor.full_name} className="object-cover" />
+                           )}
+                           <AvatarFallback className="bg-emerald-500/20 text-emerald-400 font-bold text-xs uppercase">
+                             {mentor.full_name.split(' ').map((n: string) => n[0]).join('')}
+                           </AvatarFallback>
+                         </Avatar>
+                        <div>
+                          <p className="text-xs font-bold text-white">{mentor.full_name}</p>
+                          <p className="text-[10px] text-emerald-400/60 uppercase font-black tracking-tighter">
+                            {mentor.designation} • {mentor.department}
+                          </p>
+                        </div>
                     </div>
-                    <div>
-                       <p className="text-xs font-bold text-white">Sarah Jenkins</p>
-                       <p className="text-[10px] text-emerald-400/60 uppercase font-black tracking-tighter">People & Culture Lead</p>
-                    </div>
-                 </div>
-                 <p className="text-sm text-indigo-100/60 italic leading-relaxed font-medium">
-                    &quot;Consistency is the industrial standard. Your participation logs define your reliability profile in our ecosystem.&quot;
-                 </p>
-                 <Button className="w-full bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl h-12 text-[10px] uppercase font-black tracking-widest shadow-[0_0_20px_rgba(16,185,129,0.2)] flex items-center justify-center gap-2 transition-all hover:-translate-y-0.5 active:translate-y-0">
-                    <MessageSquare className="w-3.5 h-3.5" />
-                    Direct Comms
-                    <ArrowRight className="w-3.5 h-3.5" />
-                 </Button>
+                    <p className="text-sm text-indigo-100/60 italic leading-relaxed font-medium">
+                        &quot;Consistency is the industrial standard. Your participation logs define your reliability profile in our ecosystem.&quot;
+                    </p>
+                    <Button className="w-full bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl h-12 text-[10px] uppercase font-black tracking-widest shadow-[0_0_20px_rgba(16,185,129,0.2)] flex items-center justify-center gap-2 transition-all hover:-translate-y-0.5 active:translate-y-0">
+                        <MessageSquare className="w-3.5 h-3.5" />
+                        Direct Comms
+                        <ArrowRight className="w-3.5 h-3.5" />
+                    </Button>
+                   </>
+                 ) : (
+                   <div className="py-6 text-center text-muted-foreground">
+                      <p className="text-xs italic opacity-40">Mentor Not Assigned</p>
+                      <p className="text-[10px] uppercase tracking-widest mt-2">Awaiting Personnel induction</p>
+                   </div>
+                 )}
               </CardContent>
-           </Card>
+            </Card>
         </div>
       </div>
         </TabsContent>

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -93,6 +94,7 @@ interface ManagerClientProps {
 }
 
 export function ManagerClient({ profile, initialTasks, initialAttendance, team }: ManagerClientProps) {
+  const router = useRouter();
   const [tasks] = useState(initialTasks);
   const [attendance] = useState(initialAttendance);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -187,9 +189,9 @@ export function ManagerClient({ profile, initialTasks, initialAttendance, team }
         priority: 'Medium',
         due_date: ''
       });
-      // In a real app we'd re-fetch, but for this flow we assume the server state updates
-      // and the page revalidation (or local state update if we had the new task object) takes over.
-      window.location.reload(); // Simple way to refresh the task board
+      // Use router.refresh to trigger server-side revalidation of the page data
+      router.refresh();
+      toast.success("Mission deployed successfully!");
     } else {
       toast.error(res.error || "Failed to deploy mission.");
     }

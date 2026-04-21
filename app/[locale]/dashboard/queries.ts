@@ -149,7 +149,8 @@ export async function getProfile(userId: string, userEmail?: string): Promise<Da
       email: userEmail || "founder@ametinn.com",
       location: "Bangalore, Karnataka, India",
       website: "https://ametinn.com",
-      role: 'user'
+      role: 'user',
+      manager_id: undefined
     };
 
     if (!data) return defaults;
@@ -167,7 +168,8 @@ export async function getProfile(userId: string, userEmail?: string): Promise<Da
       email: userEmail || "founder@ametinn.com",
       location: "Bangalore, Karnataka, India",
       website: "https://ametinn.com",
-      role: 'user'
+      role: 'user',
+      manager_id: undefined
     } as DashboardProfile;
   }
 }

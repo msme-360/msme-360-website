@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { getUser } from "@/lib/supabase-server";
-import { getPerformanceData } from "@/app/[locale]/internal/actions";
+import { getPerformanceData, getPerformanceTrends } from "@/app/[locale]/internal/actions";
 import { getProfile } from "@/app/[locale]/dashboard/queries";
 import { PerformanceClient } from "./PerformanceClient";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -9,9 +9,10 @@ export default async function PerformancePage() {
   const user = await getUser();
   if (!user) return <div>Unauthorized</div>;
 
-  const [profile, performanceData] = await Promise.all([
+  const [profile, performanceData, trendData] = await Promise.all([
     getProfile(user.id, user.email),
-    getPerformanceData(user.id)
+    getPerformanceData(user.id),
+    getPerformanceTrends(user.id)
   ]);
 
   if (!profile) return <div>Profile not found</div>;
@@ -21,6 +22,7 @@ export default async function PerformancePage() {
       <Suspense fallback={<PerformanceSkeleton />}>
         <PerformanceClient 
           performanceData={performanceData} 
+          trendData={trendData}
         />
       </Suspense>
     </div>

@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useParams } from "next/navigation";
-import { Rocket, Twitter, Linkedin, Github } from "lucide-react";
+import { Rocket, Twitter, Linkedin } from "lucide-react";
 
 export function Footer() {
   const [isMounted, setIsMounted] = useState(false);
@@ -18,6 +18,19 @@ export function Footer() {
   const currentYear = isMounted ? new Date().getFullYear() : 2026;
 
   const locale = (useParams()?.locale as string) || "en";
+
+  const socialLinks = [
+    // {
+    //   name: "Twitter",
+    //   href: "#",
+    //   Icon: Twitter,
+    // },
+    {
+      name: "Linkedin",
+      href: "https://www.linkedin.com/company/msme-360/",
+      Icon: Linkedin,
+    },
+  ];
 
   return (
     <footer className="bg-background border-t border-white/5 py-12 px-4 selection:bg-primary/20">
@@ -33,7 +46,7 @@ export function Footer() {
                 MSME <span className="text-primary">360</span>
               </span>
             </Link>
-            <p className="text-muted-foreground text-sm max-w-sm leading-relaxed">
+            <p className="text-muted-foreground text-sm max-w-md leading-relaxed">
               {t("description")}
             </p>
           </div>
@@ -56,18 +69,18 @@ export function Footer() {
           <div>
             <h4 className="font-bold text-sm uppercase tracking-widest mb-6 text-foreground/50">{t("links.connect")}</h4>
             <div className="flex gap-4">
-              {[Twitter, Linkedin, Github].map((Icon, i) => (
+              {socialLinks.map((socialLink, i) => (
                 <Link 
                   key={i} 
-                  href="#" 
+                  href={socialLink.href} 
                   className="w-10 h-10 rounded-full glass flex items-center justify-center hover:border-primary/50 transition-colors group"
                 >
-                  <Icon className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
+                  <socialLink.Icon className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
                 </Link>
               ))}
             </div>
             <p className="mt-6 text-xs text-muted-foreground">
-              {t("contact.label")} support@msme360.in
+              {t("contact.label")} contact.msme360@gmail.com
             </p>
           </div>
         </div>

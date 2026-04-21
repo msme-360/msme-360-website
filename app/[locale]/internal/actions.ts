@@ -149,6 +149,21 @@ export async function getTaskComments(taskId: string) {
   return data || [];
 }
 
+export async function getMentorDetails(managerId: string) {
+  const supabase = await createServiceClient();
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('full_name, avatar_url, designation, department')
+    .eq('id', managerId)
+    .single();
+
+  if (error) {
+    console.error("Error fetching mentor details:", error);
+    return null;
+  }
+  return data;
+}
+
 /**
  * NOTIFICATION ACTIONS
  */
@@ -215,14 +230,17 @@ export async function getPerformanceData(userId: string) {
   // 1. Get task stats
   const { data: tasks } = await supabase
     .from('tasks')
-    .select('status')
+    .select('status, priority')
     .eq('assigned_to', userId);
     
+  const totalTasks = tasks?.length || 0;
+  const completedTasks = tasks?.filter(t => t.status === 'completed').length || 0;
+
   const taskStats = {
-    total: tasks?.length || 0,
-    completed: tasks?.filter(t => t.status === 'completed').length || 0,
+    total: totalTasks,
+    completed: completedTasks,
     in_progress: tasks?.filter(t => t.status === 'in_progress').length || 0,
-    completion_rate: tasks?.length ? Math.round((tasks.filter(t => t.status === 'completed').length / tasks.length) * 100) : 0
+    completion_rate: totalTasks ? Math.round((completedTasks / totalTasks) * 100) : 0
   };
 
   // 2. Get attendance consistency
@@ -231,14 +249,56 @@ export async function getPerformanceData(userId: string) {
     .select('check_in')
     .eq('user_id', userId);
     
+  // Calculated against a standard 22-day working month
   const attendanceStats = {
     total_days: attendance?.length || 0,
-    // Just a placeholder for demo purposes - usually you'd compare with total workdays
-    consistency: attendance?.length ? Math.min(Math.round((attendance.length / 20) * 100), 100) : 0 
+    consistency: attendance?.length ? Math.min(Math.round((attendance.length / 22) * 100), 100) : 0 
   };
 
   return {
     taskStats,
     attendanceStats
   };
+}
+
+export async function getPerformanceTrends(userId: string) {
+  const supabase = await createServiceClient();
+  
+  // Fetch tasks and attendance logs from the last 30 days
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+  const startDateStr = thirtyDaysAgo.toISOString();
+
+  const [{ data: tasks }, { data: attendance }] = await Promise.all([
+    supabase.from('tasks').select('status, created_at').eq('assigned_to', userId).gte('created_at', startDateStr),
+    supabase.from('attendance_logs').select('check_in').eq('user_id', userId).gte('check_in', startDateStr)
+  ]);
+
+  const trendData = [3, 2, 1, 0].map((weeksAgo) => {
+    const end = new Date();
+    end.setDate(end.getDate() - (weeksAgo * 7));
+    const start = new Date(end);
+    start.setDate(start.getDate() - 7);
+
+    const weekTasks = (tasks || []).filter(t => {
+      const date = new Date(t.created_at);
+      return date >= start && date < end;
+    });
+
+    const weekAttendance = (attendance || []).filter(a => {
+      const date = new Date(a.check_in);
+      return date >= start && date < end;
+    });
+
+    const completed = weekTasks.filter(t => t.status === 'completed').length;
+    const total = weekTasks.length;
+
+    return {
+      name: weeksAgo === 0 ? 'Current' : `Week -${weeksAgo}`,
+      velocity: total ? Math.round((completed / total) * 100) : 0,
+      quality: weekAttendance.length ? Math.min(Math.round((weekAttendance.length / 5) * 100), 100) : 0
+    };
+  });
+
+  return trendData.reverse();
 }

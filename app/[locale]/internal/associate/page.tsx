@@ -3,7 +3,7 @@ import { getProfile } from "@/app/[locale]/dashboard/queries";
 import { AssociateClient } from "./AssociateClient";
 import { redirect } from "next/navigation";
 import { hasPermission } from "@/lib/constants/roles";
-import { getTasks, getAttendanceLogs, getOnboardingChecklist } from "@/app/[locale]/internal/actions";
+import { getTasks, getAttendanceLogs, getOnboardingChecklist, getMentorDetails } from "@/app/[locale]/internal/actions";
 
 export default async function AssociatePortalPage({ 
   params 
@@ -12,7 +12,10 @@ export default async function AssociatePortalPage({
 }) {
   const { locale } = await params;
   const user = await getUser();
-  if (!user) redirect(`/${locale}/auth/login`);
+  
+  if (!user) {
+    redirect(`/${locale}/auth/login`);
+  }
   
   const profile = await getProfile(user.id);
   
@@ -26,6 +29,8 @@ export default async function AssociatePortalPage({
     getAttendanceLogs(user.id),
     getOnboardingChecklist(user.id)
   ]);
+
+  const mentor = profile.manager_id ? await getMentorDetails(profile.manager_id) : null;
   
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -34,6 +39,7 @@ export default async function AssociatePortalPage({
         initialTasks={tasks}
         initialAttendance={attendance}
         initialChecklist={checklist}
+        mentor={mentor}
       />
     </div>
   );

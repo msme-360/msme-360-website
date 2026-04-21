@@ -16,4 +16,5 @@ export interface DashboardProfile {
   website?: string;
   legalName?: string;
   establishedDate?: string;
+  manager_id?: string;
 }

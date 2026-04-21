@@ -48,6 +48,10 @@
         "title": "Fast-Paced",
         "desc": "Collaborate in a development environment that values speed and high-quality execution."
       }
+    },
+    "testimonials": {
+      "title": "Life at MSME 360",
+      "subtitle": "Hear from our team members about their journey and impact."
     }
   }
 }
