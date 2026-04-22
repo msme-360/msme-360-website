@@ -80,8 +80,9 @@ export function LoginForm({ locale }: LoginFormProps) {
         }
 
         if (user) {
-          const { data: role } = await supabase.rpc('get_role_by_id', { user_id: user.id });
-          const roleData = getRoleById(role || 'user');
+          const { data: roles } = await supabase.rpc('get_role_by_id', { user_id: user.id });
+          const roleName = roles?.[0]?.role || 'user';
+          const roleData = getRoleById(roleName);
           const level = roleData.level;
           
           const routes: Record<number, string> = {

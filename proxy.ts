@@ -2,6 +2,7 @@ import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 import createIntlMiddleware from 'next-intl/middleware';
 import { locales, defaultLocale } from './i18n/settings';
+import { STARTUP_ROLES } from './lib/constants/roles';
 
 const intlMiddleware = createIntlMiddleware({
   locales,
@@ -85,19 +86,12 @@ export default async function proxy(request: NextRequest) {
         .single();
       
       const role = profile?.role || 'user';
+      const roleData = STARTUP_ROLES[role] || STARTUP_ROLES.user;
       const locale = locales.find(l => pathname.startsWith(`/${l}`)) || defaultLocale;
-
-      if (['super_admin', 'ceo', 'managing_partner'].includes(role)) {
-        url.pathname = `/${locale}/admin/executive`;
-      } else if (['cto', 'engineering_director'].includes(role)) {
-        url.pathname = `/${locale}/admin/tech`;
-      } else if (['hr_manager', 'recruiter'].includes(role)) {
-        url.pathname = `/${locale}/admin/hiring`;
-      } else if (['staff', 'employee', 'intern'].includes(role)) {
-        url.pathname = `/${locale}/internal/staff`;
-      } else {
-        url.pathname = `/${locale}/dashboard`;
-      }
+      
+      // Industry Grade: Dynamic redirection based on role metadata
+      const rawPath = roleData.homePath.replace(/^\/+/, '');
+      url.pathname = `/${locale}/${rawPath}`;
 
       return NextResponse.redirect(url);
     }

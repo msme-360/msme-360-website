@@ -1,25 +1,26 @@
 import { getUser as getAuthUser } from "@/lib/supabase-server";
 import { getProfile as getProfileDirect } from "@/app/[locale]/dashboard/queries";
-import { OperationsClient } from "../OperationsClient";
+import { HiringPortalClient } from "@/app/[locale]/admin/hiring/HiringPortalClient";
+import { getApplicants } from "@/app/[locale]/admin/actions";
 import { getRoleById, hasPermission } from "@/lib/constants/roles";
 import { RestrictedAccess } from "@/components/auth/RestrictedAccess";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 
-export default function OperationsPortalPage({
+export default function InternalHiringPage({
   params
 }: {
   params: Promise<{ locale: string, slug?: string[] }>
 }) {
   return (
-    <Suspense fallback={<OperationsPortalSkeleton />}>
-      <OperationsPortalContent params={params} />
+    <Suspense fallback={<HiringSkeleton />}>
+      <HiringContent params={params} />
     </Suspense>
   );
 }
 
-async function OperationsPortalContent({
+async function HiringContent({
   params
 }: {
   params: Promise<{ locale: string, slug?: string[] }>
@@ -33,41 +34,41 @@ async function OperationsPortalContent({
   const roleData = getRoleById(userRole);
 
   // --- Silo Guard ---
-  const isAuthorized = hasPermission(userRole, 2) || (roleData.department === "Operations" && hasPermission(userRole, 3));
+  // Ensure only People Dept Managers or higher can access
+  const isAuthorized = roleData.department === "People" && hasPermission(userRole, 3.5);
 
   if (!isAuthorized) {
-    return <RestrictedAccess requiredLevel="Operations Leadership" />;
+    return <RestrictedAccess requiredLevel="HR Management" />;
   }
 
-  // 2. Path-Based Entity Silo Guard
   const requestedRole = slug?.[0];
-  const subView = slug?.[1];
 
-  // If hitting root /operations, redirect to own silo
   if (!requestedRole) {
-    redirect(`/${locale}/admin/operations/${userRole}`);
+    redirect(`/${locale}/internal/hiring/${userRole}`);
   }
 
-  // If attempting to access another role's operations view, block
   if (requestedRole !== userRole) {
-    redirect(`/${locale}/admin/operations/${userRole}`);
+    redirect(`/${locale}/internal/hiring/${userRole}`);
   }
+
+  const applicants = await getApplicants();
 
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <OperationsClient profile={profile} activeTab={subView} isSubView={!!subView} />
+      <HiringPortalClient 
+        initialApplicants={applicants} 
+        userId={user.id}
+        profile={profile}
+      />
     </div>
   );
 }
 
-function OperationsPortalSkeleton() {
+function HiringSkeleton() {
   return (
-    <div className="p-8 space-y-6">
+    <div className="p-8 space-y-4">
       <Skeleton className="h-10 w-1/4" />
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-28 w-full" />)}
-      </div>
-      <Skeleton className="h-96 w-full" />
+      <Skeleton className="h-64 w-full" />
     </div>
   );
 }

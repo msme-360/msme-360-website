@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { useOmnibox } from "./hooks/useOmnibox";
 import { OmniboxInput, OmniboxItem, Badge } from "./components/OmniboxSubComponents";
 
-export function Omnibox() {
+export function Omnibox({ userRole = "user", locale = "en" }: { userRole?: string, locale?: string }) {
   const tNav = useTranslations("Navigation");
   const tCommon = useTranslations("Common");
 
@@ -23,7 +23,7 @@ export function Omnibox() {
     handleKeyDown,
     selectItem,
     inputRef
-  } = useOmnibox(tNav);
+  } = useOmnibox(tNav, userRole, locale);
 
   return (
     <div className="w-full relative max-w-[400px]">

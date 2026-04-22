@@ -10,25 +10,26 @@ export default getRequestConfig(async ({ requestLocale }) => {
   // Modular segments to aggregate
   const modules = [
     'common',
+    'navigation',
+    'dashboard',
     'auth',
+    'formalization',
+    'operations',
+    'gtm',
     'microai',
-    'financial',
-    'help',
-    'community',
     'profile',
     'settings',
-    'operations',
+    'community',
+    'financial',
     'landing',
-    'formalization',
-    'dashboard',
-    'navigation',
     'footer',
-    'gtm',
     'about',
-    'careers',
+    'help',
     'admin',
     'internal',
-    'pricing'
+    'pricing',
+    'hiring',
+    'careers'
   ];
 
   const messages = {};

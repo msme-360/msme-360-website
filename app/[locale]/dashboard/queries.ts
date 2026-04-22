@@ -113,11 +113,7 @@ export async function getFounderUpdates() {
     }));
   } catch (error) {
     logger.error("getFounderUpdates error", "queries.ts", error);
-    return [
-      { id: 'm1', founder: 'Omkar G.', company: 'Amet Innovations', update: 'Just crossed 100+ daily active users on the MicroAI beta!', type: 'Trophy', category: 'Growth', time: '2m' },
-      { id: 'm2', founder: 'Priya S.', company: 'SolarScale', update: 'Our first GTM campaign using MSME 360 filters converted at 12%!', type: 'Sparkles', category: 'Sales', time: '15m' },
-      { id: 'm3', founder: 'Rahul K.', company: 'EcoBags', update: 'Finally filed GST with zero errors using the Compliance checklist.', type: 'Zap', category: 'Compliance', time: '1h' },
-    ];
+    return [];
   }
 }
 
@@ -176,49 +172,43 @@ export async function getProfile(userId: string, userEmail?: string): Promise<Da
 }
 
 export async function getSOPTemplates() {
-  return [
-    {
-      id: "gst-filing",
-      title: "GST Monthly Filing SOP",
-      content: "Step 1: Reconcile invoices with GSTR-2B. Step 2: Extract sales data for GSTR-1...",
-      category: "Compliance",
-      lastUpdated: "2024-03-15"
-    },
-    {
-      id: "udyam-update",
-      title: "Udyam Renewal SOP",
-      content: "Step 1: Check NIC codes for activity changes. Step 2: Update investment & turnover details...",
-      category: "Registration",
-      lastUpdated: "2024-03-10"
-    },
-    {
-      id: "hiring-flow",
-      title: "New Employee Onboarding",
-      content: "Step 1: Collect Aadhaar/PAN. Step 2: Issue appointment letter. Step 3: Setup bank account...",
-      category: "HR",
-      lastUpdated: "2024-03-20"
-    },
-    {
-      id: "sales-outreach",
-      title: "B2B Sales Outreach",
-      content: "Step 1: Identify targets. Step 2: Send WhatsApp intro script. Step 3: Follow up in 48 hours...",
-      category: "Sales",
-      lastUpdated: "2024-03-25"
-    }
-  ];
+  try {
+    const supabase = await createServiceClient();
+    const { data, error } = await supabase
+      .from('gtm_templates')
+      .select('*')
+      .eq('type', 'SOP');
+    
+    if (error) throw error;
+    return data.map(tmp => ({
+      id: tmp.id,
+      title: tmp.title_key,
+      content: tmp.content_template,
+      category: "SOP",
+      lastUpdated: tmp.created_at
+    }));
+  } catch (error) {
+    logger.error("getSOPTemplates error", "queries.ts", error);
+    return [];
+  }
 }
 
 export async function getSchemes(query?: string) {
-  const allSchemes = [
-    { id: "pmegp", title: "PMEGP Loans", description: "Credit linked subsidy program for setting up new micro-enterprises.", subsidy: "15% - 35%", category: "Manufacturing", url: "https://www.kviconline.gov.in/pmegpeportal/pmegphome/index.jsp" },
-    { id: "cgtsme", title: "CGTMSE Coverage", description: "Collateral free credit for MSMEs up to ₹5 Cr with government guarantee.", subsidy: "Credit Guarantee", category: "Service", url: "https://www.cgtmse.in/" },
-    { id: "clcss", title: "CLCSS Subsidy", description: "Technology Upgradation subsidy for plant & machinery.", subsidy: "15% Upfront", category: "Technology", url: "https://msme.gov.in/technology-upgradation-and-quality-certification" },
-    { id: "mudra", title: "MUDRA Yojana", description: "Micro-finance for non-corporate enterprises up to ₹10 Lakhs.", subsidy: "Low Interest", category: "General", url: "https://www.mudra.org.in/" }
-  ];
-
-  if (!query) return allSchemes;
-  const q = query.toLowerCase();
-  return allSchemes.filter(s => s.title.toLowerCase().includes(q) || s.description.toLowerCase().includes(q) || s.category.toLowerCase().includes(q));
+  try {
+    const supabase = await createServiceClient();
+    let q = supabase.from('schemes').select('*');
+    
+    if (query) {
+      q = q.or(`title.ilike.%${query}%,description.ilike.%${query}%`);
+    }
+    
+    const { data, error } = await q.order('title', { ascending: true });
+    if (error) throw error;
+    return data || [];
+  } catch (error) {
+    logger.error("getSchemes error", "queries.ts", error);
+    return [];
+  }
 }
 
 export async function getNicCodes() {

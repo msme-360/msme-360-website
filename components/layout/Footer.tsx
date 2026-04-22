@@ -73,6 +73,8 @@ export function Footer() {
                 <Link 
                   key={i} 
                   href={socialLink.href} 
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="w-10 h-10 rounded-full glass flex items-center justify-center hover:border-primary/50 transition-colors group"
                 >
                   <socialLink.Icon className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />

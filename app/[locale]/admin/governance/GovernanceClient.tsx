@@ -17,6 +17,7 @@ import { Progress } from "@/components/ui/progress";
 import { AdminViewWrapper } from "@/components/layout/AdminViewWrapper";
 import { formatDistanceToNow } from "date-fns";
 import { Database } from "@/types/supabase";
+import { STARTUP_ROLES } from "@/lib/constants/roles";
 
 export interface BoardResolution {
   id: string;
@@ -42,6 +43,7 @@ interface GovernanceClientProps {
   initialResolutions: BoardResolution[];
   initialMetrics: GovernanceMetric[];
   nicCodes: NICCode[];
+  role?: string;
 }
 
 const ICON_MAP: Record<string, React.ElementType> = {
@@ -51,11 +53,13 @@ const ICON_MAP: Record<string, React.ElementType> = {
   "Access Controls": Lock,
 };
 
-export function GovernanceClient({ initialResolutions, initialMetrics, nicCodes }: GovernanceClientProps) {
+export function GovernanceClient({ initialResolutions, initialMetrics, nicCodes, role }: GovernanceClientProps) {
+  const roleLabel = role ? STARTUP_ROLES[role]?.label : "Governance";
+
   return (
     <AdminViewWrapper
-      title="Governance Center"
-      subtitle="Level 0 Board Control and system integrity monitoring."
+      title={`${roleLabel} Center`}
+      subtitle={`Level 0 ${roleLabel} Control and system integrity monitoring.`}
       badgeLabel="BOARD PRIVILEGED"
       authorityLevel="Immutable Logs"
     >

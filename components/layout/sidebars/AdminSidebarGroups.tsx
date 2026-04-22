@@ -108,7 +108,26 @@ export function AdminSidebarGroups({
                       <SidebarMenuButton 
                         asChild 
                         tooltip={item.title} 
-                        isActive={normalizedPath === normalizePath(item.url) || (normalizePath(item.url) !== `/admin` && normalizedPath.startsWith(normalizePath(item.url) + '/'))}
+                        isActive={(() => {
+                          const itemPath = normalizePath(item.url);
+                          
+                          // Exact match is always true and highest priority
+                          if (normalizedPath === itemPath) return true;
+                          
+                          // Avoid double highlighting for 'Home/Hub' roots
+                          // These should only be active on exact match to prevent overlapping 
+                          // with sub-modules (e.g. /hiring should not highlight when at /hiring/details)
+                          const hubTitles = ["dashboard", "hub", "port", "center", "board", "lab"];
+                          const isHubLike = hubTitles.some(t => item.title.toLowerCase().includes(t));
+                          
+                          const hubRoots = ["/admin", "/internal/manager", "/internal/staff", "/internal/associate"];
+                          const isHubRoot = hubRoots.some(root => itemPath === root);
+                          
+                          if (isHubLike || isHubRoot) return false;
+
+                          // For specific sub-modules, allow prefix matching (e.g. /notifications/unread)
+                          return normalizedPath.startsWith(itemPath + '/');
+                        })()}
                         className="data-[active=true]:border-l-[3px] data-[active=true]:border-primary data-[active=true]:rounded-l-none pl-3"
                       >
                         <Link href={item.url} className="flex items-center gap-3">

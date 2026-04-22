@@ -30,27 +30,37 @@ async function ExecutivePortalContent({
   if (!user) redirect(`/${locale}/auth/login`);
   
   const profile = await getProfileDirect(user.id);
-  const metrics = await getPlatformMetrics('governance'); // Executive hub usually strategic or governance metrics
   const userRole = profile?.role || "user";
 
   // --- Hub Silo Guard ---
-  // 1. Level Check (Must be Executive L1 or L1.5)
   if (!hasPermission(userRole, 1.5)) {
     return <RestrictedAccess requiredLevel="Senior Executive" />;
   }
 
-  // 2. Path-Based Entity Silo Guard
   const requestedRole = slug?.[0];
+  const subView = slug?.[1];
   
-  // If hitting the root hub without a slug, redirect to own silo
+  // 1. Role Silo Check
   if (!requestedRole) {
     redirect(`/${locale}/admin/executive/${userRole}`);
   }
 
-  // If attempting to access another role's silo, block or redirect
   if (requestedRole !== userRole) {
     return <RestrictedAccess requiredLevel={`Bespoke ${userRole.toUpperCase()} Workspace`} />;
   }
+
+  // 2. Sub-View Routing (Phase 1 Placeholder Integration)
+  if (subView) {
+    return (
+      <RoleUnifiedDashboard 
+        profile={profile} 
+        activeTab={subView}
+        isSubView={true}
+      />
+    );
+  }
+
+  const metrics = await getPlatformMetrics('governance');
 
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">

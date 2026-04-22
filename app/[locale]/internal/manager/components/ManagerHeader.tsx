@@ -13,17 +13,20 @@ import { Textarea } from "@/components/ui/textarea";
 import { DashboardProfile } from "@/types/dashboard";
 import { createTask } from "@/app/[locale]/internal/actions";
 import { toast } from "sonner";
+import { getRoleById, getCareerLevelMetadata } from "@/lib/constants/roles";
 
 interface ManagerHeaderProps {
   department: string;
   profileId: string;
   team: DashboardProfile[];
+  role: string;
 }
 
 export default function ManagerHeader({
   department,
   profileId,
-  team
+  team,
+  role
 }: ManagerHeaderProps) {
   const router = useRouter();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -69,7 +72,7 @@ export default function ManagerHeader({
       <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8 text-emerald-50 text-center md:text-left">
         <div className="space-y-4">
           <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30 px-3 py-1 text-[10px] uppercase tracking-widest font-bold rounded-full">
-            Management Hub (L4 Specialist)
+            {getRoleById(role).label} Hub ({getCareerLevelMetadata(role)?.level || 'L4'} Specialist)
           </Badge>
           <h1 className="text-4xl md:text-5xl font-display font-black tracking-tight leading-tight">
             Department Oversight: <span className="text-emerald-400">{department}</span>

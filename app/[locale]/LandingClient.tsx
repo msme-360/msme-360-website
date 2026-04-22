@@ -244,7 +244,7 @@ export default function LandingClient() {
               { label: t("story.stats.msmes"), val: "100k+" },
               { label: t("story.stats.fees"), val: "₹0" },
               { label: t("story.stats.reach"), val: "24/7" },
-              { label: t("story.stats.status"), val: "Phase 2" }
+              { label: t("story.stats.status"), val: "Phase 14" }
             ].map((stat) => (
               <div key={stat.label} className="flex flex-col gap-1">
                 <span className="text-3xl font-display font-bold text-primary">{stat.val}</span>

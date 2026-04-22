@@ -5,7 +5,7 @@ import { DashboardClientLayer } from "./DashboardClientLayer";
 import DashboardLoading from "./loading";
 import { getUser as getAuthUser } from "@/lib/supabase-server";
 import { redirect } from "next/navigation";
-import { hasPermission } from "@/lib/constants/roles";
+import { hasPermission, getRoleById } from "@/lib/constants/roles";
 import { getProfile } from "./queries";
 
 export default async function DashboardLayout({
@@ -44,20 +44,23 @@ async function DashboardLayoutInner({ children, locale }: { children: React.Reac
 
   // REDIRECTION GUARD: Internal roles (Level 0-5) belong in Professional Portals
   if (hasPermission(userRole, 5)) {
-    if (hasPermission(userRole, 1)) {
+    const level = getRoleById(userRole).level;
+    if (level === 0) {
+      redirect(`/${locale}/admin/governance`);
+    } else if (level <= 1.5) {
       redirect(`/${locale}/admin/executive`);
-    } else if (hasPermission(userRole, 2)) {
+    } else if (level === 2) {
       redirect(`/${locale}/admin/operations`);
-    } else if (hasPermission(userRole, 3)) {
+    } else if (level <= 3.5) {
       redirect(`/${locale}/internal/manager`);
-    } else if (hasPermission(userRole, 4)) {
+    } else if (level === 4) {
       redirect(`/${locale}/internal/staff`);
     } else {
       redirect(`/${locale}/internal/associate`);
     }
   }
   return (
-    <DashboardClientLayer userId={user?.id}>
+    <DashboardClientLayer userId={user?.id} userRole={userRole}>
       {children}
     </DashboardClientLayer>
   );

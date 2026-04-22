@@ -1,0 +1,33 @@
+{
+  "Hiring": {
+    "title": "Hiring Portal",
+    "subtitle": "Manage recruitment pipeline and intern onboarding.",
+    "badge": "Talent Acquisition",
+    "searchPlaceholder": "Search candidates...",
+    "tabs": {
+      "funnel": "Hiring Pipeline",
+      "profile": "My Profile"
+    },
+    "stats": {
+      "total": "Total Applications",
+      "active": "Active Pipeline",
+      "pending": "Pending Review",
+      "onboarded": "Onboarded",
+      "realtime": "Real-time sync",
+      "shortlisted": "Shortlisted candidates",
+      "new": "New submissions",
+      "hires": "Q2 Hires"
+    },
+    "table": {
+      "title": "Candidate Pipeline",
+      "filter": "Filter",
+      "candidate": "Candidate",
+      "position": "Position",
+      "status": "Status",
+      "applied": "Applied",
+      "actions": "Actions",
+      "noResults": "No candidates found matching your criteria.",
+      "end": "End of recruitment lifecycle"
+    }
+  }
+}

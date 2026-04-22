@@ -1,9 +1,10 @@
 "use client";
 
-import React from "react";
+import React, { Suspense } from "react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/layout/AppSidebar";
 import { useProgress } from "@/components/dashboard/ProgressProvider";
+import DashboardLoading from "./loading";
 import {
   Breadcrumb,
   BreadcrumbList,
@@ -15,7 +16,7 @@ import {
 import { Omnibox } from "@/components/dashboard/Omnibox";
 import LocaleSwitcher from "@/components/layout/LocaleSwitcher";
 import { useTranslations } from "next-intl";
-import { usePathname } from "next/navigation";
+import { usePathname, useParams } from "next/navigation";
 
 interface BreadcrumbCrumb {
   title: string;
@@ -23,8 +24,18 @@ interface BreadcrumbCrumb {
   isLast: boolean;
 }
 
-export function DashboardClientLayer({ children, userId }: { children: React.ReactNode; userId?: string }) {
+export function DashboardClientLayer({ 
+  children, 
+  userId, 
+  userRole = "user" 
+}: { 
+  children: React.ReactNode; 
+  userId?: string; 
+  userRole?: string; 
+}) {
   const pathname = usePathname();
+  const params = useParams();
+  const locale = params.locale as string;
   const { completionPercentage } = useProgress();
   
   const nt = useTranslations("Navigation");
@@ -77,7 +88,7 @@ export function DashboardClientLayer({ children, userId }: { children: React.Rea
           </div>
 
           <div className="flex-1 flex justify-center max-w-xl">
-            <Omnibox />
+            <Omnibox userRole={userRole} locale={locale} />
           </div>
 
           <div className="flex-1 flex justify-end items-center gap-4">
@@ -85,11 +96,13 @@ export function DashboardClientLayer({ children, userId }: { children: React.Rea
           </div>
         </header>
 
-        <div className="flex-1 overflow-y-auto">
+        <main className="flex-1 overflow-y-auto">
           <div className="max-w-7xl mx-auto py-10 px-4 md:px-6 lg:px-8 w-full">
-            {children}
+            <Suspense fallback={<DashboardLoading />}>
+              {children}
+            </Suspense>
           </div>
-        </div>
+        </main>
       </SidebarInset>
     </SidebarProvider>
   );

@@ -12,15 +12,7 @@ interface RoleHeaderProps {
 export default function RoleHeader({ search, onSearchChange }: RoleHeaderProps) {
   const t = useTranslations("Roles");
   return (
-    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-      <div>
-        <h1 className="text-3xl font-display font-bold">
-          {t("title") || "Governance & roles"}
-        </h1>
-        <p className="text-muted-foreground text-sm">
-          {t("subtitle") || "Industrial access control and participation audit for MSME 360."}
-        </p>
-      </div>
+    <div className="flex flex-col md:flex-row justify-end items-center gap-4 w-full">
       <div className="relative w-full md:w-72">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
         <Input 

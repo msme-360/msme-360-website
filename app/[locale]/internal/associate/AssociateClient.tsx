@@ -2,17 +2,15 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { Badge } from "@/components/ui/badge";
-import { User, LayoutDashboard } from "lucide-react";
 import { getTaskComments, addTaskComment, updateTaskStatus } from "@/app/[locale]/internal/actions";
 import { DashboardProfile } from "@/types/dashboard";
 import { toast } from "sonner";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ProfileTabContent } from "@/components/dashboard/ProfileTabContent";
 import { Task, AttendanceLog, OnboardingItem, TaskComment } from "./components/AssociateTypes";
 import OperationalHero from "./components/OperationalHero";
 import GrowthRoadmap from "./components/GrowthRoadmap";
 import TacticalHub from "./components/TacticalHub";
 import MentorInsights from "./components/MentorInsights";
+import { AdminViewWrapper } from "@/components/layout/AdminViewWrapper";
 
 interface AssociateClientProps {
   profile: DashboardProfile;
@@ -103,66 +101,44 @@ export function AssociateClient({ profile, initialTasks, initialAttendance, init
   };
 
   return (
-    <div className="space-y-8 pb-20">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h2 className="text-3xl font-display font-bold">Associate Dashboard</h2>
-          <p className="text-muted-foreground text-sm font-medium">Industrial onboarding and tactical execution hub.</p>
-        </div>
-        <Badge variant="outline" className="bg-indigo-500/10 border-indigo-500/20 text-indigo-400 px-3 py-1 font-bold uppercase tracking-widest text-[10px]">
-          Personnel Tier: L1
-        </Badge>
-      </div>
+    <AdminViewWrapper
+      title={profile.role.replace('_', ' ').split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') + " Lab"}
+      subtitle="Industrial onboarding and tactical execution hub."
+      badgeLabel="L1 PERSONNEL"
+      authorityLevel="Training Tier"
+    >
+      <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20">
+        <OperationalHero 
+          fullName={profile.full_name || ''}
+          profileId={profile.id}
+          currentTime={currentTime}
+          attendance={attendance}
+        />
 
-      <Tabs defaultValue="operations" className="space-y-8">
-        <TabsList className="bg-white/5 border border-white/10 p-1 rounded-xl">
-          <TabsTrigger value="operations" className="rounded-lg gap-2 text-xs font-bold uppercase tracking-widest px-4 py-2 data-[state=active]:bg-indigo-500 data-[state=active]:text-white">
-            <LayoutDashboard className="w-3.5 h-3.5" />
-            Operational Hub
-          </TabsTrigger>
-          <TabsTrigger value="profile" className="rounded-lg gap-2 text-xs font-bold uppercase tracking-widest px-4 py-2 data-[state=active]:bg-indigo-500 data-[state=active]:text-white">
-            <User className="w-3.5 h-3.5" />
-            Personnel Profile
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="operations" className="space-y-12 outline-none">
-          <OperationalHero 
-            fullName={profile.full_name || ''}
-            profileId={profile.id}
-            currentTime={currentTime}
-            attendance={attendance}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+          <GrowthRoadmap 
+            initialChecklist={initialChecklist}
           />
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-            <GrowthRoadmap 
-              initialChecklist={initialChecklist}
+          <div className="space-y-8">
+            <TacticalHub 
+              tasks={tasks}
+              profile={profile}
+              selectedTask={selectedTask}
+              onTaskSelect={handleSelectTask}
+              comments={comments}
+              isCommentsLoading={isCommentsLoading}
+              newComment={newComment}
+              setNewComment={setNewComment}
+              isSubmittingComment={isSubmittingComment}
+              onAddComment={handleAddComment}
+              onTaskStatus={handleTaskStatus}
             />
 
-            <div className="space-y-8">
-              <TacticalHub 
-                tasks={tasks}
-                profile={profile}
-                selectedTask={selectedTask}
-                onTaskSelect={handleSelectTask}
-                comments={comments}
-                isCommentsLoading={isCommentsLoading}
-                newComment={newComment}
-                setNewComment={setNewComment}
-                isSubmittingComment={isSubmittingComment}
-                onAddComment={handleAddComment}
-                onTaskStatus={handleTaskStatus}
-              />
-
-              <MentorInsights mentor={mentor} />
-            </div>
+            <MentorInsights mentor={mentor} />
           </div>
-        </TabsContent>
-
-        <TabsContent value="profile" className="outline-none">
-          <ProfileTabContent profile={profile} />
-        </TabsContent>
-      </Tabs>
-    </div>
+        </div>
+      </div>
+    </AdminViewWrapper>
   );
 }

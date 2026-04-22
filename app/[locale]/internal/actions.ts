@@ -180,6 +180,18 @@ export async function getNotifications(userId: string) {
   return data || [];
 }
 
+export async function getUnreadNotificationCount(userId: string) {
+  const supabase = await createServiceClient();
+  const { count, error } = await supabase
+    .from('notifications')
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', userId)
+    .eq('is_read', false);
+  
+  if (error) return 0;
+  return count || 0;
+}
+
 export async function markNotificationAsRead(notificationId: string) {
   const supabase = await createServiceClient();
   const { error } = await supabase

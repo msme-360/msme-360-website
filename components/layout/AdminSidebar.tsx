@@ -1,15 +1,15 @@
 "use client";
 
 import { Sidebar } from "@/components/ui/sidebar";
-import { Bell, type LucideIcon} from "lucide-react";
+import { type LucideIcon} from "lucide-react";
 import { useParams, useSearchParams, usePathname } from "next/navigation";
 import { useRole } from "@/hooks/useRole";
 import { getRoleById } from "@/lib/constants/roles";
 import { AdminSidebarHeader } from "./sidebars/AdminSidebarHeader";
 import { AdminSidebarGroups } from "./sidebars/AdminSidebarGroups";
 import { AdminSidebarFooter } from "./sidebars/AdminSidebarFooter";
-import { UserCircle } from "lucide-react";
-import { getNavForRole } from "@/lib/constants/navigation/roleNav";
+import { Home } from "lucide-react";
+import { getNavForRole, getSharedGroups, getHomePath } from "@/lib/constants/navigation/roleNav";
 
 interface NavItem {
   title: string;
@@ -44,24 +44,34 @@ export function AdminSidebar({ userId, serverRole }: { userId: string, serverRol
   
   // ROLE-BASED NAVIGATION INJECTION (Unique for each entity)
   const roleNavGroups = getNavForRole(activeRole, locale);
+  const sharedGroups = getSharedGroups(activeRole, locale);
+  const homePath = getHomePath(activeRole, locale);
 
-  const sharedGroups: NavGroup[] = [
+  const homeGroup: NavGroup[] = [
     {
-      label: "Profile & Identity",
+      label: "Platform",
       visible: true,
       items: [
-        { title: "Business Identity", icon: UserCircle, url: `/${locale}/admin/identity/${activeRole}` },
-        { title: "Notifications", icon: Bell, url: `/${locale}/admin/notifications/${activeRole}` },
+        { title: "Dashboard", icon: Home, url: homePath },
       ]
     }
   ];
 
-  const navGroups = [...roleNavGroups, ...sharedGroups];
+  // Only show the top-level "Dashboard" link for external users (Level 6)
+  // Administrative users (Level 0-5) have their own specific home links in their role nav
+  const navGroups = activeRoleData.level === 6 
+    ? [...homeGroup, ...roleNavGroups, ...sharedGroups]
+    : [...roleNavGroups, ...sharedGroups];
+
   const isExternal = activeRoleData.level === 6;
 
   return (
     <Sidebar collapsible="icon" variant="inset" className="border-r border-border/50">
-      <AdminSidebarHeader locale={locale} />
+      <AdminSidebarHeader 
+        locale={locale} 
+        roleLabel={activeRoleData.label} 
+        roleLevel={activeRoleData.level} 
+      />
       <AdminSidebarGroups 
         navGroups={navGroups} 
         isExternal={isExternal} 

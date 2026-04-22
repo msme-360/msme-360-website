@@ -6,6 +6,7 @@ import { hasPermission } from "@/lib/constants/roles";
 import { getTasks, getAttendanceLogs, getOnboardingChecklist, getMentorDetails } from "@/app/[locale]/internal/actions";
 import { Suspense } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { AdminViewWrapper } from "@/components/layout/AdminViewWrapper";
 
 export default function AssociatePortalPage({
   params
@@ -35,22 +36,37 @@ async function AssociatePortalContent({
   const userRole = profile?.role || "user";
 
   // --- Hub Silo Guard ---
-  // 1. Level Check (Must be Associate L5 or higher)
   if (!hasPermission(userRole, 5)) {
     redirect(`/${locale}/dashboard`);
   }
 
-  // 2. Path-Based Entity Silo Guard
   const requestedRole = slug?.[0];
+  const subView = slug?.[1];
 
-  // If hitting the root hub without a slug, redirect to own silo
+  // 1. Role Silo Check
   if (!requestedRole) {
     redirect(`/${locale}/internal/associate/${userRole}`);
   }
 
-  // If attempting to access another role's silo, block
   if (requestedRole !== userRole) {
     redirect(`/${locale}/internal/associate/${userRole}`);
+  }
+
+  // 2. Sub-View Routing
+  if (subView) {
+    return (
+      <AdminViewWrapper
+        title={`${subView.charAt(0).toUpperCase() + subView.slice(1)} Registry`}
+        subtitle={`Live career development data for ${profile.role.replace('_', ' ').toUpperCase()}.`}
+        badgeLabel="ASSOCIATE DEPTH"
+        authorityLevel="L5 Talent"
+      >
+        <div className="p-20 text-center border-2 border-dashed border-white/5 rounded-3xl bg-white/[0.02]">
+          <h3 className="text-xl font-bold mb-2">The {subView} module is being initialized.</h3>
+          <p className="text-muted-foreground text-sm">MSME 360 Talent Framework is synchronizing this experience.</p>
+        </div>
+      </AdminViewWrapper>
+    );
   }
 
   const [tasks, attendance, checklist] = await Promise.all([

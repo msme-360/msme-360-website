@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { FileText, Users, Clock, CheckCircle2, LucideIcon } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 interface FunnelStatsProps {
   applicantsCount: number;
@@ -24,11 +25,12 @@ export default function FunnelStats({
   pendingCount, 
   hiredCount 
 }: FunnelStatsProps) {
+  const t = useTranslations("Hiring.stats");
   const stats: StatItem[] = [
-    { label: "Total Applications", value: applicantsCount, sub: "Real-time sync", icon: FileText },
-    { label: "Active Pipeline", value: shortlistedCount, sub: "Shortlisted candidates", icon: Users },
-    { label: "Pending Review", value: pendingCount, sub: "New submissions", icon: Clock },
-    { label: "Onboarded", value: hiredCount, sub: "Q2 Hires", icon: CheckCircle2 },
+    { label: t('total'), value: applicantsCount, sub: t('realtime'), icon: FileText },
+    { label: t('active'), value: shortlistedCount, sub: t('shortlisted'), icon: Users },
+    { label: t('pending'), value: pendingCount, sub: t('new'), icon: Clock },
+    { label: t('onboarded'), value: hiredCount, sub: t('hires'), icon: CheckCircle2 },
   ];
 
   return (

@@ -20,10 +20,28 @@ import { AdminViewWrapper } from "@/components/layout/AdminViewWrapper";
 
 interface OperationsClientProps {
   profile: DashboardProfile;
+  activeTab?: string;
+  isSubView?: boolean;
 }
 
-export function OperationsClient({ profile }: OperationsClientProps) {
+export function OperationsClient({ profile, activeTab, isSubView }: OperationsClientProps) {
   const { locale } = useParams();
+
+  if (isSubView && activeTab) {
+    return (
+      <AdminViewWrapper
+        title={`${activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} Registry`}
+        subtitle={`Detailed operations oversight for ${profile.role.replace('_', ' ').toUpperCase()}.`}
+        badgeLabel="OPERATIONAL DEPTH"
+        authorityLevel="L5 Execution"
+      >
+        <div className="p-20 text-center border-2 border-dashed border-white/5 rounded-3xl bg-white/[0.02]">
+          <h3 className="text-xl font-bold mb-2">Detailed {activeTab} analytics are under construction.</h3>
+          <p className="text-muted-foreground text-sm">MSME 360 AI is synchronizing this module for your department.</p>
+        </div>
+      </AdminViewWrapper>
+    );
+  }
   
   const stats = [
     { label: "Active Pipelines", value: "4", icon: Users, color: "text-blue-500" },

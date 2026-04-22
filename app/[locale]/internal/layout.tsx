@@ -7,8 +7,9 @@ import { RestrictedAccess } from "@/components/auth/RestrictedAccess";
 import { redirect } from "next/navigation";
 import { getRoleById } from "@/lib/constants/roles";
 import DashboardLoading from "@/app/[locale]/dashboard/loading";
-
-import { getTranslations } from "next-intl/server";
+import { getUnreadNotificationCount } from "@/app/[locale]/internal/actions";
+import { getHomePath } from "@/lib/constants/navigation/roleNav";
+import { AdminHeader } from "@/components/layout/AdminHeader";
 
 export default async function InternalLayout({
   children,
@@ -34,8 +35,12 @@ async function InternalLayoutInner({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
-  const t = await getTranslations("Internal.hub");
-  const user = await getUser();
+  
+  // PARALLEL DATA FETCHING
+  const [user, unreadCount] = await Promise.all([
+    getUser(),
+    getUser().then(u => u ? getUnreadNotificationCount(u.id) : 0)
+  ]);
   
   if (!user) {
     redirect(`/${locale}/auth/login`);
@@ -43,7 +48,8 @@ async function InternalLayoutInner({
 
   const profile = await getProfile(user.id);
   const userRole = profile?.role || 'user';
-  const level = getRoleById(userRole).level;
+  const roleData = getRoleById(userRole);
+  const level = roleData.level;
 
   // 1. Governance (Level 0) belongs in Governance Control Center
   if (level === 0) {
@@ -70,13 +76,20 @@ async function InternalLayoutInner({
     return <RestrictedAccess requiredLevel="Staff" />;
   }
 
+  const homePath = getHomePath(userRole, locale);
+
   return (
     <SidebarProvider>
       <AdminSidebar userId={user.id} serverRole={userRole} />
       <SidebarInset className="bg-background relative">
-        <header className="flex h-16 shrink-0 items-center border-b border-border/50 backdrop-blur-md bg-background/60 sticky top-0 z-20 px-6">
-           <div className="text-[10px] font-bold text-accent uppercase tracking-[0.2em]">{t("header")}</div>
-        </header>
+        <AdminHeader 
+          profile={profile}
+          roleData={roleData}
+          unreadCount={unreadCount}
+          homePath={homePath}
+          locale={locale}
+          portalContext="internal"
+        />
 
         <main className="flex-1 overflow-y-auto">
           <div className="max-w-7xl mx-auto py-10 px-4 md:px-6 lg:px-8 w-full">

@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { 
   Bell, 
@@ -82,20 +81,6 @@ export function NotificationsClient({ initialNotifications }: NotificationsClien
 
   return (
     <div className="max-w-3xl mx-auto space-y-8 pb-20">
-      <div className="flex justify-between items-center bg-white/5 p-6 rounded-[2rem] border border-white/10">
-        <div className="flex items-center gap-4">
-           <div className="w-12 h-12 rounded-2xl bg-indigo-500/20 flex items-center justify-center text-indigo-400">
-              <Bell className="w-6 h-6" />
-           </div>
-           <div>
-              <h1 className="text-2xl font-display font-bold">Notification Center</h1>
-              <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Relay Feed & Comms Log</p>
-           </div>
-        </div>
-        <Badge variant="outline" className="bg-indigo-500/10 border-indigo-500/20 text-indigo-400">
-          {notifications.filter(n => !n.is_read).length} Unread Relays
-        </Badge>
-      </div>
 
       <div className="space-y-4">
         <AnimatePresence initial={false}>

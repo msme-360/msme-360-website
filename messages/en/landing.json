@@ -1,7 +1,7 @@
 {
   "Landing": {
     "hero": {
-      "badge": "Empowering 1,0,0,000+ Indian MSMEs",
+      "badge": "Empowering 1,00,000+ Indian MSMEs",
       "title": "Formalization. Operations.",
       "subtitle": "Scale with AI.",
       "description": "Zero-fee, founder-first enablement platform for India's next generation of business leaders. Build your foundation, then graduate to AI excellence.",
@@ -49,12 +49,12 @@
     "story": {
       "title": "Our Mission & Story",
       "p1": "We believe every micro and small entrepreneur in India deserves access to <highlight>world-class business tools</highlight> without the premium price tag.",
-      "p2": "MSME 360 is our commitment to formalizing 10,000+ businesses and bridging the digital divide with AI. This is our story.",
+      "p2": "MSME 360 is our commitment to formalizing 100,000+ businesses and bridging the digital divide with AI. This is our story.",
       "stats": {
         "msmes": "Target MSMEs",
         "fees": "Platform Fees",
         "reach": "Support Reach",
-        "status": "Active Status"
+        "status": "Current Status"
       }
     },
     "ctaFinal": {

@@ -3,9 +3,10 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { 
-  LayoutDashboard, ShieldCheck, Briefcase, Cpu, Rocket, UserCircle,
-  Settings as SettingsIcon, TrendingUp, Users, HelpCircle, FileText, Sparkles, Zap
+  ShieldCheck, Briefcase, Cpu,
+  UserCircle, TrendingUp, Rocket, Zap, Home
 } from "lucide-react";
+import { getNavForRole, getSharedGroups, getHomePath } from "@/lib/constants/navigation/roleNav";
 
 export interface SearchItem {
   title: string;
@@ -17,7 +18,11 @@ export interface SearchItem {
   score?: number;
 }
 
-export function useOmnibox(tNav: { (key: string): string; raw: (key: string) => string[] }) {
+export function useOmnibox(
+  tNav: { (key: string): string; raw: (key: string) => string[] },
+  userRole: string = "user",
+  locale: string = "en"
+) {
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -26,99 +31,73 @@ export function useOmnibox(tNav: { (key: string): string; raw: (key: string) => 
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const staticItems = useMemo(() => [
-    { 
-      title: tNav("dashboard"), 
-      href: "/dashboard", 
-      icon: LayoutDashboard,
-      aliases: tNav.raw("omnibox.dashboard.aliases"),
-      description: tNav("omnibox.dashboard.description")
-    },
-    { 
-      title: tNav("formalize"), 
-      href: "/dashboard/formalize", 
-      icon: ShieldCheck,
-      aliases: tNav.raw("omnibox.formalize.aliases"),
-      description: tNav("omnibox.formalize.description")
-    },
-    { 
-      title: tNav("operate"), 
-      href: "/dashboard/operate", 
-      icon: Briefcase,
-      aliases: tNav.raw("omnibox.operate.aliases"),
-      description: tNav("omnibox.operate.description")
-    },
-    { 
-      title: tNav("omnibox.invoice.title"), 
-      href: "/dashboard/operate#invoice-generator", 
-      icon: FileText,
-      aliases: tNav.raw("omnibox.invoice.aliases"),
-      description: tNav("omnibox.invoice.description")
-    },
-    { 
-      title: tNav("grow"), 
-      href: "/dashboard/grow", 
-      icon: Cpu,
-      aliases: tNav.raw("omnibox.grow.aliases"),
-      description: tNav("omnibox.grow.description")
-    },
-    { 
-      title: tNav("omnibox.nic.title"), 
-      href: "/dashboard/grow?tool=nic", 
-      icon: Sparkles,
-      aliases: tNav.raw("omnibox.nic.aliases"),
-      description: tNav("omnibox.nic.description")
-    },
-    { 
-      title: tNav("omnibox.eligibility.title"), 
-      href: "/dashboard/grow?tool=eligibility", 
-      icon: ShieldCheck,
-      aliases: tNav.raw("omnibox.eligibility.aliases"),
-      description: tNav("omnibox.eligibility.description")
-    },
-    { 
-      title: tNav("gtm"), 
-      href: "/dashboard/gtm", 
-      icon: Rocket,
-      aliases: tNav.raw("omnibox.gtm.aliases"),
-      description: tNav("omnibox.gtm.description")
-    },
-    { 
-      title: tNav("connect"), 
-      href: "/dashboard/connect", 
-      icon: TrendingUp,
-      aliases: tNav.raw("omnibox.connect.aliases"),
-      description: tNav("omnibox.connect.description")
-    },
-    { 
-      title: tNav("community"), 
-      href: "/dashboard/community", 
-      icon: Users,
-      aliases: tNav.raw("omnibox.community.aliases"),
-      description: tNav("omnibox.community.description")
-    },
-    { 
-      title: tNav("help"), 
-      href: "/dashboard/help", 
-      icon: HelpCircle,
-      aliases: tNav.raw("omnibox.help.aliases"),
-      description: tNav("omnibox.help.description")
-    },
-    { 
-      title: tNav("profile"), 
-      href: "/dashboard/profile", 
-      icon: UserCircle,
-      aliases: tNav.raw("omnibox.profile.aliases"),
-      description: tNav("omnibox.profile.description")
-    },
-    { 
-      title: tNav("settings"), 
-      href: "/dashboard/settings", 
-      icon: SettingsIcon,
-      aliases: tNav.raw("omnibox.settings.aliases"),
-      description: tNav("omnibox.settings.description")
-    },
-  ], [tNav]);
+  const staticItems = useMemo(() => {
+    // 1. Get Role-Based Navigation Items
+    const roleGroups = getNavForRole(userRole, locale);
+    const sharedGroups = getSharedGroups(userRole, locale);
+    const homePath = getHomePath(userRole, locale);
+    
+    const allGroups = [...roleGroups, ...sharedGroups];
+    
+    const roleItems: SearchItem[] = allGroups.flatMap(group => 
+      group.items.map(item => ({
+        title: item.title,
+        href: item.url,
+        icon: item.icon,
+        description: `Navigate to ${item.title} in ${group.label}`,
+        category: "Navigation",
+        aliases: [item.title.toLowerCase()]
+      }))
+    );
+
+    // 2. Base Dashboard Items (Fallback/Common)
+    const baseItems: SearchItem[] = [
+      { 
+        title: tNav("dashboard"), 
+        href: homePath, // DYNAMIC HOME PATH
+        icon: Home,
+        aliases: tNav.raw("omnibox.dashboard.aliases"),
+        description: tNav("omnibox.dashboard.description")
+      },
+      { 
+        title: tNav("formalize"), 
+        href: "/dashboard/formalize", 
+        icon: ShieldCheck,
+        aliases: tNav.raw("omnibox.formalize.aliases"),
+        description: tNav("omnibox.formalize.description")
+      },
+      { 
+        title: tNav("operate"), 
+        href: "/dashboard/operate", 
+        icon: Briefcase,
+        aliases: tNav.raw("omnibox.operate.aliases"),
+        description: tNav("omnibox.operate.description")
+      },
+      { 
+        title: tNav("grow"), 
+        href: "/dashboard/grow", 
+        icon: Cpu,
+        aliases: tNav.raw("omnibox.grow.aliases"),
+        description: tNav("omnibox.grow.description")
+      },
+      { 
+        title: tNav("profile"), 
+        href: "/dashboard/profile", 
+        icon: UserCircle,
+        aliases: tNav.raw("omnibox.profile.aliases"),
+        description: tNav("omnibox.profile.description")
+      }
+    ];
+
+    // 3. Merge: Prioritize Role Items if not a standard user
+    if (userRole !== 'user') {
+      // deduplicate by href
+      const seen = new Set(roleItems.map(i => i.href));
+      return [...roleItems, ...baseItems.filter(i => !seen.has(i.href))];
+    }
+
+    return baseItems;
+  }, [tNav, userRole, locale]);
 
   useEffect(() => {
     const timer = setTimeout(async () => {

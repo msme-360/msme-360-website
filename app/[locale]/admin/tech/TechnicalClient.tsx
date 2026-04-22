@@ -4,16 +4,11 @@ import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { 
-  Database, 
-  Terminal, 
-  Activity, 
-  HardDrive, 
-  Zap,
-  AlertCircle,
-  RefreshCw
+  Database, Terminal, Activity, HardDrive, Zap, AlertCircle, RefreshCw
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import { STARTUP_ROLES } from "@/lib/constants/roles";
 
 export interface SysStat {
   label: string;
@@ -32,6 +27,7 @@ export interface ServiceStatus {
 interface TechnicalPortalClientProps {
   sysStats: SysStat[];
   services: ServiceStatus[];
+  role?: string;
 }
 
 const ICON_MAP: Record<string, React.ElementType> = {
@@ -41,13 +37,15 @@ const ICON_MAP: Record<string, React.ElementType> = {
   "Error Rate (24h)": AlertCircle,
 };
 
-export function TechnicalPortalClient({ sysStats, services }: TechnicalPortalClientProps) {
+export function TechnicalPortalClient({ sysStats, services, role }: TechnicalPortalClientProps) {
+  const roleLabel = role ? STARTUP_ROLES[role]?.label : "Platform";
+  
   return (
     <div className="space-y-10">
        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-display font-bold tracking-tight">Platform Diagnostics</h1>
-          <p className="text-muted-foreground text-sm">Deep technical insights for CTO and Systems Architecture.</p>
+          <h1 className="text-3xl font-display font-bold tracking-tight">{roleLabel} Diagnostics</h1>
+          <p className="text-muted-foreground text-sm">Deep technical insights for {roleLabel} and Systems Architecture.</p>
         </div>
         <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" className="bg-white/5 border-white/10 rounded-lg h-9">

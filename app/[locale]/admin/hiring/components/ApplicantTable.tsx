@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Applicant } from "./HiringTypes";
+import { useTranslations } from "next-intl";
 
 interface ApplicantTableProps {
   applicants: Applicant[];
@@ -21,15 +22,16 @@ export default function ApplicantTable({
   onStatusUpdate, 
   onHire 
 }: ApplicantTableProps) {
+  const t = useTranslations("Hiring.table");
   return (
     <Card className="glass-card border-white/10 overflow-hidden">
       <CardHeader className="bg-white/[0.02] border-b border-white/5 py-4 px-6 flex flex-row items-center justify-between">
          <div className="flex items-center gap-2">
             <UserPlus className="w-5 h-5 text-primary" />
-            <CardTitle className="text-lg">Candidate Pipeline</CardTitle>
+            <CardTitle className="text-lg">{t('title')}</CardTitle>
          </div>
          <Button variant="ghost" size="sm" className="h-8 text-xs gap-2">
-           <Filter className="w-3 h-3" /> Filter
+           <Filter className="w-3 h-3" /> {t('filter')}
          </Button>
       </CardHeader>
       <CardContent className="p-0">
@@ -37,11 +39,11 @@ export default function ApplicantTable({
            <table className="w-full text-left border-collapse">
              <thead>
                <tr className="bg-white/[0.01] border-b border-white/5">
-                 <th className="py-4 px-6 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Candidate</th>
-                 <th className="py-4 px-6 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Position</th>
-                 <th className="py-4 px-6 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Status</th>
-                 <th className="py-4 px-6 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Applied</th>
-                 <th className="py-4 px-6 text-right font-bold">Actions</th>
+                 <th className="py-4 px-6 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{t('candidate')}</th>
+                 <th className="py-4 px-6 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{t('position')}</th>
+                 <th className="py-4 px-6 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{t('status')}</th>
+                 <th className="py-4 px-6 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{t('applied')}</th>
+                 <th className="py-4 px-6 text-right font-bold">{t('actions')}</th>
                </tr>
              </thead>
              <tbody className="divide-y divide-white/5">
@@ -152,11 +154,11 @@ export default function ApplicantTable({
          {applicants.length === 0 && (
            <div className="p-12 text-center">
              <Users className="w-12 h-12 text-muted-foreground mx-auto mb-4 opacity-20" />
-             <p className="text-muted-foreground">No candidates found matching your criteria.</p>
+             <p className="text-muted-foreground">{t('noResults')}</p>
            </div>
          )}
          <div className="p-4 bg-white/[0.01] border-t border-white/5 text-center">
-            <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">End of recruitment lifecycle</p>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">{t('end')}</p>
          </div>
       </CardContent>
     </Card>

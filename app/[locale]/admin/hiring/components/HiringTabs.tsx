@@ -28,14 +28,20 @@ export default function HiringTabs({
 }: HiringTabsProps) {
   const t = useTranslations("Hiring");
   return (
-    <Tabs defaultValue="funnel" className="space-y-8">
-      <TabsList className="bg-white/5 border border-white/10 p-1 rounded-xl">
-        <TabsTrigger value="funnel" className="rounded-lg gap-2 text-xs font-bold uppercase tracking-widest px-4 py-2 data-[state=active]:bg-primary data-[state=active]:text-white">
-          <LayoutDashboard className="w-3.5 h-3.5" />
+    <Tabs defaultValue="funnel" className="space-y-10">
+      <TabsList className="bg-white/[0.03] border border-white/10 p-1.5 rounded-2xl h-14 w-full max-w-md mx-auto">
+        <TabsTrigger 
+          value="funnel" 
+          className="flex-1 rounded-xl gap-3 text-[10px] font-black uppercase tracking-widest px-6 py-3 data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-glow transition-all duration-300"
+        >
+          <LayoutDashboard className="w-4 h-4" />
           {t('tabs.funnel')}
         </TabsTrigger>
-        <TabsTrigger value="profile" className="rounded-lg gap-2 text-xs font-bold uppercase tracking-widest px-4 py-2 data-[state=active]:bg-primary data-[state=active]:text-white">
-          <User className="w-3.5 h-3.5" />
+        <TabsTrigger 
+          value="profile" 
+          className="flex-1 rounded-xl gap-3 text-[10px] font-black uppercase tracking-widest px-6 py-3 data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-glow transition-all duration-300"
+        >
+          <User className="w-4 h-4" />
           {t('tabs.profile')}
         </TabsTrigger>
       </TabsList>

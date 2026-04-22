@@ -58,7 +58,7 @@ async function TechnicalPortalContent({
 
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <TechnicalPortalClient sysStats={sysStats} services={services} />
+      <TechnicalPortalClient sysStats={sysStats} services={services} role={userRole} />
     </div>
   );
 }
