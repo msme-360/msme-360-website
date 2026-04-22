@@ -1,0 +1,276 @@
+{
+  "Internal": {
+    "hub": {
+      "header": "MSME 360 Internal Hub",
+      "restricted": "Restricted Access",
+      "staffRequired": "Staff access required."
+    }
+  },
+  "HiringPortal": {
+    "title": "Talent Acquisition",
+    "subtitle": "Strategic recruitment funnel and personnel integration.",
+    "badge": "HR Hub (Level 2+)",
+    "searchPlaceholder": "Find applicants...",
+    "tabs": {
+      "funnel": "Recruitment Funnel",
+      "profile": "Personnel Profile"
+    }
+  },
+  "Attendance": {
+    "title": "Participation Ledger",
+    "description": "Industrial oversight of organization-wide participation logs.",
+    "searchPlaceholder": "Search personnel tier...",
+    "exportCta": "Export Audit",
+    "stats": {
+      "totalLogs": "Total Logs"
+    },
+    "table": {
+      "title": "Strategic Participation Repository",
+      "description": "Real-time verification of departmental operations and personnel readiness.",
+      "colPersonnel": "Personnel",
+      "colDate": "Reference Date",
+      "colIn": "Clock In",
+      "colOut": "Clock Out",
+      "colStatus": "Operational Status",
+      "colTrace": "Trace",
+      "noTrace": "No Trace Detected",
+      "noTraceDesc": "The participation ledger is current for this query range."
+    }
+  },
+  "Roles": {
+    "title": "Access Governance",
+    "subtitle": "Management of personnel permissions and organizational hierarchy.",
+    "badge": "Auth Center (Level 3)",
+    "searchPlaceholder": "Filter personnel...",
+    "tabs": {
+      "directory": "Personnel Directory",
+      "audit": "Access Audit",
+      "governance": "Governance Overview"
+    },
+    "table": {
+      "title": "Governance Ledger",
+      "description": "Manage hierarchical permissions and departmental assignments."
+    },
+    "governance": {
+      "board": {
+        "title": "Board Level Oversight",
+        "description": "Managing Partners and C-Suite executives hold strategic control and cross-departmental visibility for ultimate governance."
+      },
+      "manager": {
+        "title": "Departmental Managers",
+        "description": "Functional leaders oversee specific cohorts (Technical, Operations) and document high-fidelity progress logs."
+      },
+      "associate": {
+        "title": "Associate Personnel",
+        "description": "Operational staff and interns are induction-trained per industrial protocols with strict participation monitoring."
+      }
+    }
+  },
+  "Associate": {
+    "labTitle": "Associate Lab",
+    "labSubtitle": "Operational control and personnel growth tracking.",
+    "views": {
+      "mission": "Mission Control",
+      "roadmap": "Growth Roadmap",
+      "hub": "Tactical Hub"
+    },
+    "hero": {
+      "tier": "Career Launchpad Tier (L1)",
+      "promotion": "Promotion: {status}",
+      "welcome": "Welcome to the Mission, {name}",
+      "protocolCompleted": "Protocol Completed",
+      "initiateCheckout": "Initiate Checkout",
+      "deployToSite": "Deploy to Site (Check-in)",
+      "shiftOverview": "Shift Overview",
+      "checkIn": "In:",
+      "checkOut": "Out:",
+      "checkedIn": "Checked in successfully!",
+      "checkedOut": "Checked out successfully!",
+      "failure": "Attendance system failure."
+    },
+    "roadmap": {
+      "title": "Growth Roadmap",
+      "overallProgress": "Overall Progress",
+      "completion": "Total Completion: {value}%",
+      "noMission": "No mission briefing found.",
+      "failure": "Failed to update checklist.",
+      "emptyStates": {
+        "checklist": "No checklist items found."
+      }
+    },
+    "hub": {
+      "title": "Tactical Objectives",
+      "activeOps": "ACTIVE OPS",
+      "briefing": "Briefing",
+      "noBriefing": "No mission description provided.",
+      "commsRelay": "Comms Relay (Comments)",
+      "pow": "Proof of Work (Link or Evidence)",
+      "submit": "Submit",
+      "relayPlaceholder": "Relay feedback or ask for guidance...",
+      "transmitRelay": "Transmit Relay",
+      "noObjectives": "No objectives assigned.",
+      "requestMission": "Request New Mission",
+      "missionRequested": "Mission Request Transmitted",
+      "missionRequestedDesc": "The management team has been notified. Personnel induction is in progress.",
+      "assignedBy": "Assigned by {name}"
+    },
+    "insights": {
+      "title": "Mentor Insights",
+      "strategicGuidance": "Strategic Guidance",
+      "directComms": "Direct Comms",
+      "notAssigned": "Mentor Not Assigned",
+      "awaitingInduction": "Awaiting Personnel Induction",
+      "quote": "Consistency is the industrial standard. Your participation logs define your reliability profile in our ecosystem."
+    },
+    "status": {
+      "completed": "Completed",
+      "in_progress": "In Progress",
+      "pending": "Pending",
+      "blocked": "Blocked"
+    },
+    "priority": {
+      "high": "High",
+      "medium": "Medium",
+      "low": "Low",
+      "label": "{value} Priority"
+    },
+    "toasts": {
+      "taskStatusSuccess": "Mission status updated to {status}",
+      "taskStatusError": "Failed to update mission status.",
+      "powSuccess": "Proof of Work submitted successfully.",
+      "powError": "Failed to submit Proof of Work.",
+      "commentSuccess": "Comment relay transmitted.",
+      "commentError": "Failed to transmit relay.",
+      "missionRequested": "Mission Request Transmitted",
+      "missionRequestedDesc": "The management team has been notified. Personnel induction is in progress.",
+      "viewFeed": "View Feed"
+    }
+  },
+  "Identity": {
+    "title": "Personnel Identity",
+    "subtitle": "Operational personnel profile and organizational verification status.",
+    "badge": "OFFICIAL RECORD",
+    "authority": "Personnel Ledger"
+  },
+  "Common": {
+    "back": "Back",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "loading": "Loading...",
+    "error": "An error occurred.",
+    "success": "Success!",
+    "hindi": "हिन्दी",
+    "english": "English",
+    "switchLanguage": "Switch Language",
+    "recentActions": "Recent Actions",
+    "poweredBy": "Powered by",
+    "placeholders": {
+      "pow": "https://github.com/..."
+    },
+    "searchPlaceholder": "Search...",
+    "Hiring": {
+      "title": "Hiring Portal",
+      "subtitle": "Manage recruitment pipeline and intern onboarding.",
+      "badge": "TALENT ACQUISITION",
+      "authority": "HR Management",
+      "searchPlaceholder": "Search by name, email or role...",
+      "stats": {
+        "total": "Total Applicants",
+        "shortlisted": "Shortlisted",
+        "pending": "Pending Review",
+        "hired": "Hired"
+      },
+      "table": {
+        "title": "Applicants",
+        "filter": "Filter",
+        "candidate": "Candidate",
+        "position": "Position",
+        "status": "Status",
+        "applied": "Applied",
+        "actions": "Actions",
+        "email": "Email Candidate",
+        "linkedin": "View LinkedIn",
+        "archive": "Archive Application",
+        "noResults": "No applicants found matching your criteria.",
+        "end": "End of List"
+      }
+    },
+    "Executive": {
+      "title": "Executive Intelligence",
+      "subtitle": "Strategic overview for MSME 360 Governance Board.",
+      "badge": "BOARD VIEW ACTIVE",
+      "authority": "Live Analytics",
+      "metrics": {
+        "totalPresence": "Total MSME Presence",
+        "activeInternships": "Active Internships",
+        "aiCapability": "AI Capability Index",
+        "complianceScore": "Compliance Score"
+      },
+      "roadmap": {
+        "title": "Strategic Roadmap",
+        "onTrack": "On Track",
+        "inProgress": "In Progress",
+        "planning": "Planning"
+      },
+      "governance": {
+        "title": "Recent Governance",
+        "archive": "Audit Archive"
+      }
+    },
+    "Manager": {
+      "hub": "{role} Hub",
+      "subtitle": "Departmental coordination and personnel oversight.",
+      "lead": "{department} LEAD",
+      "toasts": {
+        "commentError": "Failed to add comment.",
+        "taskUpdated": "Task updated"
+      }
+    },
+    "Supervisory": {
+      "command": "{role} Command",
+      "subtitle": "Field operations oversight and tactical team coordination.",
+      "lead": "OPERATIONS LEAD",
+      "metrics": {
+        "activeOps": "Active Ops",
+        "liveMissions": "LIVE MISSIONS",
+        "teamSize": "Team Size",
+        "directPersonnel": "DIRECT PERSONNEL",
+        "blockers": "Blockers",
+        "attentionRequired": "ATTENTION REQUIRED",
+        "efficiency": "Efficiency",
+        "shiftThroughput": "SHIFT THROUGHPUT"
+      },
+      "feed": {
+        "title": "Live Field Feed",
+        "statusUpdate": "Status updated to {status}"
+      }
+    },
+    "Staff": {
+      "workspace": "{role} Workspace",
+      "subtitle": "Internal coordination and productivity hub.",
+      "tier": "EXECUTION TIER",
+      "level": "L2-L3 Management",
+      "hero": {
+        "welcome": "Welcome to the Hub, {name}",
+        "joinDate": "Join Date: {date}"
+      },
+      "announcements": {
+        "title": "Internal Announcements",
+        "viewAll": "View All Internal Comms"
+      },
+      "shortcuts": {
+        "title": "Quick Shortcuts",
+        "handbook": "Company Handbook",
+        "sop": "Standard Operating Procedures",
+        "comms": "Internal Slack/Teams",
+        "perks": "Benefit & Perks",
+        "repos": "Project Repositories"
+      },
+      "milestone": {
+        "title": "Monthly Milestone",
+        "update": "C-Suite Update"
+      }
+    }
+  }
+}

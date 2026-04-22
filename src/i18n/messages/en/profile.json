@@ -1,0 +1,99 @@
+{
+  "Profile": {
+    "badge": "Account Management",
+    "title": "Business Profile",
+    "description": "Manage your MSME information and brand identity with precision.",
+    "recognitionCard": {
+      "title": "Ready for DPIIT Recognition",
+      "description": "Your profile info is {percentage}% complete. Complete your founders' details to apply for Startup India recognition.",
+      "cta": "Apply Now"
+    },
+    "form": {
+      "verified": "Verified MSME",
+      "edit": "Edit",
+      "cancel": "Cancel",
+      "save": "Save Changes",
+      "saving": "Saving...",
+      "companyName": "Company Name",
+      "category": "Business Category",
+      "udyam": "Udyam Registration Number",
+      "email": "Email Address",
+      "location": "HQ Location",
+      "website": "Website",
+      "successToast": "Profile updated successfully!",
+      "errorToast": "Failed to update profile.",
+      "generalError": "An error occurred while saving."
+    },
+    "personnel": {
+      "tabs": {
+        "profile": "Personnel Profile"
+      },
+      "card": {
+        "newPersonnel": "New Personnel",
+        "manageBusiness": "Manage Business Identity",
+        "updatePersonnel": "Update Personnel Profile"
+      },
+      "items": {
+        "id": "Personnel ID",
+        "email": "Official Email",
+        "department": "Department",
+        "location": "Location",
+        "deptDefault": "General Operations",
+        "locDefault": "MSME 360 Remote"
+      },
+      "security": {
+        "title": "Security Verification Status",
+        "verifiedMsg": "fully verified within the MSME 360 workforce ledger",
+        "pendingMsg": "currently pending departmental verification",
+        "verifiedBadge": "VERIFIED PROTOCOL",
+        "pendingBadge": "PENDING AUDIT"
+      },
+      "performance": {
+        "title": "Performance Quick-Look",
+        "l1Context": "L1 Associate Operational Context",
+        "velocity": "Velocity",
+        "sync": "Sync",
+        "viewAudit": "View Full Audit",
+        "onboardingPath": "Onboarding Path",
+        "missionReliability": "Mission Reliability",
+        "industrialGrade": "Industrial Grade",
+        "percentComplete": "{percent}% Complete"
+      }
+    },
+    "roles": {
+      "super_admin": "Super Admin",
+      "managing_partner": "Managing Partner",
+      "board_member": "Board Member",
+      "ceo": "Chief Executive Officer",
+      "cto": "Chief Technology Officer",
+      "cfo": "Chief Financial Officer",
+      "coo": "Chief Operations Officer",
+      "cmo": "Chief Marketing Officer",
+      "chro": "Chief People Officer",
+      "vp_engineering": "VP of Engineering",
+      "vp_product": "VP of Product",
+      "vp_operations": "VP of Operations",
+      "hr_manager": "HR Manager",
+      "engineering_manager": "Engineering Manager",
+      "team_lead": "Team Lead",
+      "software_engineer": "Software Engineer",
+      "marketing_specialist": "Marketing Specialist",
+      "intern": "Operations Intern",
+      "associate": "Associate Staff",
+      "founder": "Business Founder",
+      "user": "Platform User"
+    },
+    "departments": {
+      "Management": "Management",
+      "Executive": "Executive Office",
+      "Operations": "Operations",
+      "Technical": "Technical Dept",
+      "Product": "Product Hub",
+      "People": "Human Capital",
+      "Finance": "Financial Office",
+      "Marketing": "Marketing Studio",
+      "External": "Strategic Partner",
+      "Governance": "Board Governance"
+    }
+  }
+}

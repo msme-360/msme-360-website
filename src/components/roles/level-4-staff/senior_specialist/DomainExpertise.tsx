@@ -1,0 +1,54 @@
+"use client";
+
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Activity, Award } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { DashboardMetric } from "@/types/dashboard";
+
+export default function DomainExpertise({ metrics = [] }: { metrics?: DashboardMetric[] }) {
+  return (
+    <Card className="glass-card border-indigo-500/20 bg-indigo-500/[0.02] overflow-hidden">
+      <CardHeader className="bg-indigo-500/5 border-b border-indigo-500/10">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-indigo-500/10 rounded-lg text-indigo-400">
+              <Award className="w-5 h-5" />
+            </div>
+            <div>
+              <CardTitle className="text-xl font-bold tracking-tight text-white">Domain Expertise</CardTitle>
+              <p className="text-xs text-muted-foreground uppercase font-black tracking-widest mt-0.5">Technical Intelligence</p>
+            </div>
+          </div>
+          <Badge className="bg-indigo-500/20 text-indigo-400 border-indigo-500/30 font-bold tracking-widest">L4 Staff</Badge>
+        </div>
+      </CardHeader>
+      <CardContent className="p-6">
+        {metrics && metrics.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            {metrics.slice(0, 4).map((m: DashboardMetric, idx: number) => (
+              <div key={m.label || idx} className="p-4 rounded-xl bg-white/[0.02] border border-white/5 hover:border-indigo-500/20 transition-all group">
+                <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest mb-1">{m.label}</p>
+                <div className="flex items-baseline gap-2">
+                  <p className="text-2xl font-bold tracking-tighter">{m.value}</p>
+                  {m.change && (
+                    <span className={`text-[10px] font-bold ${m.status === 'Optimal' || m.change.startsWith('+') ? 'text-emerald-400' : 'text-amber-400'}`}>
+                      {m.change}
+                    </span>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center py-12 border-2 border-dashed border-white/5 rounded-3xl bg-white/[0.01]">
+            <div className="p-4 bg-white/5 rounded-full mb-4">
+              <Activity className="w-6 h-6 text-muted-foreground/20" />
+            </div>
+            <p className="text-sm font-medium text-muted-foreground">Awaiting Real-time Telemetry</p>
+            <p className="text-[10px] text-muted-foreground/30 uppercase tracking-widest mt-2">Silo is active but no live metrics detected</p>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
