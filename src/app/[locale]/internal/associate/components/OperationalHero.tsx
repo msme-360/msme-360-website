@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Rocket, Star, Clock, CheckCircle2, Loader2, MapPin, Calendar, Building2 } from "lucide-react";
+import { Rocket, Star, Clock, CheckCircle2, Loader2, MapPin, Calendar } from "lucide-react";
 import { format } from "date-fns";
 import { AttendanceLog } from "./AssociateTypes";
 import { logAttendance } from "@/app/[locale]/internal/actions";

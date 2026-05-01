@@ -61,16 +61,16 @@ export default function BoardVoteInterface() {
   const [voting, setVoting] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    loadProposals();
-  }, []);
-
   const loadProposals = async () => {
     setLoading(true);
     const data = await getBoardProposals();
     setProposals(data as ResolutionProposal[]);
     setLoading(false);
   };
+
+  useEffect(() => {
+    loadProposals();
+  }, []);
 
   const handleVote = async (id: string, choice: 'for' | 'against') => {
     setVoting(id);
@@ -155,7 +155,7 @@ export default function BoardVoteInterface() {
                 </CardHeader>
                 <CardContent className="p-8 space-y-8">
                   <p className="text-sm text-muted-foreground leading-relaxed italic border-l-2 border-indigo-500/20 pl-6">
-                    "{prop.summary}"
+                    &ldquo;{prop.summary}&rdquo;
                   </p>
 
                   <div className="space-y-4">
@@ -205,7 +205,7 @@ export default function BoardVoteInterface() {
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-xs text-muted-foreground leading-relaxed">
-                As a Level 0 Board Member, your vote carries immutable weight. Digital signatures are cryptographically hashed and identification of recorded in the platform's permanent ledger.
+                As a Level 0 Board Member, your vote carries immutable weight. Digital signatures are cryptographically hashed and identified in the platform&apos;s permanent ledger.
               </p>
               <div className="p-4 rounded-xl bg-white/5 border border-white/5">
                 <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest mb-1">Your Voting Power</p>

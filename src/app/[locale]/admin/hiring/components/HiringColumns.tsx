@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { 
   MoreVertical, Mail, Linkedin, X, Star, ArchiveRestore,
-  ArrowUpDown, FileSearch, Archive, UserPlus, ClipboardCheck
+  ArrowUpDown, FileSearch, Archive, UserPlus
 } from "lucide-react";
 import { 
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger 

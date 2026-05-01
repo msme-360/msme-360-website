@@ -8,9 +8,7 @@ import { Progress } from "@/components/ui/progress";
 import { 
   LogOut, 
   ShieldAlert, 
-  FileText, 
   Key, 
-  UserMinus,
   CheckCircle2,
   AlertTriangle,
   History
@@ -146,7 +144,7 @@ export default function StrategicExitFlow() {
               <div className="flex items-start gap-4 mb-8">
                 <AlertTriangle className="w-5 h-5 text-rose-400 shrink-0" />
                 <p className="text-xs text-rose-400/80 leading-relaxed italic">
-                  Warning: Strategic exit is permanent. Executing this protocol will purge all session tokens and mark the member profile as 'Inactive' in the Governance Registry.
+                  Warning: Strategic exit is permanent. Executing this protocol will purge all session tokens and mark the member profile as &apos;Inactive&apos; in the Governance Registry.
                 </p>
               </div>
               <Button 

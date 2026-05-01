@@ -885,7 +885,7 @@ export async function getSupportTickets(role?: string, department?: string) {
 
   console.log(`[SupportHub] Fetching for User: ${verifiedUser.id}, Role: ${role} (L${userRoleLevel}), Dept: ${department}, IsGlobal: ${isGlobalStaff}`);
 
-  let query = supabase
+  const query = supabase
     .from('support_tickets')
     .select('*, profiles(full_name, role, department)')
     .order('created_at', { ascending: false });

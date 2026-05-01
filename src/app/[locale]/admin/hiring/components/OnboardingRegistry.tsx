@@ -185,7 +185,7 @@ export default function OnboardingRegistry({ applicant, userRole, onUpdate }: On
                   <Tooltip>
                     <TooltipTrigger><Info className="w-3 h-3 opacity-30" /></TooltipTrigger>
                     <TooltipContent className="glass-card border-white/10 text-[9px] max-w-[200px] p-3">
-                      Mentors must be Level 3.5 (Team Leads/Supervisors) who will directly manage the intern's daily progression.
+                      Mentors must be Level 3.5 (Team Leads/Supervisors) who will directly manage the intern&apos;s daily progression.
                     </TooltipContent>
                   </Tooltip>
                 </Label>

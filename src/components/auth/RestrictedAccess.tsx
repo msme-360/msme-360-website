@@ -26,7 +26,7 @@ export function RestrictedAccess({ requiredLevel }: { requiredLevel?: string }) 
       } else {
         toast.error(res.error || "Elevation protocol failed.");
       }
-    } catch (err) {
+    } catch {
       toast.error("Transmission error: Protocol connection lost.");
     } finally {
       setIsRequesting(false);

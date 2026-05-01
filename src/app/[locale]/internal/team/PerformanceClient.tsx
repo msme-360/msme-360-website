@@ -3,11 +3,10 @@
 import { useState } from "react";
 import { AdminViewWrapper } from "@/components/layout/AdminViewWrapper";
 import { DataTable } from "@/components/ui/data-table";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { 
   Zap, Award, TrendingUp, Target, 
-  MoreHorizontal, Eye, MessageSquare, 
+  MoreHorizontal, MessageSquare, 
   Star, Heart, Flame
 } from "lucide-react";
 import { ColumnDef } from "@tanstack/react-table";
@@ -20,7 +19,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { toast } from "sonner";
 
 interface TeamPerformance {
   id: string;

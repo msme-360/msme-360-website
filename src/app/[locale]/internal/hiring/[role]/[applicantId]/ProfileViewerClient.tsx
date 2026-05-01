@@ -10,8 +10,7 @@ import { Button } from "@/components/ui/button";
 import { 
   Mail, GraduationCap, Briefcase, 
   Linkedin, ExternalLink, Check, 
-  FileText, RefreshCcw, ClipboardCheck 
-} from "lucide-react";
+  FileText, RefreshCcw} from "lucide-react";
 import { EvaluationCard } from "./EvaluationCard";
 import OnboardingRegistry from "../../../../admin/hiring/components/OnboardingRegistry";
 import { useTranslations } from "next-intl";
@@ -58,7 +57,7 @@ export default function ProfileViewerClient({ applicant: initialApplicant, initi
       } else {
         toast.error(res.error || "Failed to onboard candidate");
       }
-    } catch (err) {
+    } catch {
       toast.error("An unexpected error occurred");
     }
     setIsUpdating(false);
@@ -161,7 +160,7 @@ export default function ProfileViewerClient({ applicant: initialApplicant, initi
                 <div>
                   <h4 className="text-xs font-black uppercase tracking-widest text-muted-foreground mb-3">About Candidate</h4>
                   <p className="text-sm leading-relaxed text-muted-foreground/80 bg-white/[0.01] p-4 rounded-2xl border border-white/5 italic">
-                    "Experienced applicant from {applicant.university} with a strong focus on {applicant.role}. Looking to contribute to MSME 360's mission."
+                    &ldquo;Experienced applicant from {applicant.university} with a strong focus on {applicant.role}. Looking to contribute to MSME 360&apos;s mission.&rdquo;
                   </p>
                 </div>
                 <div className="grid grid-cols-2 gap-4">

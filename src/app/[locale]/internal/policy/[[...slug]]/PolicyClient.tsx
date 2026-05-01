@@ -6,9 +6,9 @@ import { DataTable } from "@/components/ui/data-table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  FileText, ShieldCheck, Clock, Plus,
+  FileText, Clock, Plus,
   MoreHorizontal, Eye, Edit, Trash2,
-  FileSearch, CheckCircle2, AlertCircle, Archive
+  CheckCircle2, AlertCircle, Archive
 } from "lucide-react";
 import { ColumnDef } from "@tanstack/react-table";
 import {

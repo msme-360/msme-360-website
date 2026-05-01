@@ -4,9 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
   ShieldCheck,
-  Lock,
   FileCheck2,
-  TrendingUp,
   Scale,
   History,
   UserCheck

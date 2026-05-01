@@ -4,11 +4,11 @@ import { useState, useEffect, useTransition } from "react";
 import { CareerRole } from "@/lib/roles";
 import { getCareerRoles, saveCareerRole, deleteCareerRole } from "@/app/[locale]/admin/actions";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { 
   Plus, Pencil, Trash2, Briefcase, Layout, Database, 
   Layers, CheckCircle, Brain, FileText, Palette, Share2, Rocket,
-  Search, Filter, MoreVertical, Loader2
+  Loader2
 } from "lucide-react";
 import { 
   Dialog, DialogContent, DialogHeader, DialogTitle, 
@@ -33,16 +33,16 @@ export default function CareerRoleManager() {
   const [editOpen, setEditOpen] = useState(false);
   const [selectedRole, setSelectedRole] = useState<Partial<CareerRole> | null>(null);
 
-  useEffect(() => {
-    fetchRoles();
-  }, []);
-
   const fetchRoles = async () => {
     setLoading(true);
     const data = await getCareerRoles();
     setRoles(data);
     setLoading(false);
   };
+
+  useEffect(() => {
+    fetchRoles();
+  }, []);
 
   const handleSave = async () => {
     if (!selectedRole?.title || !selectedRole?.slug) {

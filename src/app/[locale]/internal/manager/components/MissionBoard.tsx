@@ -6,9 +6,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
-   ClipboardList, Search, Filter, MoreVertical,
-   Calendar, Loader2, Send, Plus, User, 
-   Clock, AlertCircle, CheckCircle2,
+   ClipboardList, Filter, MoreVertical,
+   Calendar, Loader2, Send, Plus, 
+   
    Zap
 } from "lucide-react";
 import { Input } from "@/components/ui/input";

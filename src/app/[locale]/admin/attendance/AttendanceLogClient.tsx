@@ -8,8 +8,7 @@ import { AdminViewWrapper } from "@/components/layout/AdminViewWrapper";
 import { DataTable } from "@/components/ui/data-table";
 import { ColumnDef } from "@tanstack/react-table";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { Clock, History, CheckCircle2, Timer, MoreHorizontal, FileSearch, Edit, AlertCircle } from "lucide-react";
+import { CheckCircle2, Timer, MoreHorizontal, FileSearch, Edit, AlertCircle } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,

@@ -138,6 +138,7 @@ export function SupervisoryClient({ profile, initialTasks, team }: SupervisoryCl
             <MissionBoard
               tasks={tasks}
               profile={profile}
+              team={team}
               selectedTask={selectedTask}
               onTaskSelect={handleSelectTask}
               comments={comments}

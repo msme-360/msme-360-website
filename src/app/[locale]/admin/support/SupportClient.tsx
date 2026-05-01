@@ -86,7 +86,7 @@ export function SupportClient({
   }, [initialTickets, supportMetrics]);
 
   const filteredTickets = useMemo(() => {
-    let result = initialTickets.filter(ticket => {
+    const result = initialTickets.filter(ticket => {
       const matchesSearch = ticket.subject.toLowerCase().includes(search.toLowerCase()) ||
                           ticket.id.toLowerCase().includes(search.toLowerCase()) ||
                           ticket.profiles?.full_name?.toLowerCase().includes(search.toLowerCase());
@@ -115,7 +115,7 @@ export function SupportClient({
 
     setCreateLoading(true);
     try {
-      const res = await createSupportTicket(newTicket.subject, newTicket.message, newTicket.category, userId);
+      const res = await createSupportTicket(newTicket.subject, newTicket.message, newTicket.category);
       if (res.success) {
         toast.success("Support ticket submitted successfully");
         setIsCreating(false);
@@ -133,7 +133,7 @@ export function SupportClient({
   const handleResolve = async (id: string) => {
     if (!userId) return;
     
-    const promise = resolveSupportTicket(id, userId);
+    const promise = resolveSupportTicket(id);
     toast.promise(promise, {
       loading: 'Updating ticket status...',
       success: 'Ticket resolved successfully',

@@ -51,7 +51,7 @@ export function ForgotPasswordForm({ locale }: ForgotPasswordFormProps) {
         </div>
         <h1 className="text-2xl font-display font-bold">Email Sent</h1>
         <p className="text-muted-foreground mt-4 mb-8">
-          We've sent a password reset link to your email.
+          We&apos;ve sent a password reset link to your email.
           Please check your inbox and follow the instructions.
         </p>
         <Link href={`/${locale}/login`}>

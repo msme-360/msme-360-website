@@ -84,7 +84,7 @@ export default function ConstitutionalLedger() {
                     </Badge>
                   </div>
                   <p className="text-sm text-muted-foreground leading-relaxed italic border-l-2 border-indigo-500/20 pl-6 py-2">
-                    "{art.content}"
+                    &ldquo;{art.content}&rdquo;
                   </p>
                 </div>
               ))}
