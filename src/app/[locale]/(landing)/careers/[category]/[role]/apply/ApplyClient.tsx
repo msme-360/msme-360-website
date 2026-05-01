@@ -95,7 +95,7 @@ export default function ApplyClient({ roleSlug }: { roleSlug: string }) {
     setError(null);
 
     const email = formData.get("email") as string;
-    const statusCheck = await checkApplicationStatus(email, role.title);
+    const statusCheck = await checkApplicationStatus(email);
     if (!statusCheck.allowed) {
       setError(statusCheck.message ?? "Application not allowed");
       setLoading(false);

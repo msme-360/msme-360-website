@@ -30,6 +30,13 @@ import {
 import { ONBOARDING_TEMPLATES, getRecommendedTemplate } from "@/lib/constants/onboardingTemplates";
 import { Label } from "@/components/ui/label";
 
+interface Mentor {
+  id: string;
+  full_name: string;
+  role: string;
+  department: string;
+}
+
 interface OnboardingRegistryProps {
   applicant: Applicant;
   userRole: string;
@@ -37,14 +44,14 @@ interface OnboardingRegistryProps {
 }
 
 export default function OnboardingRegistry({ applicant, userRole, onUpdate }: OnboardingRegistryProps) {
-  const [mentors, setMentors] = useState<any[]>([]);
+  const [mentors, setMentors] = useState<Mentor[]>([]);
   const [loading, setLoading] = useState(false);
   
   // Registry State
-  const [mentorId, setMentorId] = useState<string>(applicant.metadata?.mentor_id || "");
+  const [mentorId, setMentorId] = useState<string>((applicant.metadata?.mentor_id as string) || "");
   const recommendedId = getRecommendedTemplate(applicant.role);
-  const [templateId, setTemplateId] = useState<string>(applicant.metadata?.template_id || recommendedId);
-  const [checklist, setChecklist] = useState<Record<string, boolean>>(applicant.metadata?.onboarding_checklist || {});
+  const [templateId, setTemplateId] = useState<string>((applicant.metadata?.template_id as string) || recommendedId);
+  const [checklist, setChecklist] = useState<Record<string, boolean>>((applicant.metadata?.onboarding_checklist as Record<string, boolean>) || {});
 
   const isHR = userRole === 'hr_manager' || userRole === 'super_admin';
   const isVerifier = isHR || userRole === 'team_lead' || userRole === 'project_lead' || userRole === 'supervisor' || userRole === 'coordinator';
@@ -56,13 +63,13 @@ export default function OnboardingRegistry({ applicant, userRole, onUpdate }: On
   const completedCount = activeTasks.filter(task => checklist[task.name]).length;
   const progress = activeTasks.length > 0 ? Math.round((completedCount / activeTasks.length) * 100) : 0;
 
-  const isDirty = mentorId !== (applicant.metadata?.mentor_id || "") || 
-                  templateId !== (applicant.metadata?.template_id || "");
+  const isDirty = mentorId !== ((applicant.metadata?.mentor_id as string) || "") || 
+                  templateId !== ((applicant.metadata?.template_id as string) || "");
 
   useEffect(() => {
     async function loadMentors() {
       const data = await getMentorProfiles();
-      setMentors(data);
+      setMentors(data as Mentor[]);
     }
     loadMentors();
   }, []);
@@ -272,7 +279,7 @@ export default function OnboardingRegistry({ applicant, userRole, onUpdate }: On
                       color="amber"
                     />
                     <div className="space-y-3">
-                      {activeTasks.filter(t => t.owner === 'hr').map((task, idx) => (
+                      {activeTasks.filter(t => t.owner === 'hr').map((task) => (
                         <LifecycleTask 
                           key={task.name} 
                           task={task} 
@@ -293,7 +300,7 @@ export default function OnboardingRegistry({ applicant, userRole, onUpdate }: On
                       color="indigo"
                     />
                     <div className="space-y-3">
-                      {activeTasks.filter(t => t.owner === 'intern').map((task, idx) => (
+                      {activeTasks.filter(t => t.owner === 'intern').map((task) => (
                         <LifecycleTask 
                           key={task.name} 
                           task={task} 
@@ -363,7 +370,7 @@ function TrackHeader({ title, subtitle, icon, color }: { title: string, subtitle
   );
 }
 
-function LifecycleTask({ task, isCompleted, canToggle, onToggle }: { task: any, isCompleted: boolean, canToggle: boolean, onToggle: () => void }) {
+function LifecycleTask({ task, isCompleted, canToggle, onToggle }: { task: { name: string, owner?: string }, isCompleted: boolean, canToggle: boolean, onToggle: () => void }) {
   return (
     <motion.div
       onClick={() => canToggle && onToggle()}

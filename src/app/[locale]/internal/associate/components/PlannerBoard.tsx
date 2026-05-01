@@ -12,22 +12,17 @@ import {
 import { Task } from "./AssociateTypes";
 import { format } from "date-fns";
 import { useTranslations } from "next-intl";
-import { useRouter } from "next/navigation";
-import { DashboardProfile } from "@/types/dashboard";
 
 interface PlannerBoardProps {
   tasks: Task[];
-  profile: DashboardProfile;
   onTaskStatus: (taskId: string, status: Task['status']) => void;
   onTaskSelect: (task: Task) => void;
 }
 
-export default function PlannerBoard({ tasks, profile, onTaskStatus, onTaskSelect }: PlannerBoardProps) {
-  const tAssociate = useTranslations("Associate");
+export default function PlannerBoard({ tasks, onTaskStatus, onTaskSelect }: PlannerBoardProps) {
   const tPlanner = useTranslations("Planner");
-  const router = useRouter();
 
-  const columns: { id: Task['status']; label: string; color: string; icon: any }[] = [
+  const columns: { id: Task['status']; label: string; color: string; icon: React.ElementType }[] = [
     { id: 'pending', label: "Objectives", color: "text-muted-foreground", icon: Clock },
     { id: 'in_progress', label: "Active Ops", color: "text-indigo-400", icon: Zap },
     { id: 'completed', label: "Success", color: "text-emerald-400", icon: CheckCircle2 },

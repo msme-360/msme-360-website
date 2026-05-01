@@ -5,12 +5,12 @@ import { z } from "zod";
 
 const LinkSchema = z.object({
   label: z.string(),
-  url: z.url("Please enter a valid URL")
+  url: z.string().url("Please enter a valid URL")
 });
 
 const InternApplicationSchema = z.object({
   full_name: z.string().min(2, "Full name is required"),
-  email: z.email("Invalid email address"),
+  email: z.string().email("Invalid email address"),
   phone: z.string().optional(),
   role: z.string().min(1, "Role is required"),
   experience_level: z.string().min(1, "Experience level is required"),
@@ -112,7 +112,7 @@ export async function getCareerRole(slug: string) {
   }
 }
 
-export async function checkApplicationStatus(email: string, role: string) {
+export async function checkApplicationStatus(email: string) {
   try {
     const supabase = await createServiceClient();
     const { data, error } = await supabase

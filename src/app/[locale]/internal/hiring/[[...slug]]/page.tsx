@@ -1,6 +1,7 @@
 import { getUser as getAuthUser } from "@/services/supabase/supabase-server";
 import { getProfile as getProfileDirect } from "@/app/[locale]/dashboard/queries";
 import { HiringPortalClient } from "@/app/[locale]/admin/hiring/HiringPortalClient";
+import { Applicant } from "@/app/[locale]/admin/hiring/components/HiringTypes";
 import { getApplicants } from "@/app/[locale]/admin/actions";
 import { getRoleById, hasPermission } from "@/lib/constants/roles";
 import { RestrictedAccess } from "@/components/auth/RestrictedAccess";
@@ -57,8 +58,7 @@ async function HiringContent({
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
       <HiringPortalClient
-        initialApplicants={applicants}
-        userId={user.id}
+        initialApplicants={applicants as unknown as Applicant[]}
         profile={profile}
         subView={subView}
         role={userRole}

@@ -9,10 +9,9 @@ import {
   Zap, Calendar, CheckCircle2, MessageSquare,
   Clock} from "lucide-react";
 import { format } from "date-fns";
-import { useRouter } from "next/navigation";
 import { Task, TaskComment } from "./AssociateTypes";
-import { DashboardProfile } from "@/types/dashboard";
 import { useTranslations } from "next-intl";
+import { DashboardProfile } from "@/types/dashboard";
 
 interface TacticalHubProps {
   tasks: Task[];
@@ -33,21 +32,12 @@ interface TacticalHubProps {
 
 export default function TacticalHub({
   tasks,
-  profile,
   onTaskSelect,
-  comments,
-  isCommentsLoading,
-  newComment,
-  setNewComment,
-  isSubmittingComment,
-  onAddComment,
   onTaskStatus,
-  onUpdatePoW,
   onRequestMission,
   hideTitle
 }: TacticalHubProps) {
   const t = useTranslations("Associate");
-  const router = useRouter();
 
   return (
     <Card className="glass-card border-white/10 overflow-hidden shadow-2xl relative">

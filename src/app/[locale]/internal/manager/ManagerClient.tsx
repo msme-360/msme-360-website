@@ -27,14 +27,17 @@ export function ManagerClient({ profile, initialTasks, initialAttendance, team }
   const [tasks, setTasks] = useState(initialTasks);
   const [attendance, setAttendance] = useState(initialAttendance);
 
-  // Sync state with props when revalidatePath triggers
-  useEffect(() => {
+  const [prevTasks, setPrevTasks] = useState(initialTasks);
+  if (initialTasks !== prevTasks) {
+    setPrevTasks(initialTasks);
     setTasks(initialTasks);
-  }, [initialTasks]);
+  }
 
-  useEffect(() => {
+  const [prevAttendance, setPrevAttendance] = useState(initialAttendance);
+  if (initialAttendance !== prevAttendance) {
+    setPrevAttendance(initialAttendance);
     setAttendance(initialAttendance);
-  }, [initialAttendance]);
+  }
 
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [comments, setComments] = useState<TaskComment[]>([]);

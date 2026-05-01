@@ -32,11 +32,18 @@ const INITIAL_STEPS: ExitStep[] = [
   { id: "AUDIT-04", label: "Final Audit Sign-off", description: "Governance board review of departure logs.", status: 'pending' }
 ];
 
+interface OffboardingTarget {
+  id: string;
+  full_name: string | null;
+  role: string | null;
+  designation: string | null;
+}
+
 export default function StrategicExitFlow() {
   const [steps, setSteps] = useState(INITIAL_STEPS);
   const [processing, setProcessing] = useState(false);
   const [selectedUser, setSelectedUser] = useState<string | null>(null);
-  const [users, setUsers] = useState<any[]>([]);
+  const [users, setUsers] = useState<OffboardingTarget[]>([]);
 
   useEffect(() => {
     getOffboardingTargets().then(setUsers);

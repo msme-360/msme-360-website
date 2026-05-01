@@ -13,7 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { DashboardProfile } from "@/types/dashboard";
 import { createTask } from "@/app/[locale]/internal/actions";
 import { toast } from "sonner";
-import { getRoleById, getCareerLevelMetadata } from "@/lib/constants/roles";
+import { getCareerLevelMetadata } from "@/lib/constants/roles";
 import { useTranslations } from "next-intl";
 
 interface ManagerHeaderProps {
@@ -70,7 +70,6 @@ export default function ManagerHeader({
    const location = profile.location || "Remote";
    const joinDate = profile.created_at ? new Date(profile.created_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : "Oct 2024";
    const welcomeMessage = t('welcomeTitle', { name: name.split(' ')[0] });
-   const roleMetadata = getRoleById(profile.role);
    const careerMetadata = getCareerLevelMetadata(profile.role);
 
    return (

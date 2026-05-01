@@ -7,6 +7,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: '/',
       disallow: ['/api/', '/_next/', '/dashboard/settings/'],
     },
-    sitemap: 'https://msme360.in/sitemap.xml',
+    sitemap: (process.env.NEXT_PUBLIC_BASE_URL || 'https://msme360.in') + '/sitemap.xml',
   }
 }

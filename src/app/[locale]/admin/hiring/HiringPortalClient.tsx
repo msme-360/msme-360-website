@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { 
   updateApplicationStatus, onboardIntern, 
   archiveApplication, restoreApplication, 
-  getApplicants, getMentorProfiles
+  getApplicants
 } from "@/app/[locale]/admin/actions";
 import { DashboardProfile } from "@/types/dashboard";
 import { Applicant } from "./components/HiringTypes";
@@ -19,19 +19,18 @@ import { Briefcase, Users, Archive as ArchiveIcon } from "lucide-react";
 
 interface HiringPortalClientProps {
   initialApplicants: Applicant[];
-  userId: string;
   profile: DashboardProfile;
   subView?: string;
   role: string;
 }
 
-export function HiringPortalClient({ initialApplicants, userId, subView, role }: HiringPortalClientProps) {
+export function HiringPortalClient({ initialApplicants, subView, role }: HiringPortalClientProps) {
   const t = useTranslations("Hiring");
   const [applicants, setApplicants] = useState<Applicant[]>(initialApplicants);
   const [archivedApplicants, setArchivedApplicants] = useState<Applicant[]>([]);
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [currentTab, setCurrentTab] = useState("active");
-  const [onboardingTab, setOnboardingTab] = useState("active");
+  const [onboardingTab] = useState("active");
   const [hasFetchedArchived, setHasFetchedArchived] = useState(false);
 
   useEffect(() => {
@@ -112,7 +111,7 @@ export function HiringPortalClient({ initialApplicants, userId, subView, role }:
     if (hasFetchedArchived) return;
     setLoadingId('fetching-archived');
     const data = await getApplicants(true);
-    setArchivedApplicants(data as any);
+    setArchivedApplicants(data as unknown as Applicant[]);
     setHasFetchedArchived(true);
     setLoadingId(null);
   };

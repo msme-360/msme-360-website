@@ -49,14 +49,15 @@ function EvaluationItem({
   const [isDeleting, setIsDeleting] = useState(false);
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
 
-  // Update local state when initialMetric changes from outside
-  useEffect(() => {
+  const [prevMetric, setPrevMetric] = useState(initialMetric);
+  if (initialMetric !== prevMetric) {
+    setPrevMetric(initialMetric);
     if (initialMetric) {
       setScore(initialMetric.score);
       setScoreInput(initialMetric.score.toString());
       setComment(initialMetric.comment || "");
     }
-  }, [initialMetric]);
+  }
 
   // Debounced save
   useEffect(() => {
@@ -176,7 +177,7 @@ function EvaluationItem({
       ) : (
         comment && (
           <p className="text-xs text-muted-foreground bg-white/5 p-3 rounded-xl border border-white/5 italic">
-            "{comment}"
+            &quot;{comment}&quot;
           </p>
         )
       )}

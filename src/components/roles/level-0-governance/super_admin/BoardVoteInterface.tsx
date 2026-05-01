@@ -6,14 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { 
-  Vote, 
-  CheckCircle2, 
-  XCircle, 
-  Clock, 
-  Users, 
-  FileText,
-  Lock,
-  RefreshCw
+  Vote, CheckCircle2, XCircle, Clock, 
+  Users, FileText, Lock, RefreshCw
 } from "lucide-react";
 import { toast } from "sonner";
 import { getBoardProposals, voteOnResolution } from "@/app/[locale]/admin/actions";
@@ -31,45 +25,21 @@ interface ResolutionProposal {
   status: 'active' | 'passed' | 'failed';
 }
 
-const MOCK_PROPOSALS: ResolutionProposal[] = [
-  {
-    id: "PROP-942",
-    title: "Quarterly Expansion Capital Allocation",
-    summary: "Authorization of $1.2M in expansion capital for the technical scaling phase. Requires 75% majority for ratification.",
-    proposer: "CTO / CFO Office",
-    expires_at: "2024-05-01T00:00:00Z",
-    votes_for: 3,
-    votes_against: 1,
-    quorum_required: 5,
-    status: 'active'
-  },
-  {
-    id: "PROP-941",
-    title: "AI Ethics & Governance Framework V2",
-    summary: "Ratification of the updated AI governance protocols to ensure L0 oversight of all generative engine implementations.",
-    proposer: "Governance Board",
-    expires_at: "2024-04-20T00:00:00Z",
-    votes_for: 5,
-    votes_against: 0,
-    quorum_required: 5,
-    status: 'passed'
-  }
-];
-
 export default function BoardVoteInterface() {
   const [proposals, setProposals] = useState<ResolutionProposal[]>([]);
   const [voting, setVoting] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const loadProposals = async () => {
-    setLoading(true);
+  const loadProposals = async (isInitial = false) => {
+    if (!isInitial) setLoading(true);
     const data = await getBoardProposals();
     setProposals(data as ResolutionProposal[]);
     setLoading(false);
   };
 
   useEffect(() => {
-    loadProposals();
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    loadProposals(true);
   }, []);
 
   const handleVote = async (id: string, choice: 'for' | 'against') => {

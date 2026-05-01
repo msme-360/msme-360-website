@@ -35,26 +35,25 @@ import { createSupportTicket, resolveSupportTicket } from "../actions";
 
 import { Database } from "@/types/supabase";
 
-type SupportTicket = Database['public']['Tables']['support_tickets']['Row'] & {
+export type SupportTicket = Database['public']['Tables']['support_tickets']['Row'] & {
   profiles?: { full_name: string | null; email?: string | null } | null;
 };
 
 interface SupportClientProps {
   initialTickets?: SupportTicket[];
-  supportMetrics?: any[];
-  subView?: string;
+  supportMetrics?: { label: string; value: string; [key: string]: unknown }[];
   userRole?: string;
   userId?: string;
   department?: string;
+  subView?: string;
 }
 
 export function SupportClient({ 
   initialTickets = [], 
   supportMetrics = [],
-  subView, 
   userRole = "user", 
   userId,
-  department = "General" 
+  department = "General"
 }: SupportClientProps) {
   const t = useTranslations("Admin.support");
   const [search, setSearch] = useState("");
@@ -123,7 +122,7 @@ export function SupportClient({
       } else {
         toast.error(res.error || "Failed to create ticket");
       }
-    } catch (err) {
+    } catch {
       toast.error("An unexpected error occurred");
     } finally {
       setCreateLoading(false);

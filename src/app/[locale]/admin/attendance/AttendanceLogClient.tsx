@@ -20,7 +20,7 @@ import {
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 
-interface AttendanceLog {
+export interface AttendanceLog {
   id: string;
   user_id: string;
   check_in: string;
