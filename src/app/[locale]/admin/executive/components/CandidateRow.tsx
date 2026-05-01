@@ -15,16 +15,17 @@ import { Application } from "./HiringPortalTypes";
 
 interface CandidateRowProps {
   app: Application;
-  onAction: (a: 'shortlisted' | 'rejected' | 'hired') => void;
+  onAction: (a: 'shortlisted' | 'rejected' | 'hired' | 'onboarded') => void;
 }
 
 export function CandidateRow({ app, onAction }: CandidateRowProps) {
   const t = useTranslations("Admin.HiringPortal");
-  const statusColors: Record<Application['status'], "secondary" | "outline" | "destructive" | "default"> = {
+  const statusColors: Record<Application['status'], "secondary" | "outline" | "destructive" | "default" | "success"> = {
     pending: "secondary",
     shortlisted: "outline",
     rejected: "destructive",
-    hired: "default"
+    hired: "default",
+    onboarded: "success"
   };
 
   return (
@@ -36,8 +37,8 @@ export function CandidateRow({ app, onAction }: CandidateRowProps) {
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <h4 className="font-bold text-lg">{app.full_name}</h4>
-            <Badge variant={statusColors[app.status]} className="capitalize text-[10px] h-5">
-              {t(`candidateRow.${app.status}` as "candidateRow.pending" | "candidateRow.shortlisted" | "candidateRow.rejected" | "candidateRow.hired")}
+            <Badge variant={statusColors[app.status] as any} className="capitalize text-[10px] h-5">
+              {t(`candidateRow.${app.status}` as any)}
             </Badge>
           </div>
           <p className="text-sm text-muted-foreground flex items-center gap-2">
@@ -76,6 +77,11 @@ export function CandidateRow({ app, onAction }: CandidateRowProps) {
         {app.status === 'shortlisted' && (
           <Button size="sm" className="rounded-xl h-9 bg-primary" onClick={() => onAction('hired')}>
             <CheckCircle2 className="w-4 h-4 mr-2" /> {t("candidateRow.finalHire")}
+          </Button>
+        )}
+        {app.status === 'hired' && (
+          <Button size="sm" className="rounded-xl h-9 bg-indigo-600 hover:bg-indigo-700 text-white" onClick={() => onAction('onboarded')}>
+            <CheckCircle2 className="w-4 h-4 mr-2" /> {t("candidateRow.onboard")}
           </Button>
         )}
       </div>

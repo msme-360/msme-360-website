@@ -63,7 +63,9 @@
         "phoneLabel": "फ़ोन (वैकल्पिक)",
         "phonePlaceholder": "उदा. +91 9876543210",
         "statusLabel": "वर्तमान स्थिति",
-        "statusPlaceholder": "उदा. तृतीय वर्ष CS छात्र"
+        "statusPlaceholder": "उदा. तृतीय वर्ष CS छात्र",
+        "desiredRoleLabel": "इच्छित भूमिका / रुचियां",
+        "desiredRolePlaceholder": "हमें बताएं कि आप क्या बनाना चाहते हैं (उदा. मोबाइल ऐप्स, AI एजेंट्स, मार्केटिंग आदि)"
       },
       "education": {
         "title": "शैक्षणिक विवरण",

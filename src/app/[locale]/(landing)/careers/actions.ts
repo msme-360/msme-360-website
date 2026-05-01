@@ -21,7 +21,8 @@ const InternApplicationSchema = z.object({
   links: z.array(LinkSchema).min(1, "At least one link (Resume) is required"),
   commitment_confirmed: z.boolean().refine(v => v === true, "Must confirm commitment"),
   expectations_confirmed: z.boolean().refine(v => v === true, "Must confirm expectations"),
-  attendance_confirmed: z.boolean().refine(v => v === true, "Must confirm attendance")
+  attendance_confirmed: z.boolean().refine(v => v === true, "Must confirm attendance"),
+  desired_role: z.string().optional()
 });
 
 export type InternApplicationInput = z.infer<typeof InternApplicationSchema>;
@@ -46,7 +47,8 @@ export async function submitInternApplication(data: InternApplicationInput) {
         links: validatedData.links, // Stored as JSONB
         commitment_confirmed: validatedData.commitment_confirmed,
         expectations_confirmed: validatedData.expectations_confirmed,
-        attendance_confirmed: validatedData.attendance_confirmed
+        attendance_confirmed: validatedData.attendance_confirmed,
+        desired_role: validatedData.desired_role
       });
 
     if (error) {
@@ -80,5 +82,71 @@ export async function getTestimonials() {
   } catch (error) {
     console.error("Testimonials fetch failed:", error);
     return [];
+  }
+}
+
+export async function getCareerRoles(type?: 'internship' | 'job') {
+  // Now redirected to the shared admin actions for better governance
+  const { getCareerRoles: getSharedRoles } = await import("@/app/[locale]/admin/actions");
+  return getSharedRoles(type);
+}
+
+export async function getCareerRole(slug: string) {
+  try {
+    const supabase = await createServiceClient();
+    const { data, error } = await supabase
+      .from("career_roles")
+      .select("*")
+      .eq('slug', slug)
+      .single();
+
+    if (error) {
+      console.error("Error fetching role:", error);
+      return null;
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Role fetch failed:", error);
+    return null;
+  }
+}
+
+export async function checkApplicationStatus(email: string, role: string) {
+  try {
+    const supabase = await createServiceClient();
+    const { data, error } = await supabase
+      .from("intern_applications")
+      .select("status")
+      .eq("email", email)
+      .order("applied_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (error) {
+      console.error("Error checking application status:", error);
+      return { allowed: true };
+    }
+
+    if (!data) return { allowed: true };
+
+    // Allow re-application if rejected
+    if (data.status === 'rejected') return { allowed: true };
+
+    // Block if already hired, shortlisted, or pending
+    const statusMessages: Record<string, string> = {
+      pending: "Your application is currently being processed. Please wait for the results.",
+      under_review: "Your application is under review. We will get back to you soon.",
+      shortlisted: "Congratulations! You have been shortlisted. Check your email for next steps.",
+      hired: "You are already part of the team! Welcome aboard."
+    };
+
+    return { 
+      allowed: false, 
+      message: statusMessages[data.status] || "You already have an active application with us."
+    };
+  } catch (error) {
+    console.error("Status check failed:", error);
+    return { allowed: true };
   }
 }

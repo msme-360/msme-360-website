@@ -1,4 +1,4 @@
-import { getAllProfiles } from "../../actions";
+import { getAllProfiles } from "@/app/[locale]/admin/queries";
 import { RoleManagerClient } from "../RoleManagerClient";
 import { getUser as getAuthUser } from "@/services/supabase/supabase-server";
 import { getProfile as getProfileDirect } from "@/app/[locale]/dashboard/queries";

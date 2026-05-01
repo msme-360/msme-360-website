@@ -63,18 +63,6 @@ export async function createServiceClient() {
   );
 }
 
-export async function getSession() {
-  const supabase = await createClient();
-  try {
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
-    return session;
-  } catch {
-    return null;
-  }
-}
-
 export async function getUser() {
   const supabase = await createClient();
   try {

@@ -17,6 +17,7 @@ export interface DashboardProfile {
   legalName?: string;
   establishedDate?: string;
   manager_id?: string;
+  created_at?: string;
 }
 
 export interface DashboardMetric {

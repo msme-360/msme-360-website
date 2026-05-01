@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Plus, Loader2 } from "lucide-react";
+import { Plus, Loader2, MapPin, Calendar, Building2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,20 +14,20 @@ import { DashboardProfile } from "@/types/dashboard";
 import { createTask } from "@/app/[locale]/internal/actions";
 import { toast } from "sonner";
 import { getRoleById, getCareerLevelMetadata } from "@/lib/constants/roles";
+import { useTranslations } from "next-intl";
 
 interface ManagerHeaderProps {
-   department: string;
-   profileId: string;
+   profile: DashboardProfile;
    team: DashboardProfile[];
-   role: string;
+   roleName: string;
 }
 
 export default function ManagerHeader({
-   department,
-   profileId,
+   profile,
    team,
-   role
+   roleName,
 }: ManagerHeaderProps) {
+   const t = useTranslations("Common.Manager");
    const router = useRouter();
    const [isDialogOpen, setIsDialogOpen] = useState(false);
    const [isTaskSubmitting, setIsTaskSubmitting] = useState(false);
@@ -47,7 +47,7 @@ export default function ManagerHeader({
       setIsTaskSubmitting(true);
       const res = await createTask({
          ...newTask,
-         assigned_by: profileId
+         assigned_by: profile.id
       });
       if (res.success) {
          setIsDialogOpen(false);
@@ -66,25 +66,58 @@ export default function ManagerHeader({
       setIsTaskSubmitting(false);
    };
 
+   const name = profile.full_name || "Manager";
+   const location = profile.location || "Remote";
+   const joinDate = profile.created_at ? new Date(profile.created_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : "Oct 2024";
+   const welcomeMessage = t('welcomeTitle', { name: name.split(' ')[0] });
+   const roleMetadata = getRoleById(profile.role);
+   const careerMetadata = getCareerLevelMetadata(profile.role);
+
    return (
-      <section className="relative overflow-hidden rounded-[2rem] bg-emerald-950 p-10 border border-emerald-500/20 shadow-2xl">
+      <section className="relative overflow-hidden rounded-[2.5rem] bg-emerald-950 p-8 md:p-10 border border-emerald-500/20 shadow-2xl">
          <div className="absolute top-0 right-0 w-[40rem] h-[40rem] bg-emerald-500/10 blur-[100px] rounded-full -mr-40 -mt-40 pointer-events-none" />
-         <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8 text-emerald-50 text-center md:text-left">
-            <div className="space-y-4">
-               <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30 px-3 py-1 text-[10px] uppercase tracking-widest font-bold rounded-full">
-                  {getRoleById(role).label} Hub ({getCareerLevelMetadata(role)?.level || 'L4'} Specialist)
-               </Badge>
-               <h1 className="text-4xl md:text-5xl font-display font-black tracking-tight leading-tight">
-                  Department Oversight: <span className="text-emerald-400">{department}</span>
-               </h1>
-               <p className="text-emerald-100/60 max-w-xl text-lg font-medium leading-relaxed">
-                  Coordinate team missions, track performance logs, and enforce industrial grade reliability standards.
-               </p>
+         
+         <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-10">
+            <div className="flex flex-col md:flex-row items-center gap-8 text-center md:text-left flex-1">
+               {/* Visual Identity */}
+               <div className="w-20 h-20 md:w-24 md:h-24 rounded-2xl bg-emerald-500/20 flex items-center justify-center border border-emerald-500/20 shadow-glow shrink-0">
+                  <Building2 className="w-10 h-10 md:w-12 md:h-12 text-emerald-400" />
+               </div>
+
+               <div className="space-y-4 flex-1">
+                  <div className="space-y-2">
+                     <div className="flex flex-wrap items-center justify-center md:justify-start gap-4">
+                        <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30 px-3 py-1 text-[10px] uppercase tracking-widest font-bold rounded-full">
+                           {roleName} ({careerMetadata?.level || 'L4'} Specialist)
+                        </Badge>
+                        <Badge variant="outline" className="border-emerald-500/30 text-emerald-100/60 text-[10px] uppercase tracking-widest font-bold px-3 py-1 rounded-full">
+                           {profile.department || 'General'}
+                        </Badge>
+                     </div>
+                     <h1 className="text-3xl md:text-5xl font-display font-black tracking-tight text-white leading-tight">
+                        {welcomeMessage}
+                     </h1>
+                     <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 text-emerald-100/60 text-xs font-medium">
+                        <div className="flex items-center gap-1.5">
+                           <MapPin className="w-3.5 h-3.5 text-emerald-400" /> 
+                           {location}
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                           <Calendar className="w-3.5 h-3.5 text-emerald-400" /> 
+                           Join Date: {joinDate}
+                        </div>
+                     </div>
+                  </div>
+                  <p className="text-emerald-100/60 max-w-xl text-sm font-medium leading-relaxed hidden lg:block">
+                     Coordinate team missions, track performance logs, and enforce industrial grade reliability standards.
+                  </p>
+               </div>
             </div>
-            <div className="flex flex-col sm:flex-row gap-4">
+
+            <div className="flex-shrink-0">
                <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                   <DialogTrigger asChild>
-                     <Button className="bg-emerald-500 hover:bg-emerald-600 text-white rounded-2xl h-14 px-8 font-black uppercase tracking-widest flex items-center gap-3 shadow-glow transition-all hover:scale-105">
+                     <Button className="bg-emerald-500 hover:bg-emerald-600 text-white rounded-2xl h-14 px-8 font-black uppercase tracking-widest flex items-center gap-3 shadow-glow transition-all hover:scale-105 active:scale-95">
                         <Plus className="w-5 h-5" />
                         Assign Mission
                      </Button>

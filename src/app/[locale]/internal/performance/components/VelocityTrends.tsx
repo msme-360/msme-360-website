@@ -2,7 +2,6 @@
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import {
-  BarChart,
   ResponsiveContainer,
   BarChart as ReBarChart,
   Bar,
@@ -13,6 +12,7 @@ import {
   Legend
 } from "recharts";
 import { TrendMetric } from "./PerformanceTypes";
+import { BarChart } from "lucide-react";
 
 interface VelocityTrendsProps {
   trendData: TrendMetric[];

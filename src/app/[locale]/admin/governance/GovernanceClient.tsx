@@ -18,6 +18,7 @@ import { AdminViewWrapper } from "@/components/layout/AdminViewWrapper";
 import { formatDistanceToNow } from "date-fns";
 import { Database } from "@/types/supabase";
 import { STARTUP_ROLES } from "@/lib/constants/roles";
+import { DashboardProfile } from "@/types/dashboard";
 
 export interface BoardResolution {
   id: string;
@@ -40,20 +41,23 @@ export interface GovernanceMetric {
 export type NICCode = Database['public']['Tables']['nic_codes']['Row'];
 
 export interface GovernanceClientProps {
+  profile?: DashboardProfile;
   initialResolutions: BoardResolution[];
   initialMetrics: GovernanceMetric[];
   nicCodes: NICCode[];
+  health?: any[];
+  framework?: { title: string; progress: number; status: string }[];
   role?: string;
 }
 
 const ICON_MAP: Record<string, React.ElementType> = {
-  "Equity Integrity": Scale,
+  "Active Shareholders": UserCheck,
+  "Compliance Rate": ShieldCheck,
   "Board Resolutions": FileCheck2,
-  "System Uptime": TrendingUp,
-  "Access Controls": Lock,
+  "System Events (24h)": History,
 };
 
-export function GovernanceClient({ initialResolutions, initialMetrics, nicCodes, role }: GovernanceClientProps) {
+export function GovernanceClient({ initialResolutions, initialMetrics, nicCodes, role, framework }: GovernanceClientProps) {
   const roleLabel = role ? STARTUP_ROLES[role]?.label : "Governance";
 
   return (
@@ -106,17 +110,17 @@ export function GovernanceClient({ initialResolutions, initialMetrics, nicCodes,
                   <ShieldCheck className="w-5 h-5 text-primary" />
                   <CardTitle className="text-lg">Governance Framework</CardTitle>
                 </div>
-                <Badge variant="outline" className="text-[10px] font-bold">V1.4 Stable</Badge>
+                <Badge variant="outline" className="text-[10px] font-bold">L0 Standard</Badge>
               </div>
             </CardHeader>
             <CardContent className="p-8">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="space-y-6">
-                  {[
+                  {(framework || [
                     { title: "Statutory Compliance", progress: 100, status: "Verified" },
                     { title: "Risk Mitigation Flow", progress: 92, status: "Active" },
                     { title: "Board Seat Allocation", progress: 100, status: "Fixed" },
-                  ].map((item) => (
+                  ]).map((item) => (
                     <div key={item.title} className="space-y-3">
                       <div className="flex justify-between items-end">
                         <div className="space-y-1">
@@ -131,9 +135,19 @@ export function GovernanceClient({ initialResolutions, initialMetrics, nicCodes,
                 </div>
                 <div className="flex flex-col justify-center items-center p-6 bg-primary/5 rounded-2xl border border-primary/10 text-center">
                   <UserCheck className="w-12 h-12 text-primary mb-4 opacity-50" />
-                  <h3 className="text-lg font-bold mb-2">Audit Ready</h3>
-                  <p className="text-xs text-muted-foreground max-w-[200px]">All system logs are signed and prepared for the upcoming Q4 Compliance Audit.</p>
-                  <Button className="mt-6 w-full h-10 font-bold tracking-tight shadow-glow" variant="outline">Initiate Full Audit</Button>
+                  <h3 className="text-lg font-bold mb-2">{initialMetrics.find(m => m.label === 'Compliance Rate')?.status === 'Optimal' ? 'Audit Prepared' : 'Registry Review'}</h3>
+                  <p className="text-xs text-muted-foreground max-w-[200px]">
+                    {initialMetrics.find(m => m.label === 'Compliance Rate')?.status === 'Optimal' 
+                      ? 'System integrity verified. All records synchronized with the Immutable Journal.' 
+                      : 'Non-compliant entities detected. Governance review required before full audit.'}
+                  </p>
+                  <Button 
+                    className="mt-6 w-full h-10 font-bold tracking-tight shadow-glow" 
+                    variant="outline"
+                    onClick={() => window.location.href = window.location.pathname + '/system'}
+                  >
+                    Initiate Full Audit
+                  </Button>
                 </div>
               </div>
             </CardContent>

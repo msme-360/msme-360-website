@@ -63,7 +63,9 @@
         "phoneLabel": "Phone (Optional)",
         "phonePlaceholder": "e.g. +91 9876543210",
         "statusLabel": "Current Status",
-        "statusPlaceholder": "e.g. 3rd Year CS Student"
+        "statusPlaceholder": "e.g. 3rd Year CS Student",
+        "desiredRoleLabel": "Desired Role / Interests",
+        "desiredRolePlaceholder": "Tell us what you'd like to build (e.g. Mobile Apps, AI Agents, Marketing etc.)"
       },
       "education": {
         "title": "Educational Details",

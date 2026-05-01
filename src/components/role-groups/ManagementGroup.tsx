@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { Suspense } from "react";
 import dynamic from "next/dynamic";
@@ -7,15 +7,15 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { DashboardMetric } from "@/types/dashboard";
 
 // Dynamic imports for management role features
-const HRManagerPanel = dynamic<{ metrics?: DashboardMetric[] }>(() => import("@/components/roles/level-3-management/hr_manager/TalentStrategy"), {
+const RecruiterPanel = dynamic<{ metrics?: DashboardMetric[], trends?: any[] }>(() => import("@/components/roles/level-3-management/recruiter/RecruiterPanel"), {
+  loading: () => <Skeleton className="h-64 w-full rounded-3xl" />,
+});
+
+const HRManagerPanel = dynamic<{ metrics?: DashboardMetric[], trends?: any[] }>(() => import("@/components/roles/level-3-management/hr_manager/TalentStrategy"), {
   loading: () => <Skeleton className="h-64 w-full rounded-3xl" />,
 });
 
 const EngineeringManagerPanel = dynamic<{ metrics?: DashboardMetric[] }>(() => import("@/components/roles/level-3-management/engineering_manager/VelocityBoard"), {
-  loading: () => <Skeleton className="h-64 w-full rounded-3xl" />,
-});
-
-const RecruiterPanel = dynamic<{ metrics?: DashboardMetric[] }>(() => import("@/components/roles/level-3-management/recruiter/RecruiterPanel"), {
   loading: () => <Skeleton className="h-64 w-full rounded-3xl" />,
 });
 
@@ -32,9 +32,10 @@ interface ManagementGroupProps {
   role: string;
   subView?: string;
   metrics?: DashboardMetric[];
+  trends?: any[];
 }
 
-export function ManagementGroup({ role, subView, metrics = [] }: ManagementGroupProps) {
+export function ManagementGroup({ role, subView, metrics = [], trends = [] }: ManagementGroupProps) {
   if (subView) {
     const subViewTitles: Record<string, string> = {
       sla: "SLA Tracker",
@@ -77,9 +78,9 @@ export function ManagementGroup({ role, subView, metrics = [] }: ManagementGroup
       <div className="space-y-10">
         {/* 1. Role-Specific Component Injection */}
         <Suspense fallback={<Skeleton className="h-96 w-full rounded-3xl" />}>
-          {role === 'hr_manager' && <HRManagerPanel metrics={metrics} />}
+          {role === 'hr_manager' && <HRManagerPanel metrics={metrics} trends={trends} />}
           {role === 'engineering_manager' && <EngineeringManagerPanel metrics={metrics} />}
-          {role === 'recruiter' && <RecruiterPanel metrics={metrics} />}
+          {role === 'recruiter' && <RecruiterPanel metrics={metrics} trends={trends} />}
           {role === 'product_manager' && <ProductManagerHub metrics={metrics} />}
           {role === 'operations_manager' && <OperationsManagerHub metrics={metrics} />}
 

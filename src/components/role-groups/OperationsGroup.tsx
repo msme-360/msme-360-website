@@ -1,10 +1,12 @@
-﻿"use client";
+"use client";
 
 import { Suspense } from "react";
 import dynamic from "next/dynamic";
 import { AdminViewWrapper } from "@/components/layout/AdminViewWrapper";
 import { Skeleton } from "@/components/ui/skeleton";
-import { DashboardMetric } from "@/types/dashboard";
+import { DashboardProfile, DashboardMetric } from "@/types/dashboard";
+import { WelcomeHeader } from "@/components/dashboard/WelcomeHeader";
+import { useTranslations } from "next-intl";
 
 // Dynamic imports for operations role features
 const HROperations = dynamic<{ metrics?: DashboardMetric[] }>(() => import("@/components/roles/level-2-operations-leadership/director_operations/OpsEfficiency"), {
@@ -28,12 +30,14 @@ const MarketingExcellence = dynamic<{ metrics?: DashboardMetric[] }>(() => impor
 });
 
 interface OperationsGroupProps {
+  profile: DashboardProfile;
   role: string;
   subView?: string;
   metrics?: DashboardMetric[];
 }
 
-export function OperationsGroup({ role, subView, metrics = [] }: OperationsGroupProps) {
+export function OperationsGroup({ profile, role, subView, metrics = [] }: OperationsGroupProps) {
+  const tStaff = useTranslations("Common.Staff");
   if (subView) {
     const subViewTitles: Record<string, string> = {
       resources: "Resource Planning",
@@ -73,6 +77,12 @@ export function OperationsGroup({ role, subView, metrics = [] }: OperationsGroup
       authorityLevel="L5 Strategic Lead"
     >
       <div className="space-y-10">
+        <WelcomeHeader
+          profile={profile}
+          t={tStaff}
+          roleName={role.replace("_", " ").toUpperCase()}
+        />
+
         {/* 1. Role-Specific Component Injection */}
         <Suspense fallback={<Skeleton className="h-96 w-full rounded-3xl" />}>
           {role === 'director_operations' && <HROperations metrics={metrics} />}

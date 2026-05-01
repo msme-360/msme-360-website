@@ -1,10 +1,11 @@
-﻿"use client";
+"use client";
 
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/services/supabase/supabase";
 import { useRouter } from "next/navigation";
 import { logger } from "@/lib/logger";
+import { signOut as serverSignOut } from "@/app/[locale]/(landing)/(auth)/actions";
 
 type AuthContextType = {
   user: User | null;
@@ -29,11 +30,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const initializeAuth = async () => {
       try {
-        const { data: { session: initialSession }, error } = await supabase.auth.getSession();
-        if (error) throw error;
+        // SECURITY: Always use getUser() for verified identity
+        const { data: { user: initialUser }, error: userError } = await supabase.auth.getUser();
 
-        setSession(initialSession);
-        setUser(initialSession?.user ?? null);
+        if (userError && !userError.message.includes("Auth session missing")) {
+          throw userError;
+        }
+
+        setUser(initialUser);
       } catch (error) {
         logger.error("Auth initialization failed", "AuthProvider", error);
       } finally {
@@ -47,18 +51,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       logger.info(`Auth state changed: ${event}`, "AuthProvider");
 
       setSession(currentSession);
-      setUser(currentSession?.user ?? null);
+
+      if (currentSession) {
+        // SECURITY: Always verify identity with server on state change
+        const { data: { user: verifiedUser } } = await supabase.auth.getUser();
+        setUser(verifiedUser);
+      } else {
+        setUser(null);
+      }
       setIsLoading(false);
 
       if (event === 'SIGNED_IN') {
         router.refresh();
       } else if (event === 'SIGNED_OUT') {
-        setUser(null);
-        setSession(null);
         router.push('/login');
         router.refresh();
-      } else if (event === 'TOKEN_REFRESHED') {
-        logger.debug("Token refreshed successfully", "AuthProvider");
       }
     });
 
@@ -69,8 +76,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signOut = async () => {
     try {
-      await supabase.auth.signOut();
-      router.push('/login');
+      await serverSignOut();
     } catch (error) {
       logger.error("Sign out failed", "AuthProvider", error);
     }
@@ -84,4 +90,3 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 }
 
 export const useAuth = () => useContext(AuthContext);
-

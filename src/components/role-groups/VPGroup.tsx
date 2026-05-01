@@ -1,10 +1,12 @@
-﻿"use client";
+"use client";
 
 import { Suspense } from "react";
 import dynamic from "next/dynamic";
 import { AdminViewWrapper } from "@/components/layout/AdminViewWrapper";
 import { Skeleton } from "@/components/ui/skeleton";
-import { DashboardMetric } from "@/types/dashboard";
+import { DashboardMetric, DashboardProfile } from "@/types/dashboard";
+import { WelcomeHeader } from "@/components/dashboard/WelcomeHeader";
+import { useTranslations } from "next-intl";
 
 // Dynamic imports for VP role features
 const VpEngineeringStrategy = dynamic<{ metrics?: DashboardMetric[] }>(() => import("@/components/roles/level-1-5-senior-management/vp_engineering/VpEngineeringStrategy"), {
@@ -32,12 +34,14 @@ const VerticalStrategy = dynamic<{ role: string; metrics?: DashboardMetric[] }>(
 });
 
 interface VPGroupProps {
+  profile: DashboardProfile;
   role: string;
   subView?: string;
   metrics?: DashboardMetric[];
 }
 
-export function VPGroup({ role, subView, metrics = [] }: VPGroupProps) {
+export function VPGroup({ profile, role, subView, metrics = [] }: VPGroupProps) {
+  const tStaff = useTranslations("Common.Staff");
   if (subView) {
     return (
       <AdminViewWrapper
@@ -67,6 +71,12 @@ export function VPGroup({ role, subView, metrics = [] }: VPGroupProps) {
       authorityLevel="L1.5 EXEC"
     >
       <div className="space-y-10">
+        <WelcomeHeader
+          profile={profile}
+          t={tStaff}
+          roleName={role.replace("_", " ").toUpperCase()}
+        />
+
         <Suspense fallback={<Skeleton className="h-96 w-full rounded-3xl" />}>
           {role === 'vp_engineering' && <VpEngineeringStrategy metrics={metrics} />}
           {role === 'vp_product' && <VpProductStrategy metrics={metrics} />}

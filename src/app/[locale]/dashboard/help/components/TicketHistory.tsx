@@ -33,7 +33,7 @@ export default function TicketHistory({
       <CardHeader className="bg-muted/30 border-b border-border/50 py-6 px-8">
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg font-black flex items-center gap-2">
-            <Clock className="w-5 h-5 text-primary" /> {t("tickets.history")}
+            <Clock className="w-5 h-5 text-primary" /> {t("tabs.myTickets")}
           </CardTitle>
           <Button
             variant="ghost"
@@ -70,7 +70,7 @@ export default function TicketHistory({
           {tickets.length === 0 && !ticketsLoading && (
             <div className="py-20 text-center grayscale opacity-50">
               <Clock className="w-12 h-12 mx-auto mb-4" />
-              <p className="text-sm font-medium italic">{t("tickets.empty")}</p>
+              <p className="text-sm font-medium italic">{t("tickets.noTickets")}</p>
             </div>
           )}
         </div>

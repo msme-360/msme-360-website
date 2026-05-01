@@ -28,7 +28,7 @@ export default function HelpHeader({
           <HelpCircle className="w-8 h-8 text-primary" />
         </div>
         <h1 className="text-5xl font-black tracking-tight relative z-10">{t("title")}</h1>
-        <p className="text-muted-foreground mt-3 max-w-md mx-auto text-lg leading-relaxed relative z-10">{t("subtitle")}</p>
+        <p className="text-muted-foreground mt-3 max-w-md mx-auto text-lg leading-relaxed relative z-10">{t("description")}</p>
       </div>
 
       <div className="flex items-center justify-center gap-1.5 p-1.5 bg-muted/30 border border-border/50 rounded-2xl w-fit mx-auto shadow-sm">
@@ -42,7 +42,7 @@ export default function HelpHeader({
           )}
         >
           <HelpCircle className="w-3.5 h-3.5" />
-          {t("tab.faqs")}
+          {t("tabs.faqs")}
         </button>
         <button
           onClick={() => setActiveTab("tickets")}
@@ -54,7 +54,7 @@ export default function HelpHeader({
           )}
         >
           <MessageSquare className="w-3.5 h-3.5" />
-          {t("tab.tickets")}
+          {t("tabs.myTickets")}
           {ticketsCount > 0 && (
             <Badge className="absolute -top-1 -right-1 h-5 min-w-5 flex items-center justify-center p-0 text-[10px] bg-primary text-primary-foreground border-2 border-background font-black">
               {ticketsCount}

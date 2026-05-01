@@ -8,6 +8,7 @@ export interface TaskStats {
 export interface AttendanceStats {
   total_days: number;
   consistency: number;
+  sync: number;
 }
 
 export interface TrendMetric {
@@ -25,4 +26,5 @@ export interface PerformanceData {
   } | null;
   taskStats: TaskStats;
   attendanceStats: AttendanceStats;
+  reliability_tier: string;
 }

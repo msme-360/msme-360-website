@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { AlertCircle, RefreshCw, Home } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
 
 export default function GlobalError({
   error,
@@ -16,6 +17,7 @@ export default function GlobalError({
     console.error("Global Error Bounday:", error);
   }, [error]);
 
+  const router = useRouter();
   return (
     <html>
       <body className="min-h-screen bg-background font-sans antialiased">
@@ -34,7 +36,10 @@ export default function GlobalError({
 
           <div className="flex flex-col sm:flex-row gap-4">
             <Button
-              onClick={() => reset()}
+              onClick={() => {
+                router.refresh();
+                reset();
+              }}
               className="rounded-full px-8 h-12 gap-2 shadow-glow"
             >
               <RefreshCw className="w-4 h-4" /> Try Again

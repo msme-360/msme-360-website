@@ -3,8 +3,13 @@ export interface Applicant {
   full_name: string;
   email: string;
   role: string;
-  status: 'pending' | 'under_review' | 'shortlisted' | 'rejected' | 'hired';
+  bio?: string;
+  university?: string;
+  links?: { url: string; label: string }[];
+  status: 'pending' | 'under_review' | 'shortlisted' | 'rejected' | 'hired' | 'onboarded';
   applied_at: string;
+  is_archived: boolean;
+  metadata?: any;
 }
 
 export interface HiringStats {
@@ -12,4 +17,15 @@ export interface HiringStats {
   shortlisted: number;
   pending: number;
   hired: number;
+}
+
+export interface Metric {
+  id?: string;
+  application_id: string;
+  evaluator_role: string;
+  evaluator_id: string;
+  metric_name: string;
+  score: number;
+  comment: string;
+  updated_at?: string;
 }

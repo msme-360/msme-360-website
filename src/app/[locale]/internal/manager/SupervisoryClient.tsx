@@ -9,6 +9,7 @@ import { Task, AttendanceLog, TaskComment } from "./components/ManagerTypes";
 import ManagerHeader from "./components/ManagerHeader";
 import MissionBoard from "./components/MissionBoard";
 import { AdminViewWrapper } from "@/components/layout/AdminViewWrapper";
+import { WelcomeHeader } from "@/components/dashboard/WelcomeHeader";
 import { getRoleById, getCareerLevelMetadata } from "@/lib/constants/roles";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Activity, Users, Zap, Clock } from "lucide-react";
@@ -24,6 +25,7 @@ interface SupervisoryClientProps {
 export function SupervisoryClient({ profile, initialTasks, team }: SupervisoryClientProps) {
   const t = useTranslations("Common.Supervisory");
   const tManager = useTranslations("Common.Manager");
+  const tStaff = useTranslations("Common.Staff");
   const router = useRouter();
   const [tasks] = useState(initialTasks);
 
@@ -79,10 +81,9 @@ export function SupervisoryClient({ profile, initialTasks, team }: SupervisoryCl
     >
       <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20">
         <ManagerHeader
-          department={profile.department || ''}
-          profileId={profile.id}
+          profile={profile}
           team={team}
-          role={profile.role}
+          roleName={profile.role.replace("_", " ").toUpperCase()}
         />
 
         {/* Tactical Overview Row */}

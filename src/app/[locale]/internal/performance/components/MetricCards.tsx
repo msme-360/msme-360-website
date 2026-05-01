@@ -39,11 +39,11 @@ export default function MetricCards({ performanceData }: MetricCardsProps) {
               <Clock className="w-6 h-6" />
             </div>
             <div>
-              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Attendance Sync</p>
-              <p className="text-2xl font-bold">{performanceData.attendanceStats.consistency}%</p>
+              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Industrial Quality</p>
+              <p className="text-2xl font-bold">{performanceData.attendanceStats.sync}%</p>
             </div>
           </div>
-          <Progress value={performanceData.attendanceStats.consistency} className="h-1.5 mt-4 bg-emerald-500/10" />
+          <Progress value={performanceData.attendanceStats.sync} className="h-1.5 mt-4 bg-emerald-500/10" />
         </CardContent>
       </Card>
 
@@ -69,7 +69,19 @@ export default function MetricCards({ performanceData }: MetricCardsProps) {
             </div>
             <div>
               <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Reliability Score</p>
-              <p className="text-2xl font-bold">Tier A</p>
+              <p className="text-2xl font-bold">{performanceData.reliability_tier}</p>
+            </div>
+          </div>
+          <div className="mt-4 flex items-center gap-2">
+            <div className="flex-1 h-1 bg-white/5 rounded-full overflow-hidden">
+               <div 
+                 className="h-full bg-purple-500" 
+                 style={{ 
+                   width: performanceData.reliability_tier === 'Tier S' ? '100%' : 
+                          performanceData.reliability_tier === 'Tier A' ? '80%' : 
+                          performanceData.reliability_tier === 'Tier B' ? '60%' : '40%' 
+                 }} 
+               />
             </div>
           </div>
         </CardContent>

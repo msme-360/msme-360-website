@@ -4,16 +4,17 @@ import { CAREER_ROLES } from '@/lib/roles';
 import ApplyClient from './ApplyClient';
 
 export function generateStaticParams() {
-  const params: { locale: string; role: string }[] = [];
+  const params: { locale: string; category: string; role: string }[] = [];
   ['en', 'hi'].forEach(locale => {
     CAREER_ROLES.forEach(role => {
-      params.push({ locale, role: role.slug });
+      const categorySlug = role.type === 'internship' ? 'internships' : 'full-time';
+      params.push({ locale, category: categorySlug, role: role.slug });
     });
   });
   return params;
 }
 
-export default async function ApplyPage(props: { params: Promise<{ locale: string; role: string }> }) {
+export default async function ApplyPage(props: { params: Promise<{ locale: string; category: string; role: string }> }) {
   const { locale, role: roleSlug } = await props.params;
   setRequestLocale(locale);
 

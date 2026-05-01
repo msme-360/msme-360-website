@@ -7,7 +7,7 @@ interface StatusFilterCardProps {
   label: string;
   active: boolean;
   onClick: () => void;
-  color: 'primary' | 'amber' | 'green';
+  color: 'primary' | 'amber' | 'green' | 'emerald' | 'indigo';
 }
 
 export function StatusFilterCard({ count, label, active, onClick, color }: StatusFilterCardProps) {
@@ -15,12 +15,16 @@ export function StatusFilterCard({ count, label, active, onClick, color }: Statu
     primary: active ? "border-primary bg-primary/5" : "border-border/50",
     amber: active ? "border-amber-500 bg-amber-500/5" : "border-border/50",
     green: active ? "border-green-500 bg-green-500/5" : "border-border/50",
+    emerald: active ? "border-emerald-500 bg-emerald-500/5" : "border-border/50",
+    indigo: active ? "border-indigo-500 bg-indigo-500/5" : "border-border/50",
   };
 
   const textColors: Record<StatusFilterCardProps['color'], string> = {
     primary: active ? "text-primary" : "text-muted-foreground",
     amber: active ? "text-amber-500" : "text-muted-foreground",
     green: active ? "text-green-500" : "text-muted-foreground",
+    emerald: active ? "text-emerald-500" : "text-muted-foreground",
+    indigo: active ? "text-indigo-500" : "text-muted-foreground",
   };
 
   return (

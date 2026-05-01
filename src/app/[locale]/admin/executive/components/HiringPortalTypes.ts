@@ -5,7 +5,7 @@ export interface Application {
   role: string;
   university: string;
   experience_level: string;
-  status: 'pending' | 'shortlisted' | 'rejected' | 'hired';
+  status: 'pending' | 'shortlisted' | 'rejected' | 'hired' | 'onboarded';
   applied_at: string;
   designation?: string;
   bio?: string;

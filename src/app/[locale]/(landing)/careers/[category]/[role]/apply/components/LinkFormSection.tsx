@@ -59,11 +59,15 @@ export default function LinkFormSection({
                   <SelectValue placeholder="Select" />
                 </SelectTrigger>
                 <SelectContent className="bg-slate-900 border-white/10">
-                  <SelectItem value="Resume">Resume</SelectItem>
-                  <SelectItem value="GitHub">GitHub</SelectItem>
-                  <SelectItem value="LinkedIn">LinkedIn</SelectItem>
-                  <SelectItem value="Portfolio">Portfolio</SelectItem>
-                  <SelectItem value="Other">Other</SelectItem>
+                  {["Resume", "GitHub", "LinkedIn", "Portfolio", "Other"].map((label) => {
+                    const isSelected = links.some((l, idx) => l.label === label && idx !== i);
+                    if (isSelected && label !== "Other") return null;
+                    return (
+                      <SelectItem key={label} value={label}>
+                        {label}
+                      </SelectItem>
+                    );
+                  })}
                 </SelectContent>
               </Select>
             </div>
@@ -76,9 +80,15 @@ export default function LinkFormSection({
               <Input
                 value={link.url}
                 onChange={(e) => updateLinkUrl(i, e.target.value)}
-                placeholder={link.label === "Resume" ? "GDrive Link (Anyone with access)" : "e.g. https://github.com/username"}
+                placeholder={
+                  link.label === "Resume" ? "GDrive Link (Anyone with access)" :
+                  link.label === "GitHub" ? "https://github.com/username" :
+                  link.label === "LinkedIn" ? "https://linkedin.com/in/username" :
+                  link.label === "Portfolio" ? "https://yourportfolio.com" :
+                  "Enter URL"
+                }
                 className="bg-white/5 border-white/10 h-11 rounded-xl"
-                required={i === 0}
+                required={i === 0 || link.label !== ""}
               />
             </div>
             {links.length > 1 && (

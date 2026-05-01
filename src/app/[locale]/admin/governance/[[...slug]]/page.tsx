@@ -49,15 +49,18 @@ async function GovernancePortalContent({
     redirect(`/${locale}/admin/governance/${userRole}`);
   }
 
-  const { resolutions, metrics, nicCodes } = await getGovernanceData();
+  const { resolutions, metrics, nicCodes, health, framework } = await getGovernanceData();
 
   return (
     <GovernanceGroup
+      profile={profile}
       role={userRole}
       subView={subView}
       initialResolutions={resolutions}
       initialMetrics={metrics}
       nicCodes={nicCodes}
+      health={health}
+      framework={framework}
     />
   );
 }

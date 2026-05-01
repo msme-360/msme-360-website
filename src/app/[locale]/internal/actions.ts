@@ -85,6 +85,7 @@ export async function createTask(data: {
   assigned_to: string;
   assigned_by: string;
   priority: 'Low' | 'Medium' | 'High' | 'Urgent';
+  status?: 'pending' | 'in_progress' | 'completed' | 'blocked';
   due_date?: string;
 }) {
   const supabase = await createServiceClient();
@@ -128,14 +129,22 @@ export async function updateTaskStatus(taskId: string, status: string) {
 
 export async function updateTaskPoW(taskId: string, proofOfWork: string) {
   const supabase = await createServiceClient();
+  const updateData: any = { proof_of_work: proofOfWork };
+  
+  // If PoW is provided, auto-mark as completed
+  if (proofOfWork && proofOfWork.trim().length > 0) {
+    updateData.status = 'completed';
+  }
+
   const { error } = await supabase
     .from('tasks')
-    .update({ proof_of_work: proofOfWork })
+    .update(updateData)
     .eq('id', taskId);
 
   if (error) return { success: false, error: error.message };
 
   revalidatePath('/[locale]/internal/associate', 'page');
+  revalidatePath('/[locale]/internal/manager', 'page');
   return { success: true };
 }
 
@@ -248,7 +257,29 @@ export async function getOnboardingChecklist(userId: string) {
     .order('created_at', { ascending: true });
 
   if (error) return [];
-  return data || [];
+  
+  // Map database structure to UI OnboardingItem interface
+  return (data || []).map(item => {
+    const [rawCategory, ...rest] = item.task_name.split(': ');
+    const itemText = rest.length > 0 ? rest.join(': ') : item.task_name;
+    
+    // Map prefix to specific category enum for UI grouping
+    let category: any = 'general';
+    const prefix = rawCategory.toUpperCase();
+    
+    if (prefix === 'ACCOUNT') category = 'ACCOUNT';
+    else if (prefix === 'LEGAL') category = 'LEGAL';
+    else if (prefix === 'DEPT') category = 'TECHNICAL';
+    else if (prefix === 'TECHNICAL') category = 'TECHNICAL';
+    else if (prefix === 'INFRASTRUCTURE') category = 'INFRASTRUCTURE';
+    
+    return {
+      id: item.id,
+      item_text: itemText,
+      is_completed: item.is_completed,
+      category: category
+    };
+  });
 }
 
 export async function updateChecklistItem(itemId: string, isCompleted: boolean) {
@@ -289,11 +320,30 @@ export async function getPerformanceData(userId: string) {
   const completedTasks = tasks?.filter(t => t.status === 'completed').length || 0;
   const inProgressTasks = tasks?.filter(t => t.status === 'in_progress').length || 0;
 
-  // 3. Get attendance consistency
+  // 3. Get attendance stats
   const { data: attendance } = await supabase
     .from('attendance_logs')
     .select('check_in')
     .eq('user_id', userId);
+
+  const logs = attendance || [];
+  const onTimeCheckins = logs.filter(log => {
+    const checkInTime = new Date(log.check_in);
+    const hour = checkInTime.getHours();
+    const minute = checkInTime.getMinutes();
+    // Punctuality rule: Before 10:00 AM
+    return hour < 10 || (hour === 10 && minute === 0);
+  }).length;
+
+  const taskCompletion = totalTasks ? Math.round((completedTasks / totalTasks) * 100) : 0;
+  const attendanceConsistency = logs.length ? Math.min(Math.round((logs.length / 22) * 100), 100) : 0;
+  const attendanceSync = logs.length ? Math.round((onTimeCheckins / logs.length) * 100) : 0;
+
+  // 4. Calculate Reliability Tier
+  let tier = 'Tier C';
+  if (attendanceConsistency >= 95 && taskCompletion >= 95) tier = 'Tier S';
+  else if (attendanceConsistency >= 85 && taskCompletion >= 85) tier = 'Tier A';
+  else if (attendanceConsistency >= 70 && taskCompletion >= 70) tier = 'Tier B';
 
   return {
     official: metrics || null,
@@ -301,12 +351,14 @@ export async function getPerformanceData(userId: string) {
       total: totalTasks,
       completed: completedTasks,
       in_progress: inProgressTasks,
-      completion_rate: totalTasks ? Math.round((completedTasks / totalTasks) * 100) : 0
+      completion_rate: taskCompletion
     },
     attendanceStats: {
-      total_days: attendance?.length || 0,
-      consistency: attendance?.length ? Math.min(Math.round((attendance.length / 22) * 100), 100) : 0
-    }
+      total_days: logs.length,
+      consistency: attendanceConsistency,
+      sync: attendanceSync
+    },
+    reliability_tier: tier
   };
 }
 

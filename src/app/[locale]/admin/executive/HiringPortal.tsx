@@ -31,7 +31,7 @@ export function HiringPortal() {
     }
   });
 
-  const handleAction = async (id: string, email: string, action: 'shortlisted' | 'rejected' | 'hired', details: Application) => {
+  const handleAction = async (id: string, email: string, action: 'shortlisted' | 'rejected' | 'hired' | 'onboarded', details: Application) => {
     try {
       const { error: updateError } = await supabase
         .from('intern_applications')
@@ -57,6 +57,8 @@ export function HiringPortal() {
         }
 
         toast.success(t("toasts.hiredSuccess", { name: details.full_name }));
+      } else if (action === 'onboarded') {
+        toast.success(t("toasts.onboardedSuccess", { name: details.full_name }));
       } else {
         toast.success(t("toasts.actionSuccess", { action: t(`candidateRow.${action}`) }));
       }
@@ -76,7 +78,8 @@ export function HiringPortal() {
   const counts = useMemo(() => ({
     all: applications.length,
     pending: applications.filter(a => a.status === 'pending').length,
-    hired: applications.filter(a => a.status === 'hired').length
+    hired: applications.filter(a => a.status === 'hired').length,
+    onboarded: applications.filter(a => a.status === 'onboarded').length
   }), [applications]);
 
   return (
@@ -91,10 +94,11 @@ export function HiringPortal() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatusFilterCard count={counts.all} label={t("totalApplied")} active={filter === 'all'} onClick={() => setFilter('all')} color="primary" />
         <StatusFilterCard count={counts.pending} label={t("pendingReview")} active={filter === 'pending'} onClick={() => setFilter('pending')} color="amber" />
-        <StatusFilterCard count={counts.hired} label={t("hired")} active={filter === 'hired'} onClick={() => setFilter('hired')} color="green" />
+        <StatusFilterCard count={counts.hired} label={t("hired")} active={filter === 'hired'} onClick={() => setFilter('hired')} color="emerald" />
+        <StatusFilterCard count={counts.onboarded} label={t("onboarded")} active={filter === 'onboarded'} onClick={() => setFilter('onboarded')} color="indigo" />
       </div>
 
       <div className="bg-background border border-border/50 rounded-2xl overflow-hidden shadow-sm">

@@ -19,6 +19,10 @@ export default function HiringHeader({ searchQuery, setSearchQuery }: HiringHead
         <p className="text-muted-foreground text-sm font-medium">{t('subtitle')}</p>
       </div>
       <div className="flex items-center gap-3">
+        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20">
+          <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+          <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">Live DB Feed</span>
+        </div>
         <Badge variant="outline" className="bg-primary/10 border-primary/20 text-primary px-3 py-1 font-bold uppercase tracking-widest text-[10px]">{t('badge')}</Badge>
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />

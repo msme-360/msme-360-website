@@ -48,7 +48,13 @@ async function ManagerPortalContent({
     redirect(`/${locale}/internal/manager/${userRole}`);
   }
 
-  const metrics = await getPlatformMetrics('management');
+  const metrics = (userRole === 'recruiter' || userRole === 'hr_manager')
+    ? await (await import("@/app/[locale]/dashboard/queries")).getRecruitmentMetrics()
+    : await getPlatformMetrics('management');
+
+  const trends = (userRole === 'recruiter' || userRole === 'hr_manager')
+    ? await (await import("@/app/[locale]/dashboard/queries")).getRecruitmentTrends()
+    : [];
 
   const roleData = getRoleById(userRole);
 
@@ -63,11 +69,14 @@ async function ManagerPortalContent({
   }
 
   return (
-    <ManagementGroup
-      role={userRole}
-      subView={subView}
-      metrics={metrics}
-    />
+    <div className="min-h-screen bg-background">
+      <ManagementGroup 
+        role={userRole} 
+        subView={subView} 
+        metrics={metrics} 
+        trends={trends}
+      />
+    </div>
   );
 }
 

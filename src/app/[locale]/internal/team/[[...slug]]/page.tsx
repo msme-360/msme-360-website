@@ -1,5 +1,6 @@
 import { getUser as getAuthUser } from "@/services/supabase/supabase-server";
 import { getProfile as getProfileDirect } from "@/app/[locale]/dashboard/queries";
+import { getAttendanceLogs } from "@/app/[locale]/internal/actions";
 import { TeamClient } from "../TeamClient";
 import { hasPermission } from "@/lib/constants/roles";
 import { RestrictedAccess } from "@/components/auth/RestrictedAccess";
@@ -14,9 +15,13 @@ export default function TeamPortalPage({
 }) {
   return (
     <Suspense fallback={<TeamPortalSkeleton />}>
-      <TeamPortalContent params={params} />
+      <AttendancePortalContentWrapper params={params} />
     </Suspense>
   );
+}
+
+async function AttendancePortalContentWrapper({ params }: { params: any }) {
+  return <TeamPortalContent params={params} />;
 }
 
 async function TeamPortalContent({
@@ -32,9 +37,9 @@ async function TeamPortalContent({
   const userRole = profile?.role || "user";
 
   // --- Hub Silo Guard ---
-  // Manager level or higher (L1.5/L2+)
-  if (!hasPermission(userRole, 2)) {
-    return <RestrictedAccess requiredLevel="Organizational Manager" />;
+  // Manager level or higher (L3+)
+  if (!hasPermission(userRole, 3)) {
+    return <RestrictedAccess requiredLevel="Management" />;
   }
 
   const requestedRole = slug?.[0];
@@ -49,8 +54,14 @@ async function TeamPortalContent({
      return <RestrictedAccess requiredLevel={`Bespoke ${userRole.toUpperCase()} Team Workspace`} />;
   }
 
+  let attendance: any[] = [];
+  if (subView === 'attendance') {
+    attendance = await getAttendanceLogs();
+  }
+
   return (
     <TeamClient 
+      initialAttendance={attendance}
       subView={subView}
     />
   );

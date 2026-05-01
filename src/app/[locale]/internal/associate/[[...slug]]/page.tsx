@@ -1,29 +1,44 @@
 import { getUser } from "@/services/supabase/supabase-server";
 import { getProfile, getPlatformMetrics } from "@/app/[locale]/dashboard/queries";
-import { AssociateGroup } from "@/components/role-groups/AssociateGroup";
+import { 
+  getTasks, 
+  getAttendanceLogs, 
+  getOnboardingChecklist, 
+  getMentorDetails,
+  getPromotionStatus,
+  getPerformanceData,
+  getPerformanceTrends
+} from "@/app/[locale]/internal/actions";
+import { AssociateClient } from "../AssociateClient";
 import { redirect } from "next/navigation";
 import { hasPermission } from "@/lib/constants/roles";
 import { Suspense } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function AssociatePortalPage({
-  params
+  params,
+  searchParams
 }: {
-  params: Promise<{ locale: string, slug?: string[] }>
+  params: Promise<{ locale: string, slug?: string[] }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   return (
     <Suspense fallback={<AssociatePortalSkeleton />}>
-      <AssociatePortalContent params={params} />
+      <AssociatePortalContent params={params} searchParams={searchParams} />
     </Suspense>
   );
 }
 
 async function AssociatePortalContent({
-  params
+  params,
+  searchParams
 }: {
-  params: Promise<{ locale: string, slug?: string[] }>
+  params: Promise<{ locale: string, slug?: string[] }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const { locale, slug } = await params;
+  const { view: queryView } = await searchParams;
+
   const user = await getUser();
 
   if (!user) {
@@ -50,15 +65,31 @@ async function AssociatePortalContent({
     redirect(`/${locale}/internal/associate/${userRole}`);
   }
 
-  // 2. Fetch Data
-  const metrics = await getPlatformMetrics('associate');
+  // 2. Fetch Data (Parallelized for Industry-Grade Performance)
+  const [tasks, attendance, checklist, promotion, metrics, performanceData, trendData] = await Promise.all([
+    getTasks(user.id),
+    getAttendanceLogs(user.id),
+    getOnboardingChecklist(user.id),
+    getPromotionStatus(user.id),
+    getPlatformMetrics('associate'),
+    getPerformanceData(user.id),
+    getPerformanceTrends(user.id)
+  ]);
 
+  const mentor = profile?.manager_id ? await getMentorDetails(profile.manager_id) : null;
 
   return (
-    <AssociateGroup
-      role={userRole}
-      subView={subView}
-      metrics={metrics}
+    <AssociateClient
+      profile={profile}
+      initialTasks={tasks as any}
+      initialAttendance={attendance as any}
+      initialChecklist={checklist as any}
+      mentor={mentor as any}
+      promotion={promotion as any}
+      view={(queryView || subView) as any}
+      metrics={metrics as any}
+      performanceData={performanceData as any}
+      trendData={trendData as any}
     />
   );
 }

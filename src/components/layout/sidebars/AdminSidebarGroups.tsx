@@ -132,6 +132,9 @@ export function AdminSidebarGroups({
                           // Exact match is always true and highest priority
                           if (normalizedPath === itemPath) return true;
 
+                          // Support route special case: /internal/support/[role] should highlight /internal/support
+                          if (itemPath.endsWith('/support') && normalizedPath.includes(itemPath)) return true;
+
                           // Avoid double highlighting for 'Home/Hub' roots
                           // These should only be active on exact match to prevent overlapping 
                           // with sub-modules (e.g. /hiring should not highlight when at /hiring/details)
@@ -142,6 +145,13 @@ export function AdminSidebarGroups({
                           const isHubRoot = hubRoots.some(root => itemPath === root);
 
                           if (isHubLike || isHubRoot) return false;
+
+                          // --- CUSTOM: Prevent parent highlight for distinct sub-tools ---
+                          const subTools = ["/onboarding", "/attendance", "/performance", "/policy"];
+                          const hasSubTool = subTools.some(tool => normalizedPath.endsWith(tool));
+                          const isExactSubTool = subTools.some(tool => itemPath.endsWith(tool));
+                          
+                          if (hasSubTool && !isExactSubTool) return false;
 
                           // For specific sub-modules, allow prefix matching (e.g. /notifications/unread)
                           return normalizedPath.startsWith(itemPath + '/');

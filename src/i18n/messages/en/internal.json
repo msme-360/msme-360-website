@@ -8,6 +8,7 @@
   },
   "HiringPortal": {
     "title": "Talent Acquisition",
+    "welcomeTitle": "Welcome to the Hub, {name}",
     "subtitle": "Strategic recruitment funnel and personnel integration.",
     "badge": "HR Hub (Level 2+)",
     "searchPlaceholder": "Find applicants...",
@@ -68,11 +69,13 @@
   },
   "Associate": {
     "labTitle": "Associate Lab",
+    "welcomeTitle": "Welcome to the Hub, {name}",
     "labSubtitle": "Operational control and personnel growth tracking.",
     "views": {
       "mission": "Mission Control",
       "roadmap": "Growth Roadmap",
-      "hub": "Tactical Hub"
+      "hub": "Tactical Hub",
+      "planner": "Mission Planner"
     },
     "hero": {
       "tier": "Career Launchpad Tier (L1)",
@@ -112,7 +115,12 @@
       "requestMission": "Request New Mission",
       "missionRequested": "Mission Request Transmitted",
       "missionRequestedDesc": "The management team has been notified. Personnel induction is in progress.",
-      "assignedBy": "Assigned by {name}"
+      "assignedBy": "Assigned by {name}",
+      "relayLabel": "POST TRANSMISSION",
+      "noRelayHistory": "No operational relay logs found.",
+      "placeholders": {
+        "pow": "https://github.com/..."
+      }
     },
     "insights": {
       "title": "Mentor Insights",
@@ -126,6 +134,7 @@
       "completed": "Completed",
       "in_progress": "In Progress",
       "pending": "Pending",
+      "todo": "To Do",
       "blocked": "Blocked"
     },
     "priority": {
@@ -141,10 +150,25 @@
       "powError": "Failed to submit Proof of Work.",
       "commentSuccess": "Comment relay transmitted.",
       "commentError": "Failed to transmit relay.",
+      "taskCreated": "Mission launched successfully.",
+      "taskError": "Failed to launch mission.",
       "missionRequested": "Mission Request Transmitted",
       "missionRequestedDesc": "The management team has been notified. Personnel induction is in progress.",
       "viewFeed": "View Feed"
     }
+  },
+  "Planner": {
+    "title": "Tactical Planner",
+    "subtitle": "Mission Coordination & Execution Board",
+    "newMission": "New Mission",
+    "initiateMission": "Initiate New Mission",
+    "missionTitle": "Mission Title",
+    "briefing": "Briefing (Notes)",
+    "priority": "Priority",
+    "dueDate": "Due Date",
+    "launch": "Launch Mission",
+    "boardView": "Board View",
+    "clearSector": "Clear Sector"
   },
   "Identity": {
     "title": "Personnel Identity",
@@ -220,6 +244,7 @@
     },
     "Manager": {
       "hub": "{role} Hub",
+      "welcomeTitle": "Welcome to the Hub, {name}",
       "subtitle": "Departmental coordination and personnel oversight.",
       "lead": "{department} LEAD",
       "toasts": {
@@ -229,6 +254,7 @@
     },
     "Supervisory": {
       "command": "{role} Command",
+      "welcomeTitle": "Welcome to the Hub, {name}",
       "subtitle": "Field operations oversight and tactical team coordination.",
       "lead": "OPERATIONS LEAD",
       "metrics": {
@@ -251,6 +277,7 @@
       "subtitle": "Internal coordination and productivity hub.",
       "tier": "EXECUTION TIER",
       "level": "L2-L3 Management",
+      "welcomeTitle": "Welcome to the Hub, {name}",
       "hero": {
         "welcome": "Welcome to the Hub, {name}",
         "joinDate": "Join Date: {date}"

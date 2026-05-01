@@ -3,6 +3,7 @@
     "title": "Hiring Portal",
     "subtitle": "Manage recruitment pipeline and intern onboarding.",
     "badge": "Talent Acquisition",
+    "authority": "Hiring Authority",
     "searchPlaceholder": "Search candidates...",
     "tabs": {
       "funnel": "Hiring Pipeline",
@@ -26,8 +27,24 @@
       "status": "Status",
       "applied": "Applied",
       "actions": "Actions",
+      "email": "Email",
+      "linkedin": "LinkedIn",
+      "archive": "Archive",
       "noResults": "No candidates found matching your criteria.",
       "end": "End of recruitment lifecycle"
+    },
+    "profile": {
+      "email": "Email",
+      "linkedin": "LinkedIn",
+      "resume": "Resume",
+      "bio": "Biography",
+      "university": "University",
+      "score": "Score",
+      "comment": "Evaluation Notes",
+      "save": "Save Evaluation",
+      "addMetric": "Add Custom Metric",
+      "recruiterTitle": "Recruiter Screening",
+      "hrTitle": "HR Final Review"
     }
   }
 }

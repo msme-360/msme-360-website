@@ -18,8 +18,40 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Profile } from "@/services/api/workforce";
+import { promoteUser, executeStrategicExit } from "@/app/[locale]/admin/actions";
+import { STARTUP_ROLES, JOB_LEVELS } from "@/lib/constants/roles";
+import { 
+  Dialog, DialogContent, DialogHeader, 
+  DialogTitle, DialogFooter, DialogDescription 
+} from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
+import { useState } from "react";
 
 export function WorkforceManager({ profiles }: { profiles: Profile[] }) {
+  const [promotingUser, setPromotingUser] = useState<Profile | null>(null);
+  const [targetRole, setTargetRole] = useState<string>("");
+  const [targetLevel, setTargetLevel] = useState<string>("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handlePromote = async () => {
+    if (!promotingUser || !targetRole || !targetLevel) return;
+    
+    setIsSubmitting(true);
+    const res = await promoteUser(promotingUser.id, targetRole, targetLevel);
+    
+    if (res.success) {
+      toast.success("Promotion Successful", {
+        description: `${promotingUser.full_name} has been promoted to ${STARTUP_ROLES[targetRole]?.label || targetRole} (${targetLevel}).`
+      });
+      setPromotingUser(null);
+    } else {
+      toast.error("Promotion Failed", { description: res.error });
+    }
+    setIsSubmitting(false);
+  };
+
   return (
     <div className="rounded-2xl border border-white/10 bg-black/20 overflow-hidden">
       <div className="overflow-x-auto">
@@ -81,14 +113,34 @@ export function WorkforceManager({ profiles }: { profiles: Profile[] }) {
                       <DropdownMenuContent align="end" className="glass-card border-white/10 w-48">
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
                         <DropdownMenuSeparator className="bg-white/5" />
-                        <DropdownMenuItem className="text-primary focus:text-primary focus:bg-primary/10">
+                        <DropdownMenuItem 
+                          className="text-primary focus:text-primary focus:bg-primary/10"
+                          onClick={() => {
+                            setPromotingUser(emp);
+                            setTargetRole(emp.role || "");
+                            setTargetLevel(emp.career_level || "L1");
+                          }}
+                        >
                           <ArrowUpCircle className="w-4 h-4 mr-2" /> Promote Level
                         </DropdownMenuItem>
                         <DropdownMenuItem>
                           <Mail className="w-4 h-4 mr-2" /> Message
                         </DropdownMenuItem>
                         <DropdownMenuSeparator className="bg-white/5" />
-                        <DropdownMenuItem className="text-destructive focus:text-destructive focus:bg-destructive/10">
+                        <DropdownMenuItem 
+                          className="text-destructive focus:text-destructive focus:bg-destructive/10"
+                          onClick={async () => {
+                            if (confirm(`Are you sure you want to execute a Strategic Exit for ${emp.full_name}? This action is irreversible.`)) {
+                              const res = await executeStrategicExit(emp.id);
+                              if (res.success) {
+                                toast.success("Strategic Exit Executed");
+                                // The page will revalidate and refresh data
+                              } else {
+                                toast.error("Action Failed", { description: res.error });
+                              }
+                            }
+                          }}
+                        >
                           <UserMinus className="w-4 h-4 mr-2" /> Remove
                         </DropdownMenuItem>
                       </DropdownMenuContent>
@@ -104,6 +156,58 @@ export function WorkforceManager({ profiles }: { profiles: Profile[] }) {
         <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-widest">Showing {profiles.length} Organizational Entities</p>
         <Button variant="outline" size="sm" className="h-8 text-[11px] font-bold uppercase tracking-wider bg-white/5 border-white/10 px-4">Export CSV</Button>
       </div>
+
+      <Dialog open={!!promotingUser} onOpenChange={(open) => !open && setPromotingUser(null)}>
+        <DialogContent className="glass-card border-white/10 text-white">
+          <DialogHeader>
+            <DialogTitle>Strategic Promotion Protocol</DialogTitle>
+            <DialogDescription className="text-white/50">
+              Upgrade access levels and career designation for {promotingUser?.full_name}.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-6 py-4">
+            <div className="space-y-2">
+              <Label className="text-[10px] font-black uppercase tracking-widest text-primary">Target Designation</Label>
+              <Select value={targetRole} onValueChange={setTargetRole}>
+                <SelectTrigger className="bg-white/5 border-white/10">
+                  <SelectValue placeholder="Select New Role" />
+                </SelectTrigger>
+                <SelectContent className="bg-slate-900 border-white/10 text-white">
+                  {Object.values(STARTUP_ROLES).map(role => (
+                    <SelectItem key={role.id} value={role.id}>{role.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-[10px] font-black uppercase tracking-widest text-primary">Industrial Grade (L1-L6)</Label>
+              <Select value={targetLevel} onValueChange={setTargetLevel}>
+                <SelectTrigger className="bg-white/5 border-white/10">
+                  <SelectValue placeholder="Select Career Level" />
+                </SelectTrigger>
+                <SelectContent className="bg-slate-900 border-white/10 text-white">
+                  {Object.values(JOB_LEVELS).map(level => (
+                    <SelectItem key={level.level} value={level.level}>{level.level} - {level.title}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setPromotingUser(null)} disabled={isSubmitting}>Cancel</Button>
+            <Button 
+              className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold uppercase tracking-widest px-8"
+              onClick={handlePromote}
+              disabled={isSubmitting || !targetRole || !targetLevel}
+            >
+              {isSubmitting ? "Processing..." : "Confirm Promotion"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

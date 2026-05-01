@@ -30,7 +30,7 @@ export function PerformanceClient({ performanceData, trendData }: PerformanceCli
           <MissionBalance taskStats={performanceData.taskStats} />
         </div>
 
-        <InsightsBoard />
+        <InsightsBoard performanceData={performanceData} />
       </div>
     </AdminViewWrapper>
   );

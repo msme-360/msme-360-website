@@ -1,15 +1,37 @@
 "use client";
 
-import { ShieldAlert, ArrowLeft, Lock, HelpCircle } from "lucide-react";
+import { ShieldAlert, ArrowLeft, Lock, HelpCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { useState } from "react";
+import { toast } from "sonner";
+import { requestAccessElevation } from "@/app/[locale]/admin/actions";
 
 export function RestrictedAccess({ requiredLevel }: { requiredLevel?: string }) {
   const params = useParams();
-  const locale = params.locale as string;
+  const [isRequesting, setIsRequesting] = useState(false);
+  
+  // 🛡️ Locale Sanitization: Ensure no leading slashes to prevent double-slash URLs (e.g. //en/dashboard)
+  const locale = (params.locale as string || "en").replace(/^\/+/, '');
+
+  const handleElevate = async () => {
+    setIsRequesting(true);
+    try {
+      const res = await requestAccessElevation(requiredLevel || 'Restricted');
+      if (res.success) {
+        toast.success("Access elevation request transmitted to Governance Hub.");
+      } else {
+        toast.error(res.error || "Elevation protocol failed.");
+      }
+    } catch (err) {
+      toast.error("Transmission error: Protocol connection lost.");
+    } finally {
+      setIsRequesting(false);
+    }
+  };
 
   return (
     <div className="min-h-[80vh] flex items-center justify-center p-6">
@@ -45,9 +67,23 @@ export function RestrictedAccess({ requiredLevel }: { requiredLevel?: string }) 
                 </Link>
               </Button>
 
-              <Button variant="outline" className="w-full border-white/10 hover:bg-white/5 rounded-xl h-11">
-                <HelpCircle className="w-4 h-4 mr-2" />
-                Request Access Elevation
+              <Button 
+                variant="outline" 
+                className="w-full border-white/10 hover:bg-white/5 rounded-xl h-11"
+                onClick={handleElevate}
+                disabled={isRequesting}
+              >
+                {isRequesting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Transmitting...
+                  </>
+                ) : (
+                  <>
+                    <HelpCircle className="w-4 h-4 mr-2" />
+                    Request Access Elevation
+                  </>
+                )}
               </Button>
             </div>
 

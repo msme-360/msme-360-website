@@ -11,6 +11,7 @@ import { getMessages, setRequestLocale } from 'next-intl/server';
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { notFound } from 'next/navigation';
 import { locales } from '@/i18n/settings';
+import { Toaster } from "@/components/ui/sonner";
 
 export function generateStaticParams() {
   return locales.map((locale) => ({ locale }));
@@ -100,6 +101,7 @@ export default async function RootLayout({
                       {children}
                     </ConditionalNavigation>
                   </Suspense>
+                  <Toaster position="top-left" richColors closeButton />
                 </ThemeProvider>
               </QueryProvider>
             </AuthProvider>

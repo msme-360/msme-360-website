@@ -36,7 +36,7 @@ export default function EducationSection() {
                 <SelectValue placeholder={t('education.gradPlaceholder')} />
               </SelectTrigger>
               <SelectContent className="bg-slate-900 border-white/10">
-                {["2025", "2026", "2027", "2028"].map(year => (
+                {["2025", "2026", "2027", "2028", "2029", "2030"].map(year => (
                   <SelectItem key={year} value={year}>{year}</SelectItem>
                 ))}
               </SelectContent>

@@ -66,7 +66,7 @@ export default function FAQSection({
       </div>
 
       <div className="space-y-4">
-        <h3 className="text-sm font-black uppercase tracking-[0.2em] text-primary/60 ml-1">{t("faqs.title")}</h3>
+        <h3 className="text-sm font-black uppercase tracking-[0.2em] text-primary/60 ml-1">{t("faqs_labels.title")}</h3>
         <Accordion type="single" collapsible className="space-y-3">
           {filteredFaqs.map((faq, index) => (
             <AccordionItem key={index} value={`faq-${index}`} className="border border-border/50 rounded-2xl bg-background/50 px-6 px-1 overflow-hidden">
@@ -82,7 +82,7 @@ export default function FAQSection({
         {filteredFaqs.length === 0 && (
           <div className="text-center py-20 bg-linear-to-b from-primary/5 to-transparent rounded-[3rem] border border-dashed border-border/50">
             <HelpCircle className="w-12 h-12 text-muted-foreground/20 mx-auto mb-4" />
-            <p className="text-muted-foreground font-medium italic">{t("faqs.noResults")}</p>
+            <p className="text-muted-foreground font-medium italic">{t("faqs_labels.noResults")}</p>
           </div>
         )}
       </div>

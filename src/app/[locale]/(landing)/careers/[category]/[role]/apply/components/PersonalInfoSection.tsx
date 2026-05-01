@@ -3,8 +3,9 @@
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { useTranslations } from "next-intl";
+import { Textarea } from "@/components/ui/textarea";
 
-export default function PersonalInfoSection() {
+export default function PersonalInfoSection({ isGeneral = false }: { isGeneral?: boolean }) {
   const t = useTranslations("Careers.ApplyForm");
   return (
     <div className="space-y-6">
@@ -38,6 +39,21 @@ export default function PersonalInfoSection() {
           <Input id="experience_level" name="experience_level" placeholder={t('personal.statusPlaceholder')} required className="bg-white/5 border-white/10 h-11 rounded-xl" />
         </div>
       </div>
+
+      {isGeneral && (
+        <div className="space-y-2">
+          <Label htmlFor="desired_role" className="text-muted-foreground flex items-center">
+            {t('personal.desiredRoleLabel')} <span className="text-primary ml-1">*</span>
+          </Label>
+          <Textarea 
+            id="desired_role" 
+            name="desired_role" 
+            placeholder={t('personal.desiredRolePlaceholder')} 
+            required 
+            className="bg-white/5 border-white/10 min-h-[100px] rounded-xl resize-none" 
+          />
+        </div>
+      )}
     </div>
   );
 }

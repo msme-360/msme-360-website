@@ -9,6 +9,9 @@ export interface CareerRole {
   responsibilities: string[];
   skills: string[];
   type: 'internship' | 'job';
+  posted_at?: string;
+  total_openings?: number;
+  deadline?: string;
 }
 
 export const CAREER_ROLES: CareerRole[] = [

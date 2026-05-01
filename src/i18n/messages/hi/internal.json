@@ -112,7 +112,12 @@
       "requestMission": "नए मिशन का अनुरोध करें",
       "missionRequested": "मिशन अनुरोध प्रसारित",
       "missionRequestedDesc": "प्रबंधन टीम को सूचित कर दिया गया है। कार्मिक प्रेरण प्रगति पर है।",
-      "assignedBy": "{name} द्वारा निर्दिष्ट"
+      "assignedBy": "{name} द्वारा निर्दिष्ट",
+      "relayLabel": "ट्रांसमिशन पोस्ट करें",
+      "noRelayHistory": "कोई परिचालन रिले लॉग नहीं मिला।",
+      "placeholders": {
+        "pow": "https://github.com/..."
+      }
     },
     "insights": {
       "title": "मेंटॉर अंतर्दृष्टि",
@@ -126,6 +131,7 @@
       "completed": "पूरा हुआ",
       "in_progress": "प्रगति पर",
       "pending": "लंबित",
+      "todo": "करने के लिए",
       "blocked": "अवरुद्ध"
     },
     "priority": {

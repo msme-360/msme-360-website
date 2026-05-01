@@ -20,7 +20,7 @@ export interface OnboardingItem {
   id: string;
   item_text: string;
   is_completed: boolean;
-  category: 'general' | 'technical' | 'administrative' | 'compliance';
+  category: 'general' | 'technical' | 'administrative' | 'compliance' | 'ACCOUNT' | 'LEGAL' | 'INFRASTRUCTURE' | 'TECHNICAL';
 }
 
 export interface TaskComment {

@@ -35,27 +35,37 @@ export default function MissionBalance({ taskStats }: MissionBalanceProps) {
         <CardDescription className="text-[10px] uppercase font-bold tracking-widest">Active vs Completed Load</CardDescription>
       </CardHeader>
       <CardContent className="min-h-[300px] h-[400px] flex items-center justify-center">
-        <ResponsiveContainer width="100%" height="100%">
-          <PieChart>
-            <Pie
-              data={taskPieData}
-              cx="50%"
-              cy="50%"
-              innerRadius={60}
-              outerRadius={100}
-              paddingAngle={5}
-              dataKey="value"
-            >
-              {taskPieData.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-              ))}
-            </Pie>
-            <Tooltip
-              contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #ffffff10', borderRadius: '12px' }}
-            />
-            <Legend verticalAlign="bottom" height={36} />
-          </PieChart>
-        </ResponsiveContainer>
+        {taskPieData.length > 0 ? (
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie
+                data={taskPieData}
+                cx="50%"
+                cy="50%"
+                innerRadius={60}
+                outerRadius={100}
+                paddingAngle={5}
+                dataKey="value"
+              >
+                {taskPieData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                ))}
+              </Pie>
+              <Tooltip
+                contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #ffffff10', borderRadius: '12px' }}
+              />
+              <Legend verticalAlign="bottom" height={36} />
+            </PieChart>
+          </ResponsiveContainer>
+        ) : (
+          <div className="flex flex-col items-center justify-center text-center p-12 space-y-4">
+             <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center">
+                <CheckCircle2 className="w-8 h-8 text-white/10" />
+             </div>
+             <p className="text-sm font-bold text-muted-foreground">Clear Tactical Plate</p>
+             <p className="text-[10px] uppercase tracking-widest opacity-40">No active missions indexed in Tactical Hub</p>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

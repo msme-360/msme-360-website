@@ -237,7 +237,12 @@
       "Management": "प्रबंधन",
       "Execution": "निष्पादन",
       "Associate": "एसोसिएट",
-      "Internal": "आंतरिक"
+      "Internal": "आंतरिक",
+      "Team Attendance": "टीम उपस्थिति",
+      "Help & Support": "सहायता और समर्थन",
+      "Performance Metrics": "प्रदर्शन मेट्रिक्स",
+      "Onboarding Registry": "ऑनबोर्डिंग रजिस्ट्री",
+      "Policy Hub": "नीति हब"
     },
     "breadcrumbs": {
       "admin": "मुख्य हब",

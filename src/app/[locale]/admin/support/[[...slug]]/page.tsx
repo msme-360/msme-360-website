@@ -2,6 +2,7 @@ import { getUser as getAuthUser } from "@/services/supabase/supabase-server";
 import { getProfile as getProfileDirect } from "@/app/[locale]/dashboard/queries";
 import { SupportClient } from "../SupportClient";
 import { hasPermission } from "@/lib/constants/roles";
+import { getSupportTickets } from "../../actions";
 import { RestrictedAccess } from "@/components/auth/RestrictedAccess";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
@@ -49,8 +50,11 @@ async function SupportPortalContent({
      return <RestrictedAccess requiredLevel={`Bespoke ${userRole.toUpperCase()} Support Workspace`} />;
   }
 
+  const initialTickets = await getSupportTickets();
+
   return (
     <SupportClient 
+      initialTickets={initialTickets as any}
       subView={subView}
     />
   );

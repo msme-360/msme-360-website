@@ -13,7 +13,23 @@ import { logger } from "@/lib/logger";
 import { getRoleById } from "@/lib/constants/roles";
 import { toast } from "sonner";
 import { useForm } from "@tanstack/react-form";
+import { z } from "zod";
+import { activateHiredUser } from "../../actions";
 import { LoginFields, LoginStep } from "../../components/AuthTypes";
+
+const loginSchema = z.object({
+  email: z.email("Invalid work email address"),
+  password: z.string().min(6, "Password must be at least 6 characters").optional().or(z.literal("")),
+  confirmPassword: z.string().optional().or(z.literal("")),
+}).refine((data) => {
+  if (data.confirmPassword && data.password !== data.confirmPassword) {
+    return false;
+  }
+  return true;
+}, {
+  message: "Passwords do not match",
+  path: ["confirmPassword"],
+});
 
 interface LoginFormProps {
   locale: string;
@@ -30,6 +46,9 @@ export function LoginForm({ locale }: LoginFormProps) {
       password: "",
       confirmPassword: "",
     } as LoginFields,
+    validators: {
+      onChange: loginSchema,
+    },
     onSubmit: async ({ value }) => {
       try {
         if (step === "email") {
@@ -66,17 +85,34 @@ export function LoginForm({ locale }: LoginFormProps) {
         }
 
         if (step === "activate") {
+          if (!value.password || !value.confirmPassword) {
+            toast.error("Please set and confirm your password");
+            return;
+          }
           if (value.password !== value.confirmPassword) {
             toast.error("Passwords do not match");
             return;
           }
-          const { data, error } = await supabase.auth.signUp({
+          
+          setIsChecking(true);
+          const result = await activateHiredUser(value.email, value.password);
+          setIsChecking(false);
+
+          if (!result.success) {
+            toast.error(result.error || "Activation failed");
+            return;
+          }
+
+          toast.success("Account activated! Signing you in...");
+          
+          // Sign in after activation
+          const { data, error } = await supabase.auth.signInWithPassword({
             email: value.email,
-            password: value.password!,
+            password: value.password,
           });
+
           if (error) throw error;
           user = data.user;
-          toast.success("Account activated!");
         }
 
         if (user) {
@@ -131,11 +167,17 @@ export function LoginForm({ locale }: LoginFormProps) {
                   <Input
                     id={field.name}
                     value={field.state.value}
+                    onBlur={field.handleBlur}
                     onChange={(e) => field.handleChange(e.target.value)}
                     type="email"
                     placeholder="name@business.com"
                     className="rounded-xl h-12"
                   />
+                  {field.state.meta.errors.length > 0 && (
+                    <p className="text-xs text-destructive mt-1">
+                      {(field.state.meta.errors[0] as any)?.message ?? field.state.meta.errors[0]?.toString()}
+                    </p>
+                  )}
                 </div>
               )}
             </form.Field>
@@ -153,17 +195,23 @@ export function LoginForm({ locale }: LoginFormProps) {
                 <div className="space-y-2">
                   <div className="flex justify-between items-center">
                     <Label htmlFor={field.name}>Password</Label>
-                    <Link href="#" className="text-xs text-primary hover:underline">Forgot?</Link>
+                    <Link href={`/${locale}/forgot-password`} className="text-xs text-primary hover:underline">Forgot?</Link>
                   </div>
                   <Input
                     id={field.name}
                     value={field.state.value}
+                    onBlur={field.handleBlur}
                     onChange={(e) => field.handleChange(e.target.value)}
                     type="password"
                     placeholder="••••••••"
                     className="rounded-xl h-12"
                     autoFocus
                   />
+                  {field.state.meta.errors.length > 0 && (
+                    <p className="text-xs text-destructive mt-1">
+                      {(field.state.meta.errors[0] as any)?.message ?? field.state.meta.errors[0]?.toString()}
+                    </p>
+                  )}
                 </div>
               )}
             </form.Field>
@@ -183,11 +231,17 @@ export function LoginForm({ locale }: LoginFormProps) {
                   <Input
                     id={field.name}
                     value={field.state.value}
+                    onBlur={field.handleBlur}
                     onChange={(e) => field.handleChange(e.target.value)}
                     type="password"
                     className="rounded-xl h-12"
                     autoFocus
                   />
+                  {field.state.meta.errors.length > 0 && (
+                    <p className="text-xs text-destructive mt-1">
+                      {(field.state.meta.errors[0] as any)?.message ?? field.state.meta.errors[0]?.toString()}
+                    </p>
+                  )}
                 </div>
               )}
             </form.Field>
@@ -198,10 +252,16 @@ export function LoginForm({ locale }: LoginFormProps) {
                   <Input
                     id={field.name}
                     value={field.state.value}
+                    onBlur={field.handleBlur}
                     onChange={(e) => field.handleChange(e.target.value)}
                     type="password"
                     className="rounded-xl h-12"
                   />
+                  {field.state.meta.errors.length > 0 && (
+                    <p className="text-xs text-destructive mt-1">
+                      {(field.state.meta.errors[0] as any)?.message ?? field.state.meta.errors[0]?.toString()}
+                    </p>
+                  )}
                 </div>
               )}
             </form.Field>
@@ -239,7 +299,7 @@ export function LoginForm({ locale }: LoginFormProps) {
       </form>
 
       <p className="text-center text-sm text-muted-foreground mt-8">
-        Don&apos;t have an account? <Link href="/register" className="text-primary font-semibold hover:underline">Register MSME</Link>
+        Don&apos;t have an account? <Link href={`/${locale}/register`} className="text-primary font-semibold hover:underline">Register MSME</Link>
       </p>
     </div>
   );

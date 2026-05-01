@@ -6,8 +6,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import Link from "next/link";
-import { CareerRole } from "@/lib/roles";
+import { CAREER_ROLES, CareerRole } from "@/lib/roles";
 import { useTranslations } from "next-intl";
+import { format } from "date-fns";
+import { Calendar, Users, Clock, Rocket } from "lucide-react";
 
 interface RolesListProps {
   roles: CareerRole[];
@@ -48,27 +50,57 @@ export default function RolesList({ roles, onBack, locale }: RolesListProps) {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {roles.map((role, idx) => {
-          const Icon = role.icon;
+          // Resolve icon from CAREER_ROLES based on slug
+          const staticRole = CAREER_ROLES.find(r => r.slug === role.slug);
+          const Icon = staticRole?.icon || Rocket;
+          const categorySlug = role.type === 'internship' ? 'internships' : 'full-time';
           return (
-            <Link key={role.slug} href={`/${locale}/careers/${role.slug}`}>
+            <Link key={role.slug} href={`/${locale}/careers/${categorySlug}/${role.slug}`}>
               <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: idx * 0.05 }}
-                className="glass-card p-6 flex items-center justify-between group hover:border-primary/40 transition-all cursor-pointer h-full"
+                className="glass-card p-6 flex flex-col gap-6 group hover:border-primary/40 transition-all cursor-pointer h-full"
               >
-                <div className="flex items-center gap-5">
-                  <div className="w-12 h-12 rounded-xl bg-primary/5 flex items-center justify-center text-primary group-hover:bg-primary/10 transition-all">
-                    <Icon className="w-6 h-6" />
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-5">
+                    <div className="w-12 h-12 rounded-xl bg-primary/5 flex items-center justify-center text-primary group-hover:bg-primary/10 transition-all">
+                      <Icon className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-lg mb-1">{role.title}</h3>
+                      <Badge variant="secondary" className="text-[10px] uppercase tracking-wider h-5">
+                        {role.department}
+                      </Badge>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="font-bold text-lg mb-1">{role.title}</h3>
-                    <Badge variant="secondary" className="text-[10px] uppercase tracking-wider h-5">
-                      {role.department}
-                    </Badge>
+                  <ArrowRight className="w-5 h-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
+                </div>
+
+                <div className="grid grid-cols-3 gap-2 pt-4 border-t border-white/5">
+                  <div className="flex flex-col gap-1">
+                    <span className="text-[10px] uppercase tracking-widest text-muted-foreground flex items-center gap-1">
+                      <Calendar className="w-3 h-3" /> Posted
+                    </span>
+                    <span className="text-xs font-bold truncate">
+                      {role.posted_at ? format(new Date(role.posted_at), 'MMM dd') : 'Recently'}
+                    </span>
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <span className="text-[10px] uppercase tracking-widest text-muted-foreground flex items-center gap-1">
+                      <Users className="w-3 h-3" /> Openings
+                    </span>
+                    <span className="text-xs font-bold">{role.total_openings || 1}</span>
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <span className="text-[10px] uppercase tracking-widest text-muted-foreground flex items-center gap-1">
+                      <Clock className="w-3 h-3" /> Deadline
+                    </span>
+                    <span className="text-xs font-bold truncate">
+                      {role.deadline ? format(new Date(role.deadline), 'MMM dd') : 'Open'}
+                    </span>
                   </div>
                 </div>
-                <ArrowRight className="w-5 h-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
               </motion.div>
             </Link>
           );
@@ -82,7 +114,7 @@ export default function RolesList({ roles, onBack, locale }: RolesListProps) {
       >
         <h2 className="text-2xl font-bold mb-4">{t("openApp.title")}</h2>
         <p className="text-muted-foreground mb-8">{t("openApp.desc")}</p>
-        <Link href={`/${locale}/careers/general/apply`}>
+        <Link href={`/${locale}/careers/${roles[0]?.type === 'internship' ? 'internships' : 'full-time'}/general`}>
           <Button variant="outline" className="font-bold">
             {t("openApp.cta")}
           </Button>

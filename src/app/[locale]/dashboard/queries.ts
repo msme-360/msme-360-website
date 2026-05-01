@@ -310,3 +310,53 @@ export async function getPlatformMetrics(category?: string) {
     return [];
   }
 }
+
+export async function getRecruitmentMetrics() {
+  try {
+    const supabase = await createServiceClient();
+    const { data: apps, error } = await supabase
+      .from('intern_applications')
+      .select('status');
+
+    if (error) throw error;
+
+    const counts = (apps || []).reduce((acc: Record<string, number>, app: any) => {
+      acc[app.status] = (acc[app.status] || 0) + 1;
+      return acc;
+    }, {});
+
+    return [
+      { id: 'total', label: 'Total Applicants', value: (apps?.length || 0).toString(), change: 'Real-time', status: 'Optimal' },
+      { id: 'shortlisted', label: 'Shortlisted', value: (counts['shortlisted'] || 0).toString(), change: 'Active', status: 'Optimal' },
+      { id: 'review', label: 'Under Review', value: (counts['under_review'] || 0).toString(), change: 'Pending', status: 'Optimal' },
+      { id: 'hired', label: 'Hired Interns', value: (counts['hired'] || 0).toString(), change: 'Finalized', status: 'Optimal' }
+    ];
+  } catch (error) {
+    logger.error("getRecruitmentMetrics error", "queries.ts", error);
+    return [];
+  }
+}
+
+export async function getRecruitmentTrends() {
+  try {
+    const supabase = await createServiceClient();
+    const { data: apps, error } = await supabase
+      .from('intern_applications')
+      .select('applied_at, status');
+
+    if (error) throw error;
+
+    const dailyData = (apps || []).reduce((acc: Record<string, any>, app: any) => {
+      const date = new Date(app.applied_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      if (!acc[date]) acc[date] = { name: date, applicants: 0, shortlisted: 0 };
+      acc[date].applicants++;
+      if (app.status === 'shortlisted' || app.status === 'hired') acc[date].shortlisted++;
+      return acc;
+    }, {});
+
+    return Object.values(dailyData).slice(-7); // Last 7 days with data
+  } catch (error) {
+    logger.error("getRecruitmentTrends error", "queries.ts", error);
+    return [];
+  }
+}

@@ -55,7 +55,7 @@ async function OperationsPortalContent({
 
   const metrics = await getPlatformMetrics('operations');
 
-  return <OperationsGroup role={userRole} subView={subView} metrics={metrics} />;
+  return <OperationsGroup profile={profile} role={userRole} subView={subView} metrics={metrics} />;
 }
 
 function OperationsPortalSkeleton() {

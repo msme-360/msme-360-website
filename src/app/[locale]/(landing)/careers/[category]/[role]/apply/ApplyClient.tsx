@@ -8,7 +8,7 @@ import { useParams } from "next/navigation";
 import { CAREER_ROLES } from "@/lib/roles";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { submitInternApplication, type InternApplicationInput } from "../../actions";
+import { submitInternApplication, checkApplicationStatus, type InternApplicationInput } from "../../../actions";
 import { LinkEntry } from "./components/ApplyTypes";
 import SuccessState from "./components/SuccessState";
 import LinkFormSection from "./components/LinkFormSection";
@@ -69,6 +69,7 @@ export default function ApplyClient({ roleSlug }: { roleSlug: string }) {
     const university = formData.get("university") as string;
     const degree = formData.get("degree") as string;
     const graduation_year = formData.get("graduation_year") as string;
+    const desired_role = formData.get("desired_role") as string;
 
     const commitment = formData.get("commitment") === "on";
     const expectations = formData.get("expectations") === "on";
@@ -92,6 +93,14 @@ export default function ApplyClient({ roleSlug }: { roleSlug: string }) {
 
     setLoading(true);
     setError(null);
+
+    const email = formData.get("email") as string;
+    const statusCheck = await checkApplicationStatus(email, role.title);
+    if (!statusCheck.allowed) {
+      setError(statusCheck.message ?? "Application not allowed");
+      setLoading(false);
+      return;
+    }
     const data = {
       full_name: formData.get("full_name") as string,
       email: formData.get("email") as string,
@@ -106,6 +115,7 @@ export default function ApplyClient({ roleSlug }: { roleSlug: string }) {
       commitment_confirmed: true,
       expectations_confirmed: true,
       attendance_confirmed: true,
+      desired_role: role.slug === 'general' ? desired_role : undefined,
     };
 
     const result = await submitInternApplication(data as InternApplicationInput);
@@ -129,7 +139,7 @@ export default function ApplyClient({ roleSlug }: { roleSlug: string }) {
 
       <div className="max-w-3xl mx-auto">
         <Link
-          href={`/${locale}/careers/${role.slug}`}
+          href={`/${locale}/careers/${role.type === 'internship' ? 'internships' : 'full-time'}/${role.slug}`}
           className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors mb-12 group"
         >
           <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
@@ -155,7 +165,7 @@ export default function ApplyClient({ roleSlug }: { roleSlug: string }) {
 
             <CardContent className="pt-10">
               <form onSubmit={handleSubmit} className="space-y-10">
-                <PersonalInfoSection />
+                <PersonalInfoSection isGeneral={role.slug === 'general'} />
                 <EducationSection />
                 <AvailabilitySection date={availabilityDate} setDate={setAvailabilityDate} />
 

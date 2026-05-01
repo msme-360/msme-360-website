@@ -1,11 +1,13 @@
-﻿"use client";
+"use client";
 
 import { Suspense } from "react";
 import dynamic from "next/dynamic";
 import { AdminViewWrapper } from "@/components/layout/AdminViewWrapper";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Activity } from "lucide-react";
-import { DashboardMetric } from "@/types/dashboard";
+import { DashboardMetric, DashboardProfile } from "@/types/dashboard";
+import { WelcomeHeader } from "@/components/dashboard/WelcomeHeader";
+import { useTranslations } from "next-intl";
 
 // Dynamic imports for executive role features
 const CTOTechOversight = dynamic<{ metrics?: DashboardMetric[] }>(() => import("@/components/roles/level-1-executive/cto/TechOversight"), {
@@ -38,12 +40,14 @@ const CIOControl = dynamic<{ metrics?: DashboardMetric[] }>(() => import("@/comp
 
 
 interface ExecutiveGroupProps {
+  profile: DashboardProfile;
   role: string;
   subView?: string;
   metrics?: DashboardMetric[];
 }
 
-export function ExecutiveGroup({ role, subView, metrics = [] }: ExecutiveGroupProps) {
+export function ExecutiveGroup({ profile, role, subView, metrics = [] }: ExecutiveGroupProps) {
+  const tStaff = useTranslations("Common.Staff");
   if (subView) {
     const subViewTitles: Record<string, string> = {
       performance: "Performance Intelligence",
@@ -93,6 +97,12 @@ export function ExecutiveGroup({ role, subView, metrics = [] }: ExecutiveGroupPr
       authorityLevel="Strategic Control"
     >
       <div className="space-y-10">
+        <WelcomeHeader
+          profile={profile}
+          t={tStaff}
+          roleName={role.replace("_", " ").toUpperCase()}
+        />
+
         {/* 1. Role-Specific Component Injection */}
         <Suspense fallback={<Skeleton className="h-96 w-full rounded-3xl" />}>
           {role === 'cto' && <CTOTechOversight metrics={metrics} />}

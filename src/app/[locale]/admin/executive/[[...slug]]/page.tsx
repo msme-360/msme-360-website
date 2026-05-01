@@ -55,10 +55,10 @@ async function ExecutivePortalContent({
   const roleData = getRoleById(userRole);
 
   if (roleData.level === 1.5) {
-    return <VPGroup role={userRole} subView={subView} metrics={[...metrics, ...financeMetrics]} />;
+    return <VPGroup profile={profile} role={userRole} subView={subView} metrics={[...metrics, ...financeMetrics]} />;
   }
 
-  return <ExecutiveGroup role={userRole} subView={subView} metrics={[...metrics, ...financeMetrics]} />;
+  return <ExecutiveGroup profile={profile} role={userRole} subView={subView} metrics={[...metrics, ...financeMetrics]} />;
 }
 
 function ExecutivePortalSkeleton() {

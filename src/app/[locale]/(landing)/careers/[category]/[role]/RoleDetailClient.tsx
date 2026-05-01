@@ -4,19 +4,20 @@ import { motion } from "framer-motion";
 import { Check, Award, Clock, Calendar, AlertCircle, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { CAREER_ROLES } from "@/lib/roles";
+import { CAREER_ROLES, CareerRole } from "@/lib/roles";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { format } from "date-fns";
+import { Rocket } from "lucide-react";
 
-export default function RoleDetailClient({ roleSlug }: { roleSlug: string }) {
+export default function RoleDetailClient({ roleData: role }: { roleData: CareerRole }) {
   const params = useParams();
   const locale = params?.locale as string || "en";
 
-  const role = CAREER_ROLES.find(r => r.slug === roleSlug);
-  if (!role) return null;
-
-  const Icon = role.icon;
+  const staticRole = CAREER_ROLES.find(r => r.slug === role.slug);
+  const Icon = staticRole?.icon || Rocket;
+  const categorySlug = role.type === 'internship' ? 'internships' : 'full-time';
 
   return (
     <div className="relative overflow-hidden selection:bg-primary/30 min-h-screen pt-32 pb-20 px-4 text-foreground">
@@ -28,7 +29,7 @@ export default function RoleDetailClient({ roleSlug }: { roleSlug: string }) {
           <Link href={`/${locale}/careers`} className="hover:text-primary transition-colors">Careers</Link>
           <span>/</span>
           <Link
-            href={`/${locale}/careers?category=${role.type}`}
+            href={`/${locale}/careers/${categorySlug}`}
             className="hover:text-primary transition-colors capitalize"
           >
             {role.type === 'internship' ? 'Internships' : 'Full-Time Jobs'}
@@ -55,14 +56,15 @@ export default function RoleDetailClient({ roleSlug }: { roleSlug: string }) {
               </h1>
             </div>
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <Card className="bg-white/5 border-white/10">
               <CardContent className="p-4 flex items-center gap-4">
-                <Clock className="w-5 h-5 text-primary" />
+                <Calendar className="w-5 h-5 text-primary" />
                 <div>
-                  <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Commitment</div>
-                  <div className="text-sm font-bold">2 Months Min.</div>
+                  <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Posted On</div>
+                  <div className="text-sm font-bold">
+                    {role.posted_at ? format(new Date(role.posted_at), 'MMM dd, yyyy') : 'Recently'}
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -70,18 +72,18 @@ export default function RoleDetailClient({ roleSlug }: { roleSlug: string }) {
               <CardContent className="p-4 flex items-center gap-4">
                 <Award className="w-5 h-5 text-primary" />
                 <div>
-                  <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Outcome</div>
-                  <div className="text-sm font-bold">Credits & Certificate</div>
+                  <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Openings</div>
+                  <div className="text-sm font-bold">{role.total_openings || 1} Positions</div>
                 </div>
               </CardContent>
             </Card>
             <Card className="bg-white/5 border-white/10">
               <CardContent className="p-4 flex items-center gap-4">
-                <Calendar className="w-5 h-5 text-primary" />
+                <Clock className="w-5 h-5 text-primary" />
                 <div>
-                  <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Type</div>
+                  <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Deadline</div>
                   <div className="text-sm font-bold">
-                    {role.type === 'internship' ? 'Unpaid Internship' : 'Full-Time Role'}
+                    {role.deadline ? format(new Date(role.deadline), 'MMM dd, yyyy') : 'Open Until Filled'}
                   </div>
                 </div>
               </CardContent>
@@ -149,7 +151,7 @@ export default function RoleDetailClient({ roleSlug }: { roleSlug: string }) {
                 <p className="text-xs text-muted-foreground">Persist with purpose. Build for Bharat.</p>
               </CardHeader>
               <CardContent className="space-y-6">
-                <Link href={`/${locale}/careers/${role.slug}/apply`} className="block w-full">
+                <Link href={`/${locale}/careers/${categorySlug}/${role.slug}/apply`} className="block w-full">
                   <Button className="w-full font-bold shadow-glow group">
                     Apply Now
                     <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />

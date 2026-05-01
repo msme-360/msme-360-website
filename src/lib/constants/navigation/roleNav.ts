@@ -1,9 +1,8 @@
 import {
   LayoutDashboard, Settings, Users, ShieldCheck, BarChart3, FileText, Globe,
-  Wallet, Zap, Cpu, Lock, Network, Megaphone, PieChart,
-  HardDrive, Target, Gauge, Layers, Bell, Briefcase,
-  Building2, Clock, UserPlus, type LucideIcon, History,
-  UserCircle, LineChart, TrendingUp
+  Wallet, Zap, Cpu, Lock, Network, Megaphone, PieChart, HardDrive,
+  Target, Gauge, Briefcase, Building2, Clock, UserPlus, ClipboardCheck,
+  type LucideIcon, History, UserCircle, LineChart, TrendingUp
 } from "lucide-react";
 import { STARTUP_ROLES } from "@/lib/constants/roles";
 
@@ -26,13 +25,13 @@ export interface NavGroup {
   items: NavItem[];
 }
 
-const CORE_INTELLIGENCE = (l: string): NavGroup => ({
+const CORE_INTELLIGENCE = (l: string, roleId: string): NavGroup => ({
   label: "Core Intelligence",
   visible: true,
   items: [
-    { title: "Strategic Performance", icon: BarChart3, url: `/${l}/admin/performance` },
-    { title: "Company Registry", icon: Globe, url: `/${l}/admin/identity` },
-    { title: "Workforce Attendance", icon: Clock, url: `/${l}/admin/attendance` },
+    { title: "Strategic Performance", icon: BarChart3, url: `/${l}/admin/performance/${roleId}` },
+    { title: "Company Registry", icon: Globe, url: `/${l}/admin/company/${roleId}` },
+    { title: "Workforce Attendance", icon: Clock, url: `/${l}/admin/attendance/${roleId}` },
   ]
 });
 
@@ -43,7 +42,7 @@ const CORE_INTELLIGENCE = (l: string): NavGroup => ({
 export const ROLE_NAV_CONFIG: Record<string, (locale: string) => NavGroup[]> = {
   // --- GOVERNANCE (Level 0) ---
   super_admin: (l) => [
-    CORE_INTELLIGENCE(l),
+    CORE_INTELLIGENCE(l, 'super_admin'),
     {
       label: "System Governance",
       visible: true,
@@ -56,7 +55,7 @@ export const ROLE_NAV_CONFIG: Record<string, (locale: string) => NavGroup[]> = {
     }
   ],
   managing_partner: (l) => [
-    CORE_INTELLIGENCE(l),
+    CORE_INTELLIGENCE(l, 'managing_partner'),
     {
       label: "Firm Management",
       visible: true,
@@ -68,7 +67,7 @@ export const ROLE_NAV_CONFIG: Record<string, (locale: string) => NavGroup[]> = {
     }
   ],
   board_member: (l) => [
-    CORE_INTELLIGENCE(l),
+    CORE_INTELLIGENCE(l, 'board_member'),
     {
       label: "Board Oversight",
       visible: true,
@@ -82,7 +81,7 @@ export const ROLE_NAV_CONFIG: Record<string, (locale: string) => NavGroup[]> = {
 
   // --- EXECUTIVE (Level 1) ---
   ceo: (l) => [
-    CORE_INTELLIGENCE(l),
+    CORE_INTELLIGENCE(l, 'ceo'),
     {
       label: "Presidential Suite",
       visible: true,
@@ -94,7 +93,7 @@ export const ROLE_NAV_CONFIG: Record<string, (locale: string) => NavGroup[]> = {
     }
   ],
   cto: (l) => [
-    CORE_INTELLIGENCE(l),
+    CORE_INTELLIGENCE(l, 'cto'),
     {
       label: "Tech Oversight",
       visible: true,
@@ -106,7 +105,7 @@ export const ROLE_NAV_CONFIG: Record<string, (locale: string) => NavGroup[]> = {
     }
   ],
   cfo: (l) => [
-    CORE_INTELLIGENCE(l),
+    CORE_INTELLIGENCE(l, 'cfo'),
     {
       label: "Financial Fortress",
       visible: true,
@@ -118,7 +117,7 @@ export const ROLE_NAV_CONFIG: Record<string, (locale: string) => NavGroup[]> = {
     }
   ],
   cmo: (l) => [
-    CORE_INTELLIGENCE(l),
+    CORE_INTELLIGENCE(l, 'cmo'),
     {
       label: "Marketing Center",
       visible: true,
@@ -129,7 +128,7 @@ export const ROLE_NAV_CONFIG: Record<string, (locale: string) => NavGroup[]> = {
     }
   ],
   chro: (l) => [
-    CORE_INTELLIGENCE(l),
+    CORE_INTELLIGENCE(l, 'chro'),
     {
       label: "Human Capital",
       visible: true,
@@ -141,7 +140,7 @@ export const ROLE_NAV_CONFIG: Record<string, (locale: string) => NavGroup[]> = {
     }
   ],
   cio: (l) => [
-    CORE_INTELLIGENCE(l),
+    CORE_INTELLIGENCE(l, 'cio'),
     {
       label: "Information Bureau",
       visible: true,
@@ -153,7 +152,7 @@ export const ROLE_NAV_CONFIG: Record<string, (locale: string) => NavGroup[]> = {
     }
   ],
   coo: (l) => [
-    CORE_INTELLIGENCE(l),
+    CORE_INTELLIGENCE(l, 'coo'),
     {
       label: "Operations Hub",
       visible: true,
@@ -166,7 +165,7 @@ export const ROLE_NAV_CONFIG: Record<string, (locale: string) => NavGroup[]> = {
 
   // --- SENIOR MANAGEMENT (Level 1.5) ---
   vp_engineering: (l) => [
-    CORE_INTELLIGENCE(l),
+    CORE_INTELLIGENCE(l, 'vp_engineering'),
     {
       label: "Engineering Bureau",
       visible: true,
@@ -178,7 +177,7 @@ export const ROLE_NAV_CONFIG: Record<string, (locale: string) => NavGroup[]> = {
     }
   ],
   vp_product: (l) => [
-    CORE_INTELLIGENCE(l),
+    CORE_INTELLIGENCE(l, 'vp_product'),
     {
       label: "Product Bureau",
       visible: true,
@@ -189,7 +188,7 @@ export const ROLE_NAV_CONFIG: Record<string, (locale: string) => NavGroup[]> = {
     }
   ],
   vp_operations: (l) => [
-    CORE_INTELLIGENCE(l),
+    CORE_INTELLIGENCE(l, 'vp_operations'),
     {
       label: "Operations Bureau",
       visible: true,
@@ -200,7 +199,7 @@ export const ROLE_NAV_CONFIG: Record<string, (locale: string) => NavGroup[]> = {
     }
   ],
   vp_marketing: (l) => [
-    CORE_INTELLIGENCE(l),
+    CORE_INTELLIGENCE(l, 'vp_marketing'),
     {
       label: "Marketing Bureau",
       visible: true,
@@ -211,7 +210,7 @@ export const ROLE_NAV_CONFIG: Record<string, (locale: string) => NavGroup[]> = {
     }
   ],
   vp_finance: (l) => [
-    CORE_INTELLIGENCE(l),
+    CORE_INTELLIGENCE(l, 'vp_finance'),
     {
       label: "Financial Bureau",
       visible: true,
@@ -282,7 +281,10 @@ export const ROLE_NAV_CONFIG: Record<string, (locale: string) => NavGroup[]> = {
       items: [
         { title: "Personnel Hub", icon: Users, url: `/${l}/internal/manager/hr_manager` },
         { title: "Recruit Pipeline", icon: UserPlus, url: `/${l}/internal/hiring/hr_manager` },
-        { title: "Team Attendance", icon: Clock, url: `/${l}/internal/performance/hr_manager` },
+        { title: "Team Attendance", icon: Clock, url: `/${l}/internal/team/hr_manager/attendance` },
+        { title: "Performance Metrics", icon: Zap, url: `/${l}/internal/team/hr_manager/performance` },
+        { title: "Onboarding Registry", icon: ClipboardCheck, url: `/${l}/internal/hiring/hr_manager/onboarding` },
+        { title: "Policy Hub", icon: ShieldCheck, url: `/${l}/internal/policy/hr_manager` },
       ]
     }
   ],
@@ -291,8 +293,8 @@ export const ROLE_NAV_CONFIG: Record<string, (locale: string) => NavGroup[]> = {
       label: "Talent Acquisition",
       visible: true,
       items: [
-        { title: "Applicant Portal", icon: UserPlus, url: `/${l}/internal/manager/recruiter` },
-        { title: "Hiring Stats", icon: BarChart3, url: `/${l}/internal/hiring/recruiter` },
+        { title: "Personnel Hub", icon: Users, url: `/${l}/internal/manager/recruiter` },
+        { title: "Recruit Pipeline", icon: UserPlus, url: `/${l}/internal/hiring/recruiter` },
       ]
     }
   ],
@@ -428,7 +430,7 @@ export const ROLE_NAV_CONFIG: Record<string, (locale: string) => NavGroup[]> = {
       visible: true,
       items: [
         { title: "Training", icon: Target, url: `/${l}/internal/associate/associate` },
-        { title: "Attendance", icon: Clock, url: `/${l}/internal/performance/associate` },
+        { title: "Attendance", icon: Clock, url: `/${l}/internal/associate/associate/attendance` },
         { title: "Tasks", icon: FileText, url: `/${l}/internal/associate/associate/tasks` },
       ]
     }
@@ -439,7 +441,7 @@ export const ROLE_NAV_CONFIG: Record<string, (locale: string) => NavGroup[]> = {
       visible: true,
       items: [
         { title: "Mission Control", icon: Target, url: `/${l}/internal/associate/intern` },
-        { title: "Attendance", icon: Clock, url: `/${l}/internal/performance/intern` },
+        { title: "Attendance", icon: Clock, url: `/${l}/internal/associate/intern/attendance` },
         { title: "Growth Roadmap", icon: TrendingUp, url: `/${l}/internal/associate/intern/roadmap` },
         { title: "Tactical Hub", icon: LayoutDashboard, url: `/${l}/internal/associate/intern/hub` },
       ]
@@ -461,7 +463,7 @@ export const ROLE_NAV_CONFIG: Record<string, (locale: string) => NavGroup[]> = {
       visible: true,
       items: [
         { title: "Skill Path", icon: Target, url: `/${l}/internal/associate/trainee` },
-        { title: "Attendance", icon: Clock, url: `/${l}/internal/performance/trainee` },
+        { title: "Attendance", icon: Clock, url: `/${l}/internal/associate/trainee/attendance` },
       ]
     }
   ],
@@ -520,14 +522,14 @@ export function getSharedGroups(roleId: string, locale: string): NavGroup[] {
   // Industry Grade: Dynamic Portal Context
   let prefix = 'admin';
   let identityPath = `identity/${roleId}`;
-  let notifyPath = 'notifications';
+  // let notifyPath = 'notifications';
 
   if (level >= 3 && level <= 5) {
     prefix = 'internal';
   } else if (level >= 6) {
     prefix = 'dashboard';
     identityPath = 'profile';
-    notifyPath = 'settings'; // Fallback for user tier
+    // notifyPath = 'settings'; // Fallback for user tier
   }
 
   return [
@@ -536,7 +538,7 @@ export function getSharedGroups(roleId: string, locale: string): NavGroup[] {
       visible: true,
       items: [
         { title: "Business Identity", icon: UserCircle, url: `/${locale}/${prefix}/${identityPath}` },
-        { title: "Help & Support", icon: FileText, url: `/${locale}/dashboard/help` },
+        { title: "Help & Support", icon: FileText, url: `/${locale}/${prefix}/support` },
       ]
     }
   ];

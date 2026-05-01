@@ -8,6 +8,7 @@
       "health": "System Health",
       "alerts": "Active Alerts",
       "compliance": "Compliance Score",
+      "complianceIssue": "Action Required",
       "complianceOptimal": "Optimal",
       "complianceNote": "All governance protocols are currently within acceptable bounds.",
       "search": "Search logs...",
@@ -44,6 +45,39 @@
       "cta": "Want to join the mission?",
       "ctaSub": "We are always looking for passionate individuals to build with us.",
       "ctaButton": "Open Positions"
+    },
+    "HiringPortal": {
+      "title": "Recruitment Lifecycle",
+      "subtitle": "End-to-end management from application to operational status.",
+      "totalApplied": "Total Pipeline",
+      "pendingReview": "Pending Screening",
+      "hired": "Confirmed Hires",
+      "onboarded": "Operational Staff",
+      "refresh": "Refresh Data",
+      "filters": "Global Filters",
+      "loading": "Retrieving personnel records...",
+      "noCandidates": "No records found in this tactical vertical.",
+      "searchPlaceholder": "Search by identity or role...",
+      "candidateRow": {
+        "pending": "Pending Review",
+        "shortlisted": "Shortlisted",
+        "rejected": "Rejected",
+        "hired": "Hired",
+        "onboarded": "Onboarded",
+        "remote": "Remote",
+        "resume": "Resume",
+        "shortlist": "Shortlist",
+        "reject": "Reject",
+        "hire": "Hire",
+        "finalHire": "Final Hire",
+        "onboard": "Mark Onboarded"
+      },
+      "toasts": {
+        "hiredSuccess": "{name} successfully transitioned to HIRED status.",
+        "onboardedSuccess": "{name} successfully transitioned to OPERATIONAL status.",
+        "actionSuccess": "Personnel status updated to {action}.",
+        "actionFailed": "Tactical status update failed. Please retry."
+      }
     }
   }
 }

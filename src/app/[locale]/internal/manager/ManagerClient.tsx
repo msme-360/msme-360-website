@@ -24,8 +24,17 @@ export function ManagerClient({ profile, initialTasks, initialAttendance, team }
   const t = useTranslations("Common.Manager");
   const tCommon = useTranslations("Common");
   const router = useRouter();
-  const [tasks] = useState(initialTasks);
-  const [attendance] = useState(initialAttendance);
+  const [tasks, setTasks] = useState(initialTasks);
+  const [attendance, setAttendance] = useState(initialAttendance);
+
+  // Sync state with props when revalidatePath triggers
+  useEffect(() => {
+    setTasks(initialTasks);
+  }, [initialTasks]);
+
+  useEffect(() => {
+    setAttendance(initialAttendance);
+  }, [initialAttendance]);
 
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [comments, setComments] = useState<TaskComment[]>([]);
@@ -80,6 +89,10 @@ export function ManagerClient({ profile, initialTasks, initialAttendance, team }
     setIsSubmittingComment(false);
   };
 
+  const handleRefresh = () => {
+    router.refresh();
+  };
+
   const roleMetadata = getRoleById(profile.role);
   const careerMetadata = getCareerLevelMetadata(profile.role);
 
@@ -92,16 +105,16 @@ export function ManagerClient({ profile, initialTasks, initialAttendance, team }
     >
       <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20">
         <ManagerHeader
-          department={profile.department || ''}
-          profileId={profile.id}
+          profile={profile}
           team={team}
-          role={profile.role}
+          roleName={profile.role.replace("_", " ").toUpperCase()}
         />
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <MissionBoard
             tasks={tasks}
             profile={profile}
+            team={team}
             selectedTask={selectedTask}
             onTaskSelect={handleSelectTask}
             comments={comments}
@@ -110,10 +123,11 @@ export function ManagerClient({ profile, initialTasks, initialAttendance, team }
             setNewComment={setNewComment}
             isSubmittingComment={isSubmittingComment}
             onAddComment={handleAddComment}
+            onRefresh={handleRefresh}
             onTaskStatus={async (taskId: string, status: Task['status']) => {
               const res = await updateTaskStatus(taskId, status);
               if (res.success) {
-                router.refresh();
+                handleRefresh();
                 toast.success(t("toasts.taskUpdated"));
               }
             }}

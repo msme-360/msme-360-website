@@ -7,7 +7,7 @@ import { GraduationCap, Briefcase, ArrowRight } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 interface CategorySelectorProps {
-  onSelect: (cat: 'internship' | 'job') => void;
+  onSelect: (slug: 'internships' | 'full-time') => void;
 }
 
 export default function CategorySelector({ onSelect }: CategorySelectorProps) {
@@ -24,7 +24,7 @@ export default function CategorySelector({ onSelect }: CategorySelectorProps) {
       {/* Internships Card */}
       <Card
         className="glass-card overflow-hidden group cursor-pointer hover:border-primary/40 transition-all duration-500 border-white/10 bg-white/5"
-        onClick={() => onSelect('internship')}
+        onClick={() => onSelect('internships')}
       >
         <div className="p-8 space-y-6">
           <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform duration-500">
@@ -45,7 +45,7 @@ export default function CategorySelector({ onSelect }: CategorySelectorProps) {
       {/* Jobs Card */}
       <Card
         className="glass-card overflow-hidden group cursor-pointer hover:border-blue-500/40 transition-all duration-500 border-white/10 bg-white/5"
-        onClick={() => onSelect('job')}
+        onClick={() => onSelect('full-time')}
       >
         <div className="p-8 space-y-6">
           <div className="w-16 h-16 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-500 group-hover:scale-110 transition-transform duration-500">

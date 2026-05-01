@@ -33,9 +33,9 @@ async function AttendancePortalContent({
   const userRole = profile?.role || "user";
 
   // --- Hub Silo Guard ---
-  // Personnel Admin level or higher (L2+)
-  if (!hasPermission(userRole, 2)) {
-    return <RestrictedAccess requiredLevel="Personnel Administrator" />;
+  // Personnel Admin level or higher (L3+)
+  if (!hasPermission(userRole, 3)) {
+    return <RestrictedAccess requiredLevel="Management" />;
   }
 
   const requestedRole = slug?.[0];

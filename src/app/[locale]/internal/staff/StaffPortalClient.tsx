@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  Building2, MapPin, Calendar, Info, ExternalLink,
+  Info, ExternalLink,
   BookOpen, MessageSquare, Sparkles, Trophy
 } from "lucide-react";
 import { motion } from "framer-motion";
@@ -12,6 +12,7 @@ import { DashboardProfile } from "@/types/dashboard";
 import { Database } from "@/types/supabase";
 import { formatDistanceToNow } from "date-fns";
 import { AdminViewWrapper } from "@/components/layout/AdminViewWrapper";
+import { WelcomeHeader } from "@/components/dashboard/WelcomeHeader";
 import { useTranslations } from "next-intl";
 
 type Announcement = Database['public']['Tables']['announcements']['Row'];
@@ -34,24 +35,11 @@ export function StaffPortalClient({ profile, initialAnnouncements }: StaffPortal
     >
       <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20">
         {/* Hero Welcome */}
-        <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary/10 via-background to-accent/5 p-10 border border-white/10 shadow-inner">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 blur-3xl rounded-full" />
-          <div className="relative z-10 flex flex-col md:flex-row items-center gap-8">
-            <div className="w-24 h-24 rounded-2xl bg-primary/20 flex items-center justify-center border border-primary/20 shadow-glow shrink-0">
-              <Building2 className="w-12 h-12 text-primary" />
-            </div>
-            <div className="text-center md:text-left">
-              <h1 className="text-4xl font-display font-bold tracking-tight mb-2">
-                {t("hero.welcome", { name: profile?.full_name?.split(' ')[0] || 'Member' })}
-              </h1>
-              <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 text-muted-foreground text-sm font-medium">
-                <div className="flex items-center gap-1.5"><Badge variant="outline" className="bg-primary/5 border-primary/20 text-primary">{profile?.role?.replace('_', ' ').toUpperCase()}</Badge></div>
-                <div className="flex items-center gap-1.5"><MapPin className="w-4 h-4" /> {profile?.location || 'Remote'}</div>
-                <div className="flex items-center gap-1.5"><Calendar className="w-4 h-4" /> {t("hero.joinDate", { date: "Oct 2024" })}</div>
-              </div>
-            </div>
-          </div>
-        </section>
+        <WelcomeHeader
+          profile={profile}
+          t={t}
+          roleName={profile.role.replace("_", " ").toUpperCase()}
+        />
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Feed */}

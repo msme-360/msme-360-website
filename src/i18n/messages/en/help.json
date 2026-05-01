@@ -3,26 +3,23 @@
     "badge": "Support Hub",
     "title": "How can we help?",
     "description": "Find answers to common questions or reach out to our team of MSME experts.",
+    "subtitle": "Find answers to common questions or reach out to our team of MSME experts.",
     "searchPlaceholder": "Search for guides, compliance help, or loan queries...",
-    "knowledgeBase": {
-      "title": "Knowledge Base",
-      "description": "Detailed guides on registration, GST, and business expansion.",
-      "cta": "Explore Guides"
-    },
-    "directSupport": {
-      "title": "Direct Support",
-      "description": "Chat with our mentors for personalized compliance advice.",
-      "cta": "Start Chat"
-    },
     "tabs": {
       "faqs": "FAQs",
-      "myTickets": "My Tickets"
+      "myTickets": "My Tickets",
+      "tickets": "My Tickets"
     },
-    "tickets": {
-      "noTickets": "No tickets found"
+    "tab": {
+      "faqs": "FAQs",
+      "tickets": "My Tickets"
     },
-    "faqTitle": "Frequently Asked Questions",
-    "noFaqs": "No matching questions found. Try another term.",
+    "explore": {
+      "docs": "Knowledge Base",
+      "docsAction": "Explore Guides",
+      "community": "Direct Support",
+      "communityAction": "Start Chat"
+    },
     "faqs": [
       {
         "question": "Do I need to pay for Udyam registration?",
@@ -35,12 +32,18 @@
       {
         "question": "What is the benefit of the Loan Eligibility Simulator?",
         "answer": "It allows you to understand your credit-readiness based on real business metrics (GST, revenue, age) before you visit a bank, increasing your approval chances."
-      },
-      {
-        "question": "Can I manage multiple businesses on MSME360?",
-        "answer": "Currently, our platform is optimized for single business management, but we're working on a multi-profile feature for Phase 7."
       }
     ],
+    "faqs_labels": {
+      "title": "Frequently Asked Questions",
+      "noResults": "No matching questions found. Try another term."
+    },
+    "tickets": {
+      "history": "Ticket History",
+      "refresh": "Refresh",
+      "empty": "No tickets found",
+      "noTickets": "No tickets found"
+    },
     "contact": {
       "title": "Still have questions?",
       "description": "Our team typically responds within 4 hours during business days.",

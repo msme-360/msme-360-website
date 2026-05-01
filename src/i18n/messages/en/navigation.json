@@ -237,7 +237,14 @@
       "Management": "Management",
       "Execution": "Execution",
       "Associate": "Associate",
-      "Internal": "Internal"
+      "Internal": "Internal",
+      "Help & Support": "Help & Support",
+      "Team Attendance": "Team Attendance",
+      "Performance Metrics": "Performance Metrics",
+      "Onboarding Registry": "Onboarding Registry",
+      "Policy Hub": "Policy Hub",
+      "Strategic Performance": "Strategic Performance",
+      "Workforce Attendance": "Workforce Attendance"
     },
     "breadcrumbs": {
       "admin": "Main Hub",

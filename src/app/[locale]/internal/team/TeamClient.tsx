@@ -12,17 +12,28 @@ import { useTranslations } from "next-intl";
 import { Database } from "@/types/supabase";
 
 import { AdminViewWrapper } from "@/components/layout/AdminViewWrapper";
+import { AttendanceLogClient } from "@/app/[locale]/admin/attendance/AttendanceLogClient";
+import { PerformanceClient } from "./PerformanceClient";
 
 type TeamMember = Database['public']['Tables']['team_members']['Row'];
 
 interface TeamClientProps {
   initialTeam?: TeamMember[];
+  initialAttendance?: any[];
   subView?: string;
 }
 
-export function TeamClient({ initialTeam = [], subView }: TeamClientProps) {
+export function TeamClient({ initialTeam = [], initialAttendance = [], subView }: TeamClientProps) {
   const t = useTranslations("Admin.team");
   const displayTeam = initialTeam;
+
+  if (subView === 'attendance') {
+    return <AttendanceLogClient initialAttendance={initialAttendance} />;
+  }
+
+  if (subView === 'performance') {
+    return <PerformanceClient />;
+  }
 
   if (subView) {
     const subViewTitles: Record<string, string> = {
