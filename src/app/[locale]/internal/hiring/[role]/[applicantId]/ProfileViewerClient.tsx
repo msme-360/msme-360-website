@@ -13,20 +13,20 @@ import {
   FileText, RefreshCcw} from "lucide-react";
 import { EvaluationCard } from "./EvaluationCard";
 import OnboardingRegistry from "../../../../admin/hiring/components/OnboardingRegistry";
-import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { User } from "@supabase/supabase-js";
 
 interface ProfileViewerClientProps {
   applicant: Applicant;
   initialMetrics: Metric[];
-  user: any;
+  user: User;
   userRole: string;
 }
 
 export default function ProfileViewerClient({ applicant: initialApplicant, initialMetrics, user, userRole }: ProfileViewerClientProps) {
-  const t = useTranslations("Hiring.profile");
+
   const [applicant, setApplicant] = useState<Applicant>(initialApplicant);
   const [metrics, setMetrics] = useState<Metric[]>(initialMetrics);
   const [isUpdating, setIsUpdating] = useState(false);
@@ -38,7 +38,7 @@ export default function ProfileViewerClient({ applicant: initialApplicant, initi
     const res = await updateApplicationStatus(applicant.id, status);
     if (res.success) {
       toast.success(status === 'shortlisted' ? "Candidate Shortlisted" : `Status updated to ${status}`);
-      setApplicant({ ...applicant, status: status as any });
+      setApplicant({ ...applicant, status: status as "pending" | "under_review" | "shortlisted" | "rejected" | "hired" | "onboarded" });
       router.refresh();
     } else {
       toast.error(res.error || "Failed to update status");
@@ -102,7 +102,7 @@ export default function ProfileViewerClient({ applicant: initialApplicant, initi
                 <div>
                   <div className="flex items-center gap-3">
                     <CardTitle className="text-2xl font-bold tracking-tight">{applicant.full_name}</CardTitle>
-                    {(applicant as any).is_archived ? (
+                    {applicant.is_archived ? (
                       <Badge variant="outline" className="border-amber-500/50 text-amber-500">ARCHIVED</Badge>
                     ) : null}
                   </div>

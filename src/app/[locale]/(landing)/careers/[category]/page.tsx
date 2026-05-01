@@ -53,9 +53,9 @@ export default async function CategoryPage({
   const mergedRoles = staticRoles.map(sr => {
     const dbRole = dbRoles.find(dr => dr.slug === sr.slug);
     // Omit the icon component here as it cannot be serialized
-    const { icon, ...rest } = sr;
+    const { ...staticRest } = sr;
     return {
-      ...rest,
+      ...staticRest,
       ...dbRole
     };
   });

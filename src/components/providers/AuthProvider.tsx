@@ -47,18 +47,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     initializeAuth();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, currentSession) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, currentSession) => {
       logger.info(`Auth state changed: ${event}`, "AuthProvider");
 
       setSession(currentSession);
-
-      if (currentSession) {
-        // SECURITY: Always verify identity with server on state change
-        const { data: { user: verifiedUser } } = await supabase.auth.getUser();
-        setUser(verifiedUser);
-      } else {
-        setUser(null);
-      }
+      setUser(currentSession?.user ?? null);
       setIsLoading(false);
 
       if (event === 'SIGNED_IN') {

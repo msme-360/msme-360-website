@@ -58,16 +58,21 @@ export default function MissionBoard({
    setNewComment,
    isSubmittingComment,
    onAddComment,
-   onTaskStatus,
    onRefresh 
 }: MissionBoardProps) {
    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
    const [isSubmitting, setIsSubmitting] = useState(false);
-   const [formData, setFormData] = useState({
+   const [formData, setFormData] = useState<{
+      title: string;
+      description: string;
+      assigned_to: string;
+      priority: "Low" | "Medium" | "High" | "Urgent";
+      due_date: string;
+   }>({
       title: "",
       description: "",
       assigned_to: "",
-      priority: "Medium" as const,
+      priority: "Medium",
       due_date: ""
    });
 
@@ -153,7 +158,7 @@ export default function MissionBoard({
                            </div>
                            <div className="space-y-2">
                               <Label className="text-[10px] uppercase font-black tracking-widest text-white/50">Priority</Label>
-                              <Select value={formData.priority} onValueChange={(val: any) => setFormData({...formData, priority: val})}>
+                              <Select value={formData.priority} onValueChange={(val: "Low" | "Medium" | "High" | "Urgent") => setFormData({...formData, priority: val})}>
                                  <SelectTrigger className="bg-white/5 border-white/10 h-12 rounded-xl">
                                     <SelectValue />
                                  </SelectTrigger>

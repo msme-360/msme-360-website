@@ -320,7 +320,7 @@ export async function getRecruitmentMetrics() {
 
     if (error) throw error;
 
-    const counts = (apps || []).reduce((acc: Record<string, number>, app: any) => {
+    const counts = (apps || []).reduce((acc: Record<string, number>, app: { status: string }) => {
       acc[app.status] = (acc[app.status] || 0) + 1;
       return acc;
     }, {});
@@ -346,7 +346,7 @@ export async function getRecruitmentTrends() {
 
     if (error) throw error;
 
-    const dailyData = (apps || []).reduce((acc: Record<string, any>, app: any) => {
+    const dailyData = (apps || []).reduce((acc: Record<string, { name: string, applicants: number, shortlisted: number }>, app: { applied_at: string, status: string }) => {
       const date = new Date(app.applied_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
       if (!acc[date]) acc[date] = { name: date, applicants: 0, shortlisted: 0 };
       acc[date].applicants++;

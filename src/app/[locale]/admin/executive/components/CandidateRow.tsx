@@ -37,8 +37,8 @@ export function CandidateRow({ app, onAction }: CandidateRowProps) {
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <h4 className="font-bold text-lg">{app.full_name}</h4>
-            <Badge variant={statusColors[app.status] as any} className="capitalize text-[10px] h-5">
-              {t(`candidateRow.${app.status}` as any)}
+            <Badge variant={statusColors[app.status] as "default" | "secondary" | "destructive" | "outline"} className="capitalize text-[10px] h-5">
+              {t(`candidateRow.${app.status}` as Parameters<typeof t>[0])}
             </Badge>
           </div>
           <p className="text-sm text-muted-foreground flex items-center gap-2">

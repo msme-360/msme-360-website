@@ -99,7 +99,7 @@ export function ForgotPasswordForm({ locale }: ForgotPasswordFormProps) {
               />
               {field.state.meta.errors.length > 0 && (
                 <p className="text-xs text-destructive mt-1">
-                  {(field.state.meta.errors[0] as any)?.message ?? field.state.meta.errors[0]?.toString()}
+                  {(field.state.meta.errors[0] as { message?: string })?.message ?? field.state.meta.errors[0]?.toString()}
                 </p>
               )}
             </div>

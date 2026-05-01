@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next'
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = 'https://msme360.in'
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://msme360.in'
   
   // Static core routes
   const routes = [

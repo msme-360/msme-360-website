@@ -11,8 +11,8 @@ import { useForm } from "@tanstack/react-form";
 import { z } from "zod";
 
 const resetPasswordSchema = z.object({
-  password: z.string().min(6, "Password must be at least 6 characters"),
-  confirmPassword: z.string().min(6, "Password must be at least 6 characters"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
+  confirmPassword: z.string().min(8, "Password must be at least 8 characters"),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords do not match",
   path: ["confirmPassword"],
@@ -83,7 +83,7 @@ export function ResetPasswordForm({ locale }: ResetPasswordFormProps) {
               </div>
               {field.state.meta.errors.length > 0 && (
                 <p className="text-xs text-destructive mt-1">
-                  {(field.state.meta.errors[0] as any)?.message ?? field.state.meta.errors[0]?.toString()}
+                  {(field.state.meta.errors[0] as { message?: string })?.message ?? field.state.meta.errors[0]?.toString()}
                 </p>
               )}
             </div>
@@ -109,7 +109,7 @@ export function ResetPasswordForm({ locale }: ResetPasswordFormProps) {
               </div>
               {field.state.meta.errors.length > 0 && (
                 <p className="text-xs text-destructive mt-1">
-                  {(field.state.meta.errors[0] as any)?.message ?? field.state.meta.errors[0]?.toString()}
+                  {(field.state.meta.errors[0] as { message?: string })?.message ?? field.state.meta.errors[0]?.toString()}
                 </p>
               )}
             </div>

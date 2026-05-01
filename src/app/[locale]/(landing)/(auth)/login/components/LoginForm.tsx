@@ -19,7 +19,7 @@ import { LoginFields, LoginStep } from "../../components/AuthTypes";
 
 const loginSchema = z.object({
   email: z.email("Invalid work email address"),
-  password: z.string().min(6, "Password must be at least 6 characters").optional().or(z.literal("")),
+  password: z.string().min(8, "Password must be at least 8 characters").optional().or(z.literal("")),
   confirmPassword: z.string().optional().or(z.literal("")),
 }).refine((data) => {
   if (data.confirmPassword && data.password !== data.confirmPassword) {
@@ -175,7 +175,7 @@ export function LoginForm({ locale }: LoginFormProps) {
                   />
                   {field.state.meta.errors.length > 0 && (
                     <p className="text-xs text-destructive mt-1">
-                      {(field.state.meta.errors[0] as any)?.message ?? field.state.meta.errors[0]?.toString()}
+                      {(field.state.meta.errors[0] as { message?: string })?.message ?? field.state.meta.errors[0]?.toString()}
                     </p>
                   )}
                 </div>
@@ -209,7 +209,7 @@ export function LoginForm({ locale }: LoginFormProps) {
                   />
                   {field.state.meta.errors.length > 0 && (
                     <p className="text-xs text-destructive mt-1">
-                      {(field.state.meta.errors[0] as any)?.message ?? field.state.meta.errors[0]?.toString()}
+                      {(field.state.meta.errors[0] as { message?: string })?.message ?? field.state.meta.errors[0]?.toString()}
                     </p>
                   )}
                 </div>
@@ -239,7 +239,7 @@ export function LoginForm({ locale }: LoginFormProps) {
                   />
                   {field.state.meta.errors.length > 0 && (
                     <p className="text-xs text-destructive mt-1">
-                      {(field.state.meta.errors[0] as any)?.message ?? field.state.meta.errors[0]?.toString()}
+                      {(field.state.meta.errors[0] as { message?: string })?.message ?? field.state.meta.errors[0]?.toString()}
                     </p>
                   )}
                 </div>
@@ -259,7 +259,7 @@ export function LoginForm({ locale }: LoginFormProps) {
                   />
                   {field.state.meta.errors.length > 0 && (
                     <p className="text-xs text-destructive mt-1">
-                      {(field.state.meta.errors[0] as any)?.message ?? field.state.meta.errors[0]?.toString()}
+                      {(field.state.meta.errors[0] as { message?: string })?.message ?? field.state.meta.errors[0]?.toString()}
                     </p>
                   )}
                 </div>

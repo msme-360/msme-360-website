@@ -6,6 +6,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { GovernanceClientProps } from "@/app/[locale]/admin/governance/GovernanceClient";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DashboardMetric, DashboardProfile } from "@/types/dashboard";
+import { SystemHealth } from "@/types/governance";
 import { WelcomeHeader } from "@/components/dashboard/WelcomeHeader";
 import { ShieldAlert, Book, Vote, LogOut } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -20,11 +21,11 @@ const BoardOversightDashboard = dynamic<{ metrics?: DashboardMetric[]; subView?:
   loading: () => <Skeleton className="h-64 w-full rounded-3xl" />,
 });
 
-const ConstitutionalLedger = dynamic<{ health?: any[] }>(() => import("@/components/roles/level-0-governance/super_admin/ConstitutionalLedger"), {
+const ConstitutionalLedger = dynamic<{ health?: SystemHealth[] }>(() => import("@/components/roles/level-0-governance/super_admin/ConstitutionalLedger"), {
   loading: () => <Skeleton className="h-64 w-full rounded-3xl" />,
 });
 
-const SystemControlPanel = dynamic<{ health?: any[] }>(() => import("@/components/roles/level-0-governance/super_admin/SystemControlPanel"), {
+const SystemControlPanel = dynamic<{ health?: SystemHealth[] }>(() => import("@/components/roles/level-0-governance/super_admin/SystemControlPanel"), {
   loading: () => <Skeleton className="h-64 w-full rounded-3xl" />,
 });
 
@@ -104,7 +105,7 @@ export function GovernanceGroup({ profile, role, subView, initialMetrics, initia
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <WelcomeHeader
         profile={profile}
-        t={tStaff}
+        t={tStaff as (key: string, values?: Record<string, unknown>) => string}
         roleName={role.replace("_", " ").toUpperCase()}
       />
 

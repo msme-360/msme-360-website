@@ -129,7 +129,7 @@ export async function updateTaskStatus(taskId: string, status: string) {
 
 export async function updateTaskPoW(taskId: string, proofOfWork: string) {
   const supabase = await createServiceClient();
-  const updateData: any = { proof_of_work: proofOfWork };
+  const updateData: { proof_of_work: string; status?: 'pending' | 'in_progress' | 'completed' | 'blocked' } = { proof_of_work: proofOfWork };
   
   // If PoW is provided, auto-mark as completed
   if (proofOfWork && proofOfWork.trim().length > 0) {
@@ -180,7 +180,7 @@ export async function getMentorDetails(managerId: string) {
   const supabase = await createServiceClient();
   const { data, error } = await supabase
     .from('profiles')
-    .select('full_name, avatar_url, designation, department')
+    .select('id, full_name, avatar_url, designation, department')
     .eq('id', managerId)
     .single();
 
@@ -264,7 +264,7 @@ export async function getOnboardingChecklist(userId: string) {
     const itemText = rest.length > 0 ? rest.join(': ') : item.task_name;
     
     // Map prefix to specific category enum for UI grouping
-    let category: any = 'general';
+    let category: 'ACCOUNT' | 'LEGAL' | 'TECHNICAL' | 'INFRASTRUCTURE' | 'general' = 'general';
     const prefix = rawCategory.toUpperCase();
     
     if (prefix === 'ACCOUNT') category = 'ACCOUNT';

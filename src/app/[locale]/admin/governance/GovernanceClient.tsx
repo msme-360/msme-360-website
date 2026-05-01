@@ -14,36 +14,19 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { AdminViewWrapper } from "@/components/layout/AdminViewWrapper";
 import { formatDistanceToNow } from "date-fns";
-import { Database } from "@/types/supabase";
 import { STARTUP_ROLES } from "@/lib/constants/roles";
 import { DashboardProfile } from "@/types/dashboard";
 
-export interface BoardResolution {
-  id: string;
-  title: string;
-  level: string;
-  status: string;
-  created_at: string;
-  profiles: {
-    full_name: string | null;
-  } | null;
-}
+import { SystemHealth, BoardResolution, GovernanceMetric, NICCode } from "@/types/governance";
 
-export interface GovernanceMetric {
-  label: string;
-  value: string;
-  change: string;
-  status: string;
-}
 
-export type NICCode = Database['public']['Tables']['nic_codes']['Row'];
 
 export interface GovernanceClientProps {
   profile?: DashboardProfile;
   initialResolutions: BoardResolution[];
   initialMetrics: GovernanceMetric[];
   nicCodes: NICCode[];
-  health?: any[];
+  health?: SystemHealth[];
   framework?: { title: string; progress: number; status: string }[];
   role?: string;
 }

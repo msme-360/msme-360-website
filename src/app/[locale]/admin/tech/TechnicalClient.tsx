@@ -10,19 +10,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { STARTUP_ROLES } from "@/lib/constants/roles";
 
-export interface SysStat {
-   label: string;
-   value: string;
-   status: string;
-   color: string;
-}
-
-export interface ServiceStatus {
-   name: string;
-   status: string;
-   load: string;
-   uptime: string;
-}
+import { SysStat, ServiceStatus } from "@/types/governance";
 
 interface TechnicalPortalClientProps {
    sysStats: SysStat[];

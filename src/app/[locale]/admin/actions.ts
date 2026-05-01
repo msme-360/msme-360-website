@@ -3,12 +3,11 @@
 import { createServiceClient, getUser } from "@/services/supabase/supabase-server";
 import { revalidatePath } from "next/cache";
 import type { AuditLog } from "./audit/AuditClient";
-import type { BoardResolution, GovernanceMetric } from "./governance/GovernanceClient";
-import type { SysStat, ServiceStatus } from "./tech/TechnicalClient";
+import type { BoardResolution, GovernanceMetric, SysStat, ServiceStatus, SystemHealth, NICCode } from "@/types/governance";
 import { getRoleById } from "@/lib/constants/roles";
 import { ONBOARDING_TEMPLATES } from "@/lib/constants/onboardingTemplates";
 
-export async function updateUserRole(userId: string, role: string, department: string, adminId?: string) {
+export async function updateUserRole(userId: string, role: string, department: string) {
   const verifiedUser = await getUser();
   if (!verifiedUser) return { success: false, error: "Unauthorized" };
 
@@ -158,7 +157,7 @@ export async function getApplicants(archived: boolean = false) {
  * Saves (Create/Update) a career role for the landing page.
  * Accessible to Recruiters (L3) and higher.
  */
-export async function saveCareerRole(role: any) {
+export async function saveCareerRole(role: Record<string, unknown>) {
   const verifiedUser = await getUser();
   if (!verifiedUser) return { success: false, error: "Unauthorized" };
 
@@ -471,7 +470,7 @@ export async function getApplicationMetrics(applicationId: string) {
   return data;
 }
 
-export async function saveApplicationMetric(metric: any) {
+export async function saveApplicationMetric(metric: Record<string, unknown>) {
   const verifiedUser = await getUser();
   if (!verifiedUser) return { success: false, error: "Unauthorized" };
 
@@ -688,9 +687,16 @@ export async function inviteNewUser(payload: {
 
 /**
  * GOVERNANCE ACTIONS
- */export async function getGovernanceData() {
+ */
+export async function getGovernanceData(): Promise<{
+  resolutions: BoardResolution[];
+  metrics: GovernanceMetric[];
+  nicCodes: NICCode[];
+  health: SystemHealth[];
+  framework: { title: string; progress: number; status: string }[];
+}> {
   const verifiedUser = await getUser();
-  if (!verifiedUser) return { resolutions: [], metrics: [], nicCodes: [] };
+  if (!verifiedUser) return { resolutions: [], metrics: [], nicCodes: [], health: [], framework: [] };
 
   const supabase = await createServiceClient();
 
@@ -788,7 +794,7 @@ export async function inviteNewUser(payload: {
     resolutions: (resolutions as unknown as BoardResolution[]) || [],
     metrics,
     nicCodes: nicCodes || [],
-    health: health || [],
+    health: (health as unknown as SystemHealth[]) || [],
     framework
   };
 }
@@ -1126,7 +1132,7 @@ export async function getPolicies() {
   return data || [];
 }
 
-export async function upsertPolicy(policy: any) {
+export async function upsertPolicy(policy: Record<string, unknown>) {
   const verifiedUser = await getUser();
   if (!verifiedUser) return { success: false, error: "Unauthorized" };
 
@@ -1214,7 +1220,7 @@ export async function updateOnboardingProgress(applicationId: string, checklist:
   return { success: true };
 }
 
-export async function updateOnboardingDetails(id: string, details: Record<string, any>) {
+export async function updateOnboardingDetails(id: string, details: Record<string, unknown>) {
   const verifiedUser = await getUser();
   if (!verifiedUser) return { success: false, error: "Unauthorized" };
 

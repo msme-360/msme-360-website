@@ -1,6 +1,6 @@
 import { getUser as getAuthUser } from "@/services/supabase/supabase-server";
 import { getProfile as getProfileDirect } from "@/app/[locale]/dashboard/queries";
-import { SupportClient } from "../../../admin/support/SupportClient";
+import { SupportClient, SupportTicket } from "../../../admin/support/SupportClient";
 import { hasPermission } from "@/lib/constants/roles";
 import { getPlatformMetrics, getSupportTickets } from "../../../admin/actions";
 import { RestrictedAccess } from "@/components/auth/RestrictedAccess";
@@ -58,8 +58,8 @@ async function SupportPortalContent({
 
   return (
     <SupportClient 
-      initialTickets={initialTickets as any}
-      supportMetrics={supportMetrics as any}
+      initialTickets={initialTickets as SupportTicket[]}
+      supportMetrics={supportMetrics as { label: string; value: string; [key: string]: unknown }[]}
       subView={subView}
       userRole={userRole}
       userId={user.id}

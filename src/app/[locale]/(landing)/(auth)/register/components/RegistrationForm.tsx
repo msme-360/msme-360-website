@@ -141,7 +141,7 @@ export function RegistrationForm({ onSuccess }: RegistrationFormProps) {
                   />
                   {field.state.meta.errors.length > 0 && (
                     <p className="text-xs text-destructive mt-1">
-                      {(field.state.meta.errors[0] as any)?.message ?? field.state.meta.errors[0]?.toString()}
+                      {(field.state.meta.errors[0] as { message?: string })?.message ?? field.state.meta.errors[0]?.toString()}
                     </p>
                   )}
                 </div>
@@ -162,7 +162,7 @@ export function RegistrationForm({ onSuccess }: RegistrationFormProps) {
                   />
                   {field.state.meta.errors.length > 0 && (
                     <p className="text-xs text-destructive mt-1">
-                      {(field.state.meta.errors[0] as any)?.message ?? field.state.meta.errors[0]?.toString()}
+                      {(field.state.meta.errors[0] as { message?: string })?.message ?? field.state.meta.errors[0]?.toString()}
                     </p>
                   )}
                 </div>
@@ -180,7 +180,7 @@ export function RegistrationForm({ onSuccess }: RegistrationFormProps) {
                   <Input id={field.name} value={field.state.value} onBlur={field.handleBlur} onChange={(e) => field.handleChange(e.target.value)} placeholder="John Doe" className="rounded-xl h-12" />
                   {field.state.meta.errors.length > 0 && (
                     <p className="text-xs text-destructive mt-1">
-                      {(field.state.meta.errors[0] as any)?.message ?? field.state.meta.errors[0]?.toString()}
+                      {(field.state.meta.errors[0] as { message?: string })?.message ?? field.state.meta.errors[0]?.toString()}
                     </p>
                   )}
                 </div>
@@ -193,7 +193,7 @@ export function RegistrationForm({ onSuccess }: RegistrationFormProps) {
                   <Input id={field.name} value={field.state.value} onBlur={field.handleBlur} onChange={(e) => field.handleChange(e.target.value)} placeholder="+1 234 567 890" className="rounded-xl h-12" />
                   {field.state.meta.errors.length > 0 && (
                     <p className="text-xs text-destructive mt-1">
-                      {(field.state.meta.errors[0] as any)?.message ?? field.state.meta.errors[0]?.toString()}
+                      {(field.state.meta.errors[0] as { message?: string })?.message ?? field.state.meta.errors[0]?.toString()}
                     </p>
                   )}
                 </div>
@@ -211,7 +211,7 @@ export function RegistrationForm({ onSuccess }: RegistrationFormProps) {
                   <Input id={field.name} value={field.state.value} onBlur={field.handleBlur} onChange={(e) => field.handleChange(e.target.value)} placeholder="Managing Partner" className="rounded-xl h-12" />
                   {field.state.meta.errors.length > 0 && (
                     <p className="text-xs text-destructive mt-1">
-                      {(field.state.meta.errors[0] as any)?.message ?? field.state.meta.errors[0]?.toString()}
+                      {(field.state.meta.errors[0] as { message?: string })?.message ?? field.state.meta.errors[0]?.toString()}
                     </p>
                   )}
                 </div>
@@ -224,7 +224,7 @@ export function RegistrationForm({ onSuccess }: RegistrationFormProps) {
                   <textarea id={field.name} value={field.state.value} onBlur={field.handleBlur} onChange={(e) => field.handleChange(e.target.value)} placeholder="Tell us about yourself..." className="w-full min-h-[100px] bg-background border border-input rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-primary/20" />
                   {field.state.meta.errors.length > 0 && (
                     <p className="text-xs text-destructive mt-1">
-                      {(field.state.meta.errors[0] as any)?.message ?? field.state.meta.errors[0]?.toString()}
+                      {(field.state.meta.errors[0] as { message?: string })?.message ?? field.state.meta.errors[0]?.toString()}
                     </p>
                   )}
                 </div>
