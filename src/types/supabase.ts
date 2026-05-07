@@ -88,10 +88,13 @@ export interface Database {
           commitment_confirmed: boolean
           expectations_confirmed: boolean
           attendance_confirmed: boolean
-          status: 'pending' | 'under_review' | 'shortlisted' | 'rejected' | 'hired'
+          status: 'pending' | 'under_review' | 'shortlisted' | 'rejected' | 'hired' | 'onboarded'
           applied_at: string
           reviewed_at: string | null
           reviewed_by: string | null
+          desired_role: string | null
+          metadata: Json
+          is_archived: boolean
         }
         Insert: {
           id?: string
@@ -108,10 +111,13 @@ export interface Database {
           commitment_confirmed?: boolean
           expectations_confirmed?: boolean
           attendance_confirmed?: boolean
-          status?: 'pending' | 'under_review' | 'shortlisted' | 'rejected' | 'hired'
+          status?: 'pending' | 'under_review' | 'shortlisted' | 'rejected' | 'hired' | 'onboarded'
           applied_at?: string
           reviewed_at?: string | null
           reviewed_by?: string | null
+          desired_role?: string | null
+          metadata?: Json
+          is_archived?: boolean
         }
         Update: {
           id?: string
@@ -128,10 +134,80 @@ export interface Database {
           commitment_confirmed?: boolean
           expectations_confirmed?: boolean
           attendance_confirmed?: boolean
-          status?: 'pending' | 'under_review' | 'shortlisted' | 'rejected' | 'hired'
+          status?: 'pending' | 'under_review' | 'shortlisted' | 'rejected' | 'hired' | 'onboarded'
           applied_at?: string
           reviewed_at?: string | null
           reviewed_by?: string | null
+          desired_role?: string | null
+          metadata?: Json
+          is_archived?: boolean
+        }
+      }
+      intern_application_metrics: {
+        Row: {
+          id: string
+          application_id: string
+          evaluator_id: string | null
+          evaluator_role: string
+          metric_name: string
+          score: number | null
+          comment: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          application_id: string
+          evaluator_id?: string | null
+          evaluator_role: string
+          metric_name: string
+          score?: number | null
+          comment?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          application_id?: string
+          evaluator_id?: string | null
+          evaluator_role?: string
+          metric_name?: string
+          score?: number | null
+          comment?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      career_roles: {
+        Row: {
+          id: string
+          slug: string
+          title: string
+          type: string
+          posted_at: string
+          total_openings: number
+          deadline: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          slug: string
+          title: string
+          type: string
+          posted_at?: string
+          total_openings?: number
+          deadline?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          slug?: string
+          title?: string
+          type?: string
+          posted_at?: string
+          total_openings?: number
+          deadline?: string | null
+          created_at?: string
         }
       }
       intern_onboarding_checklists: {
@@ -139,6 +215,7 @@ export interface Database {
           id: string
           user_id: string
           task_name: string
+          category: string | null
           is_completed: boolean
           created_at: string
         }
@@ -146,6 +223,7 @@ export interface Database {
           id?: string
           user_id: string
           task_name: string
+          category?: string | null
           is_completed?: boolean
           created_at?: string
         }
@@ -153,6 +231,7 @@ export interface Database {
           id?: string
           user_id?: string
           task_name?: string
+          category?: string | null
           is_completed?: boolean
           created_at?: string
         }
@@ -290,6 +369,8 @@ export interface Database {
           message: string
           category: string
           status: string
+          resolved_by: string | null
+          closed_at: string | null
           created_at: string
         }
         Insert: {
@@ -299,6 +380,8 @@ export interface Database {
           message: string
           category: string
           status?: string
+          resolved_by?: string | null
+          closed_at?: string | null
           created_at?: string
         }
         Update: {
@@ -308,7 +391,44 @@ export interface Database {
           message?: string
           category?: string
           status?: string
+          resolved_by?: string | null
+          closed_at?: string | null
           created_at?: string
+        }
+      }
+      corporate_policies: {
+        Row: {
+          id: string
+          title: string
+          category: string
+          version: string
+          status: 'draft' | 'active' | 'archived'
+          content: string
+          effective_date: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          title: string
+          category: string
+          version?: string
+          status?: 'draft' | 'active' | 'archived'
+          content: string
+          effective_date?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          title?: string
+          category?: string
+          version?: string
+          status?: 'draft' | 'active' | 'archived'
+          content?: string
+          effective_date?: string
+          created_at?: string
+          updated_at?: string
         }
       }
       team_members: {
@@ -391,33 +511,39 @@ export interface Database {
           id: string
           title: string
           description: string | null
-          assigned_to: string
-          assigned_by: string
-          status: 'pending' | 'in_progress' | 'completed' | 'blocked'
+          user_id: string | null
+          assigned_to: string | null
+          assigned_by: string | null
+          status: 'pending' | 'in_progress' | 'completed' | 'blocked' | 'Todo'
           priority: 'Low' | 'Medium' | 'High' | 'Urgent'
           due_date: string | null
+          proof_of_work: string | null
           created_at: string
         }
         Insert: {
           id?: string
           title: string
           description?: string | null
-          assigned_to: string
-          assigned_by: string
-          status?: 'pending' | 'in_progress' | 'completed' | 'blocked'
+          user_id?: string | null
+          assigned_to?: string | null
+          assigned_by?: string | null
+          status?: 'pending' | 'in_progress' | 'completed' | 'blocked' | 'Todo'
           priority?: 'Low' | 'Medium' | 'High' | 'Urgent'
           due_date?: string | null
+          proof_of_work?: string | null
           created_at?: string
         }
         Update: {
           id?: string
           title?: string
           description?: string | null
-          assigned_to?: string
-          assigned_by?: string
-          status?: 'pending' | 'in_progress' | 'completed' | 'blocked'
+          user_id?: string | null
+          assigned_to?: string | null
+          assigned_by?: string | null
+          status?: 'pending' | 'in_progress' | 'completed' | 'blocked' | 'Todo'
           priority?: 'Low' | 'Medium' | 'High' | 'Urgent'
           due_date?: string | null
+          proof_of_work?: string | null
           created_at?: string
         }
       }
@@ -499,6 +625,41 @@ export interface Database {
           created_at?: string
         }
       }
+      career_testimonials: {
+        Row: {
+          id: string
+          name: string
+          role: string
+          image: string | null
+          linkedin: string | null
+          content: string
+          size: string
+          rating: number
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          role: string
+          image?: string | null
+          linkedin?: string | null
+          content: string
+          size?: string
+          rating?: number
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          role?: string
+          image?: string | null
+          linkedin?: string | null
+          content?: string
+          size?: string
+          rating?: number
+          created_at?: string
+        }
+      }
       announcements: {
         Row: {
           id: string
@@ -522,6 +683,223 @@ export interface Database {
           content?: string
           type?: string
           author_id?: string | null
+          created_at?: string
+        }
+      }
+      user_progress: {
+        Row: {
+          user_id: string
+          module_name: string
+          step_index: number
+          is_completed: boolean
+          updated_at: string
+        }
+        Insert: {
+          user_id: string
+          module_name?: string
+          step_index: number
+          is_completed?: boolean
+          updated_at?: string
+        }
+        Update: {
+          user_id?: string
+          module_name?: string
+          step_index?: number
+          is_completed?: boolean
+          updated_at?: string
+        }
+      }
+      user_settings: {
+        Row: {
+          user_id: string
+          theme: string
+          notification_prefs: Json
+          updated_at: string
+        }
+        Insert: {
+          user_id: string
+          theme?: string
+          notification_prefs?: Json
+          updated_at?: string
+        }
+        Update: {
+          user_id?: string
+          theme?: string
+          notification_prefs?: Json
+          updated_at?: string
+        }
+      }
+      community_posts: {
+        Row: {
+          id: string
+          user_id: string | null
+          founder_name: string
+          company_name: string
+          content: string
+          category: string
+          type: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id?: string | null
+          founder_name: string
+          company_name: string
+          content: string
+          category: string
+          type?: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string | null
+          founder_name?: string
+          company_name?: string
+          content?: string
+          category?: string
+          type?: string
+          created_at?: string
+        }
+      }
+      ai_services: {
+        Row: {
+          id: string
+          title_key: string
+          description_key: string
+          type_key: string
+          icon_name: string
+          status: string
+          created_at: string
+        }
+        Insert: {
+          id: string
+          title_key: string
+          description_key: string
+          type_key: string
+          icon_name: string
+          status?: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          title_key?: string
+          description_key?: string
+          type_key?: string
+          icon_name?: string
+          status?: string
+          created_at?: string
+        }
+      }
+      tenders: {
+        Row: {
+          id: string
+          agency: string
+          title: string
+          sector: string
+          location: string
+          value: string | null
+          value_text: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          agency: string
+          title: string
+          sector: string
+          location: string
+          value?: string | null
+          value_text?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          agency?: string
+          title?: string
+          sector?: string
+          location?: string
+          value?: string | null
+          value_text?: string | null
+          created_at?: string
+        }
+      }
+      gtm_templates: {
+        Row: {
+          id: string
+          type: string
+          title_key: string
+          content_template: string
+          created_at: string
+        }
+        Insert: {
+          id: string
+          type: string
+          title_key: string
+          content_template: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          type?: string
+          title_key?: string
+          content_template?: string
+          created_at?: string
+        }
+      }
+      microai_interest: {
+        Row: {
+          id: string
+          user_id: string | null
+          revenue_band: string
+          data_readiness: string
+          interested_capabilities: string[]
+          comments: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id?: string | null
+          revenue_band: string
+          data_readiness: string
+          interested_capabilities: string[]
+          comments?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string | null
+          revenue_band?: string
+          data_readiness?: string
+          interested_capabilities?: string[]
+          comments?: string | null
+          created_at?: string
+        }
+      }
+      mentorship_bookings: {
+        Row: {
+          id: string
+          mentee_id: string | null
+          mentor_name: string
+          expertise: string
+          scheduled_at: string
+          status: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          mentee_id?: string | null
+          mentor_name: string
+          expertise: string
+          scheduled_at: string
+          status?: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          mentee_id?: string | null
+          mentor_name?: string
+          expertise?: string
+          scheduled_at?: string
+          status?: string
           created_at?: string
         }
       }
@@ -606,6 +984,35 @@ export interface Database {
           last_ping?: string
         }
       }
+      schemes: {
+        Row: {
+          id: string
+          title: string
+          description: string
+          subsidy: string | null
+          category: string | null
+          url: string | null
+          created_at: string
+        }
+        Insert: {
+          id: string
+          title: string
+          description: string
+          subsidy?: string | null
+          category?: string | null
+          url?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          title?: string
+          description?: string
+          subsidy?: string | null
+          category?: string | null
+          url?: string | null
+          created_at?: string
+        }
+      }
     }
     Views: {
       [_ in never]: never
@@ -622,6 +1029,12 @@ export interface Database {
           user_id: string
         }
         Returns: number
+      }
+      check_user_status: {
+        Args: {
+          target_email: string
+        }
+        Returns: string
       }
     }
     Enums: {

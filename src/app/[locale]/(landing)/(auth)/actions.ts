@@ -9,18 +9,19 @@ import { redirect } from "next/navigation";
  */
 export async function activateHiredUser(email: string, password: string) {
   const supabase = await createServiceClient();
+  const lowerEmail = email.toLowerCase();
 
-  // 1. Verify they are hired/onboarded in our registry
-  const { data: application, error: fetchError } = await supabase
-    .from("intern_applications")
-    .select("id, status")
-    .eq("email", email.toLowerCase())
-    .in("status", ["hired", "onboarded"])
-    .single();
+  // 1. Verify activation eligibility via centralized status check
+  const { data: status, error: statusError } = await supabase.rpc('check_user_status', { 
+    target_email: lowerEmail 
+  });
 
-  if (fetchError || !application) {
-    console.error("Activation failed: Not found in hired registry", email);
-    return { success: false, error: "Email not found in recruitment registry. Please contact support." };
+  if (statusError || status !== 'needs_activation') {
+    console.error("Activation blocked: Invalid status or error", { email: lowerEmail, status, statusError });
+    return { 
+      success: false, 
+      error: "This account is not eligible for activation. Please ensure you have received an invitation or board approval." 
+    };
   }
 
   // 2. Check if auth user exists
@@ -69,5 +70,5 @@ export async function activateHiredUser(email: string, password: string) {
 export async function signOut() {
   const supabase = await createClient();
   await supabase.auth.signOut();
-  redirect("/");
 }
+

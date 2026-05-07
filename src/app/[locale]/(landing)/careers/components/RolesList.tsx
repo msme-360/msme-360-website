@@ -60,21 +60,36 @@ export default function RolesList({ roles, onBack, locale }: RolesListProps) {
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: idx * 0.05 }}
-                className="glass-card p-6 flex flex-col gap-6 group hover:border-primary/40 transition-all cursor-pointer h-full"
+                className={`glass-card p-6 flex flex-col gap-6 group transition-all h-full ${
+                  (role.total_openings ?? 0) <= 0 
+                    ? "opacity-60 grayscale-[0.5] cursor-not-allowed border-red-500/10" 
+                    : "hover:border-primary/40 cursor-pointer"
+                }`}
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-5">
-                    <div className="w-12 h-12 rounded-xl bg-primary/5 flex items-center justify-center text-primary group-hover:bg-primary/10 transition-all">
+                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all ${
+                      (role.total_openings ?? 0) <= 0 ? "bg-red-500/5 text-red-500/50" : "bg-primary/5 text-primary group-hover:bg-primary/10"
+                    }`}>
                       <Icon className="w-6 h-6" />
                     </div>
                     <div>
-                      <h3 className="font-bold text-lg mb-1">{role.title}</h3>
+                      <h3 className="font-bold text-lg mb-1 flex items-center gap-2">
+                        {role.title}
+                        {(role.total_openings ?? 0) <= 0 && (
+                          <Badge variant="destructive" className="text-[8px] h-4 px-1.5 uppercase tracking-tighter bg-red-500/10 text-red-500 border-red-500/20">
+                            Closed
+                          </Badge>
+                        )}
+                      </h3>
                       <Badge variant="secondary" className="text-[10px] uppercase tracking-wider h-5">
                         {role.department}
                       </Badge>
                     </div>
                   </div>
-                  <ArrowRight className="w-5 h-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
+                  <ArrowRight className={`w-5 h-5 transition-all ${
+                    (role.total_openings ?? 0) <= 0 ? "text-muted-foreground/20" : "text-muted-foreground group-hover:text-primary group-hover:translate-x-1"
+                  }`} />
                 </div>
 
                 <div className="grid grid-cols-3 gap-2 pt-4 border-t border-white/5">
@@ -90,7 +105,9 @@ export default function RolesList({ roles, onBack, locale }: RolesListProps) {
                     <span className="text-[10px] uppercase tracking-widest text-muted-foreground flex items-center gap-1">
                       <Users className="w-3 h-3" /> Openings
                     </span>
-                    <span className="text-xs font-bold">{role.total_openings || 1}</span>
+                    <span className={`text-xs font-bold ${(role.total_openings ?? 0) <= 0 ? "text-red-500" : ""}`}>
+                      {(role.total_openings ?? 0) <= 0 ? "Closed" : role.total_openings}
+                    </span>
                   </div>
                   <div className="flex flex-col gap-1">
                     <span className="text-[10px] uppercase tracking-widest text-muted-foreground flex items-center gap-1">
