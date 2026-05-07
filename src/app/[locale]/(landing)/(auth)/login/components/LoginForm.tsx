@@ -221,7 +221,7 @@ export function LoginForm({ locale }: LoginFormProps) {
         {step === "activate" && (
           <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-4">
             <div className="p-4 bg-primary/5 border border-primary/20 rounded-2xl">
-              <p className="text-sm font-bold text-primary">Board Approval Detected</p>
+              <p className="text-sm font-bold text-primary">Corporate Approval Detected</p>
               <p className="text-[11px] text-muted-foreground mt-1">Initialize your corporate access by setting a secure password.</p>
             </div>
             <form.Field name="password">

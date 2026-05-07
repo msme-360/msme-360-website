@@ -30,7 +30,8 @@ export default async function RolePage({
   if (!dbRole && !staticRole) notFound();
 
   // Merge DB data into static role if available
-  const { ...staticRest } = staticRole || {};
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { icon: _, ...staticRest } = (staticRole || {}) as { [key: string]: any };
   const roleData = {
     ...staticRest,
     ...dbRole,

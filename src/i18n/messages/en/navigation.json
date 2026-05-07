@@ -265,6 +265,11 @@
       "workforce": "Personnel Dept",
       "performance": "Growth Metrics",
       "finance": "Treasury"
+    },
+    "footer": {
+      "plan": "Current Plan",
+      "status": "Startup Pro"
     }
   }
 }
+
