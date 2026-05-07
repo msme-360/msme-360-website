@@ -13,6 +13,152 @@ import {
 } from "@/components/ui/dropdown-menu";
 import Link from "next/link";
 import { format } from "date-fns";
+import { useState } from "react";
+import { ScheduleMeetDialog } from "./ScheduleMeetDialog";
+import { Video } from "lucide-react";
+
+const ActionsCell = ({ 
+  row, 
+  userRole, 
+  isArchiveView, 
+  onStatusUpdate, 
+  onHire, 
+  onArchive, 
+  onRestore 
+}: { 
+  row: { original: Applicant }, 
+  userRole: string, 
+  isArchiveView?: boolean, 
+  onStatusUpdate: (id: string, status: string) => void, 
+  onHire: (id: string) => void, 
+  onArchive: (id: string) => void, 
+  onRestore?: (id: string) => void 
+}) => {
+  const app = row.original;
+  const [showScheduleDialog, setShowScheduleDialog] = useState(false);
+  const linkedinLink = Array.isArray(app.links) ? app.links.find((l: { label?: string; url?: string }) => l.label?.toLowerCase().includes('linkedin')) : undefined;
+
+  return (
+    <div className="flex items-center justify-end gap-2">
+      <Button variant="ghost" size="sm" className="h-8 text-xs text-primary hover:bg-primary/10" asChild>
+        <Link href={`/${userRole === 'super_admin' ? 'admin/hiring' : `internal/hiring/${userRole}`}/${app.id}`}>
+          View Profile
+        </Link>
+      </Button>
+
+      {!isArchiveView && app.status === 'pending' && (userRole === 'recruiter' || userRole === 'super_admin') && (
+        <div className="flex items-center gap-1">
+          <Button
+            size="icon"
+            variant="ghost"
+            className="h-8 w-8 text-yellow-500"
+            onClick={() => onStatusUpdate(app.id, 'shortlisted')}
+            title="Shortlist"
+            disabled={userRole === 'recruiter' && isArchiveView}
+          >
+            <Star className="w-4 h-4" />
+          </Button>
+        </div>
+      )}
+
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="icon" className="h-8 w-8">
+            <MoreVertical className="w-4 h-4 text-muted-foreground" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="glass-card border-white/10">
+          {!isArchiveView && (userRole === 'recruiter' || userRole === 'hr_manager' || userRole === 'super_admin') && (
+            <>
+              <DropdownMenuItem 
+                className="text-xs text-primary font-bold gap-2 focus:bg-primary/10"
+                onClick={() => setShowScheduleDialog(true)}
+              >
+                <Video className="w-3.5 h-3.5" /> Schedule Meet
+              </DropdownMenuItem>
+              <DropdownMenuSeparator className="bg-white/5" />
+            </>
+          )}
+          {linkedinLink && (
+            <DropdownMenuItem className="text-xs gap-2" asChild>
+              <Link href={linkedinLink.url || ''} target="_blank" rel="noopener noreferrer">
+                <Linkedin className="w-3.5 h-3.5" /> LinkedIn
+              </Link>
+            </DropdownMenuItem>
+          )}
+          <DropdownMenuItem className="text-xs gap-2" asChild>
+            <Link href={`mailto:${app.email || ''}`}>
+              <Mail className="w-3.5 h-3.5" /> Send Email
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuSeparator className="bg-white/5" />
+          {!isArchiveView && app.status !== 'hired' && app.status !== 'onboarded' && (userRole === 'hr_manager' || userRole === 'super_admin') && (
+            <DropdownMenuItem 
+              className="text-xs text-emerald-500 font-bold gap-2 focus:bg-emerald-500/10"
+              onClick={() => onHire(app.id)}
+            >
+              <UserPlus className="w-3.5 h-3.5" /> Finalize Hiring
+            </DropdownMenuItem>
+          )}
+          {!isArchiveView && app.status !== 'hired' && app.status !== 'onboarded' && (
+            <>
+              {app.status !== 'shortlisted' && (
+                <DropdownMenuItem 
+                  className="text-xs text-yellow-500 gap-2"
+                  onClick={() => onStatusUpdate(app.id, 'shortlisted')}
+                  disabled={userRole === 'recruiter'}
+                >
+                  <Star className="w-3.5 h-3.5" /> Shortlist
+                </DropdownMenuItem>
+              )}
+              {app.status !== 'under_review' && (
+                <DropdownMenuItem 
+                  className="text-xs text-purple-500 gap-2"
+                  onClick={() => onStatusUpdate(app.id, 'under_review')}
+                  disabled={userRole === 'recruiter'}
+                >
+                  <FileSearch className="w-3.5 h-3.5" /> Under Review
+                </DropdownMenuItem>
+              )}
+              <DropdownMenuSeparator className="bg-white/5" />
+              <DropdownMenuItem 
+                className="text-xs text-red-500 gap-2"
+                onClick={() => onStatusUpdate(app.id, 'rejected')}
+                disabled={userRole === 'recruiter'}
+              >
+                <X className="w-3.5 h-3.5" /> Reject Application
+              </DropdownMenuItem>
+            </>
+          )}
+          
+          {!isArchiveView && (
+            <DropdownMenuItem 
+              className="text-xs text-muted-foreground gap-2"
+              onClick={() => onArchive(app.id)}
+            >
+              <Archive className="w-3.5 h-3.5" /> Archive
+            </DropdownMenuItem>
+          )}
+          
+          {isArchiveView && (
+            <DropdownMenuItem 
+              className="text-xs text-emerald-500 gap-2"
+              onClick={() => onRestore?.(app.id)}
+            >
+              <ArchiveRestore className="w-3.5 h-3.5" /> Restore
+            </DropdownMenuItem>
+          )}
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      <ScheduleMeetDialog 
+        applicant={app}
+        isOpen={showScheduleDialog}
+        onOpenChange={setShowScheduleDialog}
+      />
+    </div>
+  );
+};
 
 export const getHiringColumns = (
   userRole: string,
@@ -114,113 +260,16 @@ export const getHiringColumns = (
   {
     id: "actions",
     header: () => <div className="text-right">Actions</div>,
-    cell: ({ row }) => {
-      const app = row.original;
-      const linkedinLink = Array.isArray(app.links) ? app.links.find(l => l.label?.toLowerCase().includes('linkedin')) : undefined;
-
-      return (
-        <div className="flex items-center justify-end gap-2">
-          <Button variant="ghost" size="sm" className="h-8 text-xs text-primary hover:bg-primary/10" asChild>
-            <Link href={`/${userRole === 'super_admin' ? 'admin/hiring' : `internal/hiring/${userRole}`}/${app.id}`}>
-              View Profile
-            </Link>
-          </Button>
-
-          {!isArchiveView && app.status === 'pending' && (userRole === 'recruiter' || userRole === 'super_admin') && (
-            <div className="flex items-center gap-1">
-              <Button
-                size="icon"
-                variant="ghost"
-                className="h-8 w-8 text-yellow-500"
-                onClick={() => onStatusUpdate(app.id, 'shortlisted')}
-                title="Shortlist"
-                disabled={userRole === 'recruiter' && isArchiveView}
-              >
-                <Star className="w-4 h-4" />
-              </Button>
-            </div>
-          )}
-
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
-                <MoreVertical className="w-4 h-4 text-muted-foreground" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="glass-card border-white/10">
-              {linkedinLink && (
-                <DropdownMenuItem className="text-xs gap-2" asChild>
-                  <Link href={linkedinLink.url || ''} target="_blank" rel="noopener noreferrer">
-                    <Linkedin className="w-3.5 h-3.5" /> LinkedIn
-                  </Link>
-                </DropdownMenuItem>
-              )}
-              <DropdownMenuItem className="text-xs gap-2" asChild>
-                <Link href={`mailto:${app.email || ''}`}>
-                  <Mail className="w-3.5 h-3.5" /> Send Email
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator className="bg-white/5" />
-              {!isArchiveView && app.status !== 'hired' && app.status !== 'onboarded' && (userRole === 'hr_manager' || userRole === 'super_admin') && (
-                <DropdownMenuItem 
-                  className="text-xs text-emerald-500 font-bold gap-2 focus:bg-emerald-500/10"
-                  onClick={() => onHire(app.id)}
-                >
-                  <UserPlus className="w-3.5 h-3.5" /> Finalize Hiring
-                </DropdownMenuItem>
-              )}
-              {!isArchiveView && app.status !== 'hired' && app.status !== 'onboarded' && (
-                <>
-                  {app.status !== 'shortlisted' && (
-                    <DropdownMenuItem 
-                      className="text-xs text-yellow-500 gap-2"
-                      onClick={() => onStatusUpdate(app.id, 'shortlisted')}
-                      disabled={userRole === 'recruiter'}
-                    >
-                      <Star className="w-3.5 h-3.5" /> Shortlist
-                    </DropdownMenuItem>
-                  )}
-                  {app.status !== 'under_review' && (
-                    <DropdownMenuItem 
-                      className="text-xs text-purple-500 gap-2"
-                      onClick={() => onStatusUpdate(app.id, 'under_review')}
-                      disabled={userRole === 'recruiter'}
-                    >
-                      <FileSearch className="w-3.5 h-3.5" /> Under Review
-                    </DropdownMenuItem>
-                  )}
-                  <DropdownMenuSeparator className="bg-white/5" />
-                  <DropdownMenuItem 
-                    className="text-xs text-red-500 gap-2"
-                    onClick={() => onStatusUpdate(app.id, 'rejected')}
-                    disabled={userRole === 'recruiter'}
-                  >
-                    <X className="w-3.5 h-3.5" /> Reject Application
-                  </DropdownMenuItem>
-                </>
-              )}
-              
-              {!isArchiveView && (
-                <DropdownMenuItem 
-                  className="text-xs text-muted-foreground gap-2"
-                  onClick={() => onArchive(app.id)}
-                >
-                  <Archive className="w-3.5 h-3.5" /> Archive
-                </DropdownMenuItem>
-              )}
-              
-              {isArchiveView && (
-                <DropdownMenuItem 
-                  className="text-xs text-emerald-500 gap-2"
-                  onClick={() => onRestore?.(app.id)}
-                >
-                  <ArchiveRestore className="w-3.5 h-3.5" /> Restore
-                </DropdownMenuItem>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      );
-    },
+    cell: ({ row }) => (
+      <ActionsCell 
+        row={row} 
+        userRole={userRole} 
+        isArchiveView={isArchiveView}
+        onStatusUpdate={onStatusUpdate}
+        onHire={onHire}
+        onArchive={onArchive}
+        onRestore={onRestore}
+      />
+    ),
   },
 ];

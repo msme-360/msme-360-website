@@ -1119,6 +1119,76 @@ export async function restoreApplication(id: string) {
 }
 
 /**
+ * Schedules an interview and generates a Google Meet link.
+ * Updates the application metadata with the interview details.
+ */
+export async function scheduleInterview(applicationId: string, date: string, time: string) {
+  const verifiedUser = await getUser();
+  if (!verifiedUser) return { success: false, error: "Unauthorized" };
+
+  const supabase = await createServiceClient();
+
+  // 1. Verify authority (Recruiter, HR Manager, or Super Admin)
+  const { data: profile } = await supabase.from('profiles').select('role').eq('id', verifiedUser.id).single();
+  
+  if (!['recruiter', 'hr_manager', 'super_admin'].includes(profile?.role || '')) {
+    return { success: false, error: "Insufficient authority to schedule meetings." };
+  }
+
+  // 2. Fetch current application to merge metadata
+  const { data: application, error: fetchError } = await supabase
+    .from("intern_applications")
+    .select("metadata, full_name, role")
+    .eq("id", applicationId)
+    .single();
+
+  if (fetchError || !application) return { success: false, error: "Application not found" };
+
+  // 3. Generate a "Professional Placeholder" GMeet Link
+  // In a production environment, this would call the Google Calendar API
+  const meetingCode = Math.random().toString(36).substring(2, 5) + "-" + 
+                     Math.random().toString(36).substring(2, 6) + "-" + 
+                     Math.random().toString(36).substring(2, 5);
+  const meetLink = `https://meet.google.com/${meetingCode}`;
+
+  // 4. Update Metadata
+  const newMetadata = {
+    ...(application.metadata || {}),
+    interview_date: date,
+    interview_time: time,
+    meet_link: meetLink,
+    scheduled_at: new Date().toISOString(),
+    scheduled_by: verifiedUser.id
+  };
+
+  const { error: updateError } = await supabase
+    .from("intern_applications")
+    .update({ 
+      metadata: newMetadata,
+      status: 'under_review' // Automatically move to under review if scheduled
+    })
+    .eq("id", applicationId);
+
+  if (updateError) {
+    console.error("Error scheduling interview:", updateError);
+    return { success: false, error: updateError.message };
+  }
+
+  // 5. Log Action
+  await logSystemAction(
+    "INTERVIEW_SCHEDULED", 
+    `Interview scheduled for ${application.full_name} (${application.role}) on ${date} at ${time}`, 
+    'success', 
+    verifiedUser.id
+  );
+
+  revalidatePath("/[locale]/admin/hiring", "page");
+  revalidatePath("/[locale]/internal/hiring", "layout");
+  
+  return { success: true, meetLink };
+}
+
+/**
  * POLICY & COMPLIANCE ACTIONS
  */
 export async function getPolicies() {

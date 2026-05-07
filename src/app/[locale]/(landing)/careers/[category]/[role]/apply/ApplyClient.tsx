@@ -16,8 +16,9 @@ import TermsSection from "./components/TermsSection";
 import PersonalInfoSection from "./components/PersonalInfoSection";
 import EducationSection from "./components/EducationSection";
 import AvailabilitySection from "./components/AvailabilitySection";
+import { Badge } from "@/components/ui/badge";
 
-export default function ApplyClient({ roleSlug }: { roleSlug: string }) {
+export default function ApplyClient({ roleSlug, initialRoleData }: { roleSlug: string, initialRoleData?: any }) {
   const params = useParams();
   const locale = params?.locale as string || "en";
 
@@ -27,7 +28,7 @@ export default function ApplyClient({ roleSlug }: { roleSlug: string }) {
   const [links, setLinks] = useState<LinkEntry[]>([{ label: "Resume", url: "" }]);
   const [availabilityDate, setAvailabilityDate] = useState<Date>();
 
-  const role = CAREER_ROLES.find(r => r.slug === roleSlug);
+  const role = initialRoleData || CAREER_ROLES.find(r => r.slug === roleSlug);
 
   if (!role) return null;
 
@@ -101,11 +102,19 @@ export default function ApplyClient({ roleSlug }: { roleSlug: string }) {
       setLoading(false);
       return;
     }
+
+    if (role.total_openings <= 0) {
+      setError("Applications for this position are now closed.");
+      setLoading(false);
+      return;
+    }
+
     const data = {
       full_name: formData.get("full_name") as string,
       email: formData.get("email") as string,
       phone: formData.get("phone") as string,
       role: role.title,
+      role_slug: role.slug,
       experience_level,
       university,
       degree,
@@ -152,52 +161,80 @@ export default function ApplyClient({ roleSlug }: { roleSlug: string }) {
               <Rocket className="w-32 h-32 text-primary" />
             </div>
             <CardHeader className="pb-8 border-b border-white/5">
-              <div className="inline-flex items-center gap-2 px-2 py-0.5 rounded-full bg-primary/10 border border-primary/20 text-[10px] font-bold text-primary mb-4 uppercase tracking-widest">
-                {role.slug === 'general' ? 'Talent Pool' : 'Internship Application'}
+              <div className="flex items-center justify-between">
+                <div className="inline-flex items-center gap-2 px-2 py-0.5 rounded-full bg-primary/10 border border-primary/20 text-[10px] font-bold text-primary mb-4 uppercase tracking-widest">
+                  {role.slug === 'general' ? 'Talent Pool' : 'Internship Application'}
+                </div>
+                {role.total_openings <= 0 && (
+                  <Badge className="bg-red-500/10 text-red-500 border-red-500/20 text-[10px] uppercase font-bold px-3 py-1">
+                    Applications Closed
+                  </Badge>
+                )}
               </div>
               <CardTitle className="text-3xl font-display font-bold">Apply for {role.title}</CardTitle>
               <CardDescription className="text-muted-foreground text-base">
-                {role.slug === 'general'
-                  ? "Don't see a role? Join our talent pool to stay updated on future opportunities."
-                  : "Join MSME 360 and build products that empower millions of businesses."}
+                {role.total_openings <= 0 
+                  ? "We've received an overwhelming response and this position is currently closed. You can still apply to our General Talent Pool."
+                  : role.slug === 'general'
+                    ? "Don't see a role? Join our talent pool to stay updated on future opportunities."
+                    : "Join MSME 360 and build products that empower millions of businesses."}
               </CardDescription>
             </CardHeader>
 
             <CardContent className="pt-10">
-              <form onSubmit={handleSubmit} className="space-y-10">
-                <PersonalInfoSection isGeneral={role.slug === 'general'} />
-                <EducationSection />
-                <AvailabilitySection date={availabilityDate} setDate={setAvailabilityDate} />
-
-                <LinkFormSection
-                  links={links}
-                  addLink={addLink}
-                  removeLink={removeLink}
-                  updateLinkLabel={updateLinkLabel}
-                  updateLinkUrl={updateLinkUrl}
-                />
-
-                <TermsSection />
-
-                {error && (
-                  <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-xs text-red-500 flex items-center gap-3">
-                    <Info className="w-4 h-4" />
-                    {error}
+              {role.total_openings <= 0 ? (
+                <div className="text-center py-20 space-y-6">
+                  <div className="w-20 h-20 bg-red-500/5 rounded-full flex items-center justify-center mx-auto border border-red-500/10">
+                    <Info className="w-10 h-10 text-red-500/50" />
                   </div>
-                )}
+                  <div className="space-y-2">
+                    <h3 className="text-xl font-bold">Registration Closed</h3>
+                    <p className="text-muted-foreground max-w-sm mx-auto">
+                      Thank you for your interest. All available slots for this role have been filled.
+                    </p>
+                  </div>
+                  <Link href={`/${locale}/careers/internships/general`}>
+                    <Button variant="outline" className="mt-4 border-primary/20 hover:bg-primary/5">
+                      Apply to Talent Pool instead
+                    </Button>
+                  </Link>
+                </div>
+              ) : (
+                <form onSubmit={handleSubmit} className="space-y-10">
+                  <PersonalInfoSection isGeneral={role.slug === 'general'} />
+                  <EducationSection />
+                  <AvailabilitySection date={availabilityDate} setDate={setAvailabilityDate} />
 
-                <Button type="submit" disabled={loading} className="w-full font-bold shadow-glow h-14 text-lg">
-                  {loading ? (
-                    <div className="flex items-center gap-2">
-                      <Loader2 className="w-5 h-5 animate-spin" /> Processing...
+                  <LinkFormSection
+                    links={links}
+                    addLink={addLink}
+                    removeLink={removeLink}
+                    updateLinkLabel={updateLinkLabel}
+                    updateLinkUrl={updateLinkUrl}
+                  />
+
+                  <TermsSection />
+
+                  {error && (
+                    <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-xs text-red-500 flex items-center gap-3">
+                      <Info className="w-4 h-4" />
+                      {error}
                     </div>
-                  ) : (
-                    <span className="flex items-center gap-2">
-                      Complete Application <Rocket className="w-5 h-5 ml-2" />
-                    </span>
                   )}
-                </Button>
-              </form>
+
+                  <Button type="submit" disabled={loading} className="w-full font-bold shadow-glow h-14 text-lg">
+                    {loading ? (
+                      <div className="flex items-center gap-2">
+                        <Loader2 className="w-5 h-5 animate-spin" /> Processing...
+                      </div>
+                    ) : (
+                      <span className="flex items-center gap-2">
+                        Complete Application <Rocket className="w-5 h-5 ml-2" />
+                      </span>
+                    )}
+                  </Button>
+                </form>
+              )}
             </CardContent>
           </Card>
         </motion.div>
