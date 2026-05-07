@@ -30,7 +30,7 @@ export default async function RolePage({
   if (!dbRole && !staticRole) notFound();
 
   // Merge DB data into static role if available
-  const { ...staticRest } = staticRole || {};
+  const { icon: _, ...staticRest } = (staticRole || {}) as { [key: string]:  };
   const roleData = {
     ...staticRest,
     ...dbRole,

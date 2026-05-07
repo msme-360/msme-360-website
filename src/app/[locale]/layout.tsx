@@ -12,6 +12,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { notFound } from 'next/navigation';
 import { locales } from '@/i18n/settings';
 import { Toaster } from "@/components/ui/sonner";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 export function generateStaticParams() {
   return locales.map((locale) => ({ locale }));
@@ -102,6 +104,8 @@ export default async function RootLayout({
                     </ConditionalNavigation>
                   </Suspense>
                   <Toaster position="top-left" richColors closeButton />
+                  <Analytics />
+                  <SpeedInsights />
                 </ThemeProvider>
               </QueryProvider>
             </AuthProvider>
