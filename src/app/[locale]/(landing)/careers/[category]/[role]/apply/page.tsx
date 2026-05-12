@@ -1,6 +1,6 @@
 import { setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
-import { CAREER_ROLES } from '@/lib/roles';
+import { CareerRole, CAREER_ROLES } from '@/lib/roles';
 import ApplyClient from './ApplyClient';
 import { getCareerRole } from '../../../actions';
 
@@ -28,8 +28,7 @@ export default async function ApplyPage(props: { params: Promise<{ locale: strin
 
   // Merge DB data into static role if available
   // Omit icon component as it cannot be serialized
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { icon: _, ...staticRest } = staticRole || {} as any;
+  const { icon: _, ...staticRest } = (staticRole || {}) as Partial<CareerRole>;
   const roleData = {
     ...staticRest,
     ...dbRole,

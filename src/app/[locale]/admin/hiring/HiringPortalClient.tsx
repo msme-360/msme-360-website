@@ -1,11 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { 
   updateApplicationStatus, onboardIntern, 
   archiveApplication, restoreApplication, 
-  getApplicants
+  getApplicants, getGoogleConnectionUrl, linkGoogleAccount,
+  disconnectGoogleAccount
 } from "@/app/[locale]/admin/actions";
 import { DashboardProfile } from "@/types/dashboard";
 import { Applicant } from "./components/HiringTypes";
@@ -15,7 +17,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ApplicantTable from "./components/ApplicantTable";
 import CareerRoleManager from "./components/CareerRoleManager";
 import { useTranslations } from "next-intl";
-import { Briefcase, Users, Archive as ArchiveIcon } from "lucide-react";
+import { Briefcase, Users, Archive as ArchiveIcon, Calendar } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface HiringPortalClientProps {
   initialApplicants: Applicant[];
@@ -24,8 +27,9 @@ interface HiringPortalClientProps {
   role: string;
 }
 
-export function HiringPortalClient({ initialApplicants, subView, role }: HiringPortalClientProps) {
+export function HiringPortalClient({ initialApplicants, subView, role, profile }: HiringPortalClientProps) {
   const t = useTranslations("Hiring");
+  const router = useRouter();
   const [applicants, setApplicants] = useState<Applicant[]>(initialApplicants);
   const [archivedApplicants, setArchivedApplicants] = useState<Applicant[]>([]);
   const [loadingId, setLoadingId] = useState<string | null>(null);
@@ -33,9 +37,62 @@ export function HiringPortalClient({ initialApplicants, subView, role }: HiringP
   const [onboardingTab] = useState("active");
   const [hasFetchedArchived, setHasFetchedArchived] = useState(false);
 
+  const hasLinked = useRef(false);
+
   useEffect(() => {
-    // Initial fetch for mentors not needed here anymore as management moved to Profile View
-  }, []);
+    // Handle Google OAuth callback
+    const urlParams = new URLSearchParams(window.location.search);
+    const code = urlParams.get('code');
+    
+    if (code && !hasLinked.current) {
+      hasLinked.current = true;
+      const linkAccount = async () => {
+        const parts = window.location.pathname.split('/');
+        const hiringIndex = parts.indexOf('hiring');
+        const stablePath = parts.slice(0, hiringIndex + 2).join('/');
+        const redirectUri = window.location.origin + stablePath;
+        const res = await linkGoogleAccount(code, redirectUri);
+        if (res.success) {
+          toast.success("Google Calendar connected successfully!");
+          // Clean up URL
+          window.history.replaceState({}, document.title, window.location.pathname);
+          // Force refresh server data
+          router.refresh();
+        } else {
+          toast.error(res.error || "Failed to connect Google Calendar");
+          hasLinked.current = false; // Allow retry if it failed
+        }
+      };
+      linkAccount();
+    }
+  }, [router]);
+
+  const handleGoogleConnect = async () => {
+    if (isGoogleConnected) {
+      const res = await disconnectGoogleAccount();
+      if (res.success) {
+        toast.success("Google Calendar disconnected");
+        window.location.reload(); // Refresh to update profile metadata state
+      } else {
+        toast.error(res.error || "Failed to disconnect");
+      }
+      return;
+    }
+
+    const parts = window.location.pathname.split('/');
+    const hiringIndex = parts.indexOf('hiring');
+    const stablePath = parts.slice(0, hiringIndex + 2).join('/');
+    const redirectUri = window.location.origin + stablePath;
+    console.log("Connect Gmail - Sending Redirect URI:", redirectUri);
+    const res = await getGoogleConnectionUrl(redirectUri);
+    if (res.url) {
+      window.location.href = res.url;
+    } else {
+      toast.error("Google Integration not configured on server.");
+    }
+  };
+
+  const isGoogleConnected = (profile.metadata as Record<string, unknown>)?.google_tokens;
 
   const handleStatusUpdate = async (id: string, status: string) => {
     if (role === 'recruiter' && (status === 'hired' || status === 'onboarded')) {
@@ -167,34 +224,55 @@ export function HiringPortalClient({ initialApplicants, subView, role }: HiringP
           hiredCount={applicants.filter(a => a.status === 'hired' || a.status === 'onboarded').length}
         />
 
-        <Tabs value={currentTab} className="w-full" onValueChange={(v) => {
+        <Tabs value={currentTab} className="w-full flex flex-col" onValueChange={(v) => {
           setCurrentTab(v);
           if (v === 'archived') fetchArchived();
         }}>
           <div className="flex items-center justify-between mb-8 border-b border-white/10 pb-4">
-            <TabsList className="bg-white/5 p-1 rounded-xl border border-white/10 h-11">
-              <TabsTrigger 
-                value="active" 
-                className="gap-2 text-xs font-bold uppercase tracking-widest px-6 data-[state=active]:bg-primary/20 data-[state=active]:text-primary transition-all"
+            <div className="flex items-center gap-4">
+              <Button 
+                variant="outline" 
+                onClick={handleGoogleConnect}
+                className={`h-11 px-6 rounded-xl border-white/10 gap-2 text-[10px] font-black uppercase tracking-widest transition-all ${
+                  isGoogleConnected ? 'bg-green-500/10 text-green-400 border-green-500/20' : 'bg-white/5 hover:bg-white/10'
+                }`}
               >
-                <Users className="w-3.5 h-3.5" />
-                Active Pipeline
-              </TabsTrigger>
-              <TabsTrigger 
-                value="roles" 
-                className="gap-2 text-xs font-bold uppercase tracking-widest px-6 data-[state=active]:bg-indigo-500/20 data-[state=active]:text-indigo-400 transition-all"
-              >
-                <Briefcase className="w-3.5 h-3.5" />
-                Recruitment Manager
-              </TabsTrigger>
-              <TabsTrigger 
-                value="archived" 
-                className="gap-2 text-xs font-bold uppercase tracking-widest px-6 data-[state=active]:bg-amber-500/20 data-[state=active]:text-amber-500 transition-all"
-              >
-                <ArchiveIcon className="w-3.5 h-3.5" />
-                Archived
-              </TabsTrigger>
-            </TabsList>
+                {isGoogleConnected ? (
+                  <>
+                    <Calendar className="w-3.5 h-3.5" />
+                    Disconnect Gmail
+                  </>
+                ) : (
+                  <>
+                    <Calendar className="w-3.5 h-3.5" />
+                    Connect Gmail
+                  </>
+                )}
+              </Button>
+              <TabsList className="bg-white/5 p-1 rounded-xl border border-white/10 h-11">
+                <TabsTrigger 
+                  value="active" 
+                  className="gap-2 text-xs font-bold uppercase tracking-widest px-6 data-[state=active]:bg-primary/20 data-[state=active]:text-primary transition-all"
+                >
+                  <Users className="w-3.5 h-3.5" />
+                  Active Pipeline
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="roles" 
+                  className="gap-2 text-xs font-bold uppercase tracking-widest px-6 data-[state=active]:bg-indigo-500/20 data-[state=active]:text-indigo-400 transition-all"
+                >
+                  <Briefcase className="w-3.5 h-3.5" />
+                  Recruitment Manager
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="archived" 
+                  className="gap-2 text-xs font-bold uppercase tracking-widest px-6 data-[state=active]:bg-amber-500/20 data-[state=active]:text-amber-500 transition-all"
+                >
+                  <ArchiveIcon className="w-3.5 h-3.5" />
+                  Archived
+                </TabsTrigger>
+              </TabsList>
+            </div>
           </div>
 
           <TabsContent value="active" className="mt-0 outline-none">
@@ -208,6 +286,7 @@ export function HiringPortalClient({ initialApplicants, subView, role }: HiringP
               userRole={role}
               isArchiveView={false}
               loading={loadingId === 'fetching-active'}
+              isGoogleConnected={!!isGoogleConnected}
             />
           </TabsContent>
 
@@ -226,6 +305,7 @@ export function HiringPortalClient({ initialApplicants, subView, role }: HiringP
               userRole={role}
               isArchiveView={true}
               loading={loadingId === 'fetching-archived'}
+              isGoogleConnected={!!isGoogleConnected}
             />
           </TabsContent>
         </Tabs>

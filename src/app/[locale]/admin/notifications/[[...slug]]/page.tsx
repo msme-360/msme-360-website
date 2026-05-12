@@ -28,7 +28,7 @@ async function AdminNotificationsContent({
   const user = await getUser();
 
   if (!user) {
-    redirect(`/${locale}/auth/login`);
+    redirect(`/${locale}/login`);
   }
 
   const [profile, initialNotifications] = await Promise.all([
@@ -83,3 +83,4 @@ function NotificationsSkeleton() {
     </div>
   );
 }
+

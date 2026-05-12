@@ -13,7 +13,7 @@ export default async function DashboardPage({
   const user = await getUser();
 
   if (!user) {
-    redirect(`/${locale}/auth/login`);
+    redirect(`/${locale}/login`);
   }
 
   const profile = await getProfile(user.id);
@@ -28,3 +28,4 @@ export default async function DashboardPage({
     </div>
   );
 }
+

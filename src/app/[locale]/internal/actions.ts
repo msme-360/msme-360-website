@@ -301,30 +301,20 @@ export async function updateChecklistItem(itemId: string, isCompleted: boolean) 
 export async function getPerformanceData(userId: string) {
   const supabase = await createServiceClient();
 
-  // 1. Get official metrics
-  const { data: metrics } = await supabase
-    .from('performance_metrics')
-    .select('*')
-    .eq('user_id', userId)
-    .order('created_at', { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  // 2. Get task stats (complementary)
-  const { data: tasks } = await supabase
-    .from('tasks')
-    .select('status')
-    .eq('assigned_to', userId);
-
+  // 1. Fetch all primary data points in parallel to reduce RTT
+  const [
+    { data: metrics }, 
+    { data: tasks }, 
+    { data: attendance }
+  ] = await Promise.all([
+    supabase.from('performance_metrics').select('*').eq('user_id', userId).order('created_at', { ascending: false }).limit(1).maybeSingle(),
+    supabase.from('tasks').select('status').eq('assigned_to', userId),
+    supabase.from('attendance_logs').select('check_in').eq('user_id', userId)
+  ]);
+  
   const totalTasks = tasks?.length || 0;
   const completedTasks = tasks?.filter(t => t.status === 'completed').length || 0;
   const inProgressTasks = tasks?.filter(t => t.status === 'in_progress').length || 0;
-
-  // 3. Get attendance stats
-  const { data: attendance } = await supabase
-    .from('attendance_logs')
-    .select('check_in')
-    .eq('user_id', userId);
 
   const logs = attendance || [];
   const onTimeCheckins = logs.filter(log => {
@@ -437,4 +427,30 @@ export async function getPlatformMetrics(category?: string) {
   const { data, error } = await query.order('label', { ascending: true });
   if (error) return [];
   return data || [];
+}
+
+/**
+ * FORMAL EVALUATION ACTIONS
+ */
+export async function savePerformanceEvaluation(data: {
+  user_id: string;
+  reviewer_id: string;
+  productivity_score: number;
+  quality_score: number;
+  leadership_score: number;
+  comments: string;
+  period_start: string;
+  period_end: string;
+}) {
+  const supabase = await createServiceClient();
+  const { error } = await supabase.from('performance_metrics').insert(data);
+
+  if (error) {
+    console.error("Error saving evaluation:", error);
+    return { success: false, error: error.message };
+  }
+
+  revalidatePath('/[locale]/internal/manager', 'page');
+  revalidatePath('/[locale]/internal/associate', 'page');
+  return { success: true };
 }

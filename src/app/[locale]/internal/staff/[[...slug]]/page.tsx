@@ -25,7 +25,7 @@ async function StaffPortalContent({
 }) {
   const { locale, slug } = await params;
   const user = await getUser();
-  if (!user) redirect(`/${locale}/auth/login`);
+  if (!user) redirect(`/${locale}/login`);
 
   const profile = await getProfile(user.id);
   const userRole = profile?.role || "user";
@@ -63,3 +63,4 @@ function StaffPortalSkeleton() {
     </div>
   );
 }
+
