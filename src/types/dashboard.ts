@@ -18,6 +18,7 @@ export interface DashboardProfile {
   establishedDate?: string;
   manager_id?: string;
   created_at?: string;
+  metadata?: Record<string, unknown>;
 }
 
 export interface DashboardMetric {

@@ -14,7 +14,7 @@ export function LogoutButton({ label }: { label: string }) {
     try {
       await signOut();
       toast.success(t("logoutSuccess"));
-    } catch (_error) {
+    } catch {
       toast.error(t("logoutError"));
     }
   };

@@ -54,7 +54,7 @@ export function GovernanceClient({ initialResolutions, initialMetrics, nicCodes,
             const Icon = ICON_MAP[m.label] || ShieldCheck;
             return (
               <motion.div
-                key={m.label}
+                key={`${m.label}-${i}`}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.1 }}

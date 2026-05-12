@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useTransition } from "react";
+import { useState, useEffect, useTransition, useCallback } from "react";
 import { CareerRole } from "@/lib/roles";
 import { getCareerRoles, saveCareerRole, deleteCareerRole } from "@/app/[locale]/admin/actions";
 import { Button } from "@/components/ui/button";
@@ -22,16 +22,18 @@ export default function CareerRoleManager() {
   const [editOpen, setEditOpen] = useState(false);
   const [selectedRole, setSelectedRole] = useState<Partial<CareerRole> | null>(null);
 
-  const fetchRoles = async () => {
+  const fetchRoles = useCallback(async () => {
     const data = await getCareerRoles();
     setRoles(data);
     setLoading(false);
-  };
+  }, []);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    fetchRoles();
-  }, []);
+    const init = async () => {
+      await fetchRoles();
+    };
+    init();
+  }, [fetchRoles]);
 
   const handleSave = async () => {
     if (!selectedRole?.title || !selectedRole?.slug) {

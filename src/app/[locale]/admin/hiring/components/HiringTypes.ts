@@ -10,6 +10,8 @@ export interface Applicant {
   applied_at: string;
   is_archived: boolean;
   metadata?: Record<string, unknown>;
+  reviewed_by?: string;
+  reviewer_name?: string;
 }
 
 export interface HiringStats {

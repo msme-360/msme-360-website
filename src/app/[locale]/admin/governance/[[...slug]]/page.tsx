@@ -27,7 +27,7 @@ async function GovernancePortalContent({
 }) {
   const { locale, slug } = await params;
   const user = await getAuthUser();
-  if (!user) redirect(`/${locale}/auth/login`);
+  if (!user) redirect(`/${locale}/login`);
 
   const profile = await getProfileDirect(user.id);
   const userRole = profile?.role || "user";
@@ -77,3 +77,4 @@ function GovernancePortalSkeleton() {
     </div>
   );
 }
+

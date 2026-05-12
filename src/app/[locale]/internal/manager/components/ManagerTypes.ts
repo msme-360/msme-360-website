@@ -5,6 +5,7 @@ export interface Task {
   status: string;
   priority: string;
   due_date?: string;
+  assigned_to?: string;
   assigned_to_profile?: { full_name: string; avatar_url?: string };
 }
 

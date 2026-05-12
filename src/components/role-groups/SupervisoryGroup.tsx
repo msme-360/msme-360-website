@@ -1,18 +1,19 @@
-﻿"use client";
+"use client";
 
 import { Suspense } from "react";
 import dynamic from "next/dynamic";
 import { AdminViewWrapper } from "@/components/layout/AdminViewWrapper";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DashboardMetric } from "@/types/dashboard";
+import type { TeamMember } from "@/components/roles/level-3-5-supervisory/team_lead/MentorshipOversight";
 
 // Dynamic imports for supervisory role features
 const ProjectLeadPanel = dynamic<{ metrics?: DashboardMetric[] }>(() => import("@/components/roles/level-3-5-supervisory/project_lead/DeliveryPulse"), {
   loading: () => <Skeleton className="h-64 w-full rounded-3xl" />,
 });
 
-const TeamLeadPanel = dynamic<{ metrics?: DashboardMetric[] }>(() => import("@/components/roles/level-3-5-supervisory/team_lead/UnitTactics"), {
-  loading: () => <Skeleton className="h-64 w-full rounded-3xl" />,
+const TeamLeadPanel = dynamic<{ metrics?: DashboardMetric[]; managedProfiles?: TeamMember[] }>(() => import("@/components/roles/level-3-5-supervisory/team_lead/MentorshipOversight"), {
+  loading: () => <Skeleton className="h-[500px] w-full rounded-3xl" />,
 });
 
 const SupervisorPanel = dynamic<{ metrics?: DashboardMetric[] }>(() => import("@/components/roles/level-3-5-supervisory/supervisor/ShiftHub"), {
@@ -27,9 +28,10 @@ interface SupervisoryGroupProps {
   role: string;
   subView?: string;
   metrics?: DashboardMetric[];
+  managedProfiles?: TeamMember[];
 }
 
-export function SupervisoryGroup({ role, subView, metrics = [] }: SupervisoryGroupProps) {
+export function SupervisoryGroup({ role, subView, metrics = [], managedProfiles = [] }: SupervisoryGroupProps) {
   if (subView) {
     const subViewTitles: Record<string, string> = {
       inspection: "Site Inspection Hub",
@@ -71,7 +73,7 @@ export function SupervisoryGroup({ role, subView, metrics = [] }: SupervisoryGro
       <div className="space-y-10">
         <Suspense fallback={<Skeleton className="h-96 w-full rounded-3xl" />}>
           {role === 'project_lead' && <ProjectLeadPanel metrics={metrics} />}
-          {role === 'team_lead' && <TeamLeadPanel metrics={metrics} />}
+          {role === 'team_lead' && <TeamLeadPanel metrics={metrics} managedProfiles={managedProfiles} />}
           {role === 'supervisor' && <SupervisorPanel metrics={metrics} />}
           {role === 'coordinator' && <CoordinatorPanel metrics={metrics} />}
           {!['project_lead', 'team_lead', 'supervisor', 'coordinator'].includes(role) && (

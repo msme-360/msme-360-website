@@ -26,7 +26,7 @@ async function ManagerPortalContent({
 }) {
   const { locale, slug } = await params;
   const user = await getUser();
-  if (!user) redirect(`/${locale}/auth/login`);
+  if (!user) redirect(`/${locale}/login`);
 
   const profile = await getProfile(user.id);
   const userRole = profile?.role || "user";
@@ -59,11 +59,13 @@ async function ManagerPortalContent({
   const roleData = getRoleById(userRole);
 
   if (roleData.level === 3.5) {
+    const managedProfiles = await (await import("@/app/[locale]/dashboard/queries")).getManagedProfiles(user.id);
     return (
       <SupervisoryGroup
         role={userRole}
         subView={subView}
         metrics={metrics}
+        managedProfiles={managedProfiles}
       />
     );
   }
@@ -93,3 +95,4 @@ function ManagerPortalSkeleton() {
     </div>
   );
 }
+

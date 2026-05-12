@@ -1,7 +1,7 @@
 import { locales } from '@/i18n/settings';
 import { setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
-import { CAREER_ROLES } from '@/lib/roles';
+import { CareerRole, CAREER_ROLES } from '@/lib/roles';
 import RoleDetailClient from './RoleDetailClient';
 import { getCareerRole } from '../../actions';
 
@@ -21,17 +21,16 @@ export default async function RolePage({
 }: {
   params: Promise<{ locale: string; category: string; role: string }>;
 }) {
-  const { locale, role: roleSlug } = await params;
+  const { locale, role } = await params;
   setRequestLocale(locale);
 
-  const dbRole = await getCareerRole(roleSlug);
-  const staticRole = CAREER_ROLES.find(r => r.slug === roleSlug);
+  const dbRole = await getCareerRole(role);
+  const staticRole = CAREER_ROLES.find(r => r.slug === role);
   
   if (!dbRole && !staticRole) notFound();
 
   // Merge DB data into static role if available
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { icon: _, ...staticRest } = (staticRole || {}) as { [key: string]: any };
+  const { icon: _, ...staticRest } = (staticRole || {}) as Partial<CareerRole>;
   const roleData = {
     ...staticRest,
     ...dbRole,
