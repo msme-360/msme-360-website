@@ -1,4 +1,5 @@
 import { createServiceClient, getUser } from "@/services/supabase/supabase-server";
+import { unstable_cache } from "next/cache";
 
 export interface AdminProfile {
   id: string;
@@ -11,23 +12,27 @@ export interface AdminProfile {
 
 /**
  * Fetches all platform profiles for the Global RBAC manager.
- * Requires a verified session — returns empty array if unauthenticated.
+ * Optimized with unstable_cache.
  */
-export async function getAllProfiles(): Promise<AdminProfile[]> {
-  const verifiedUser = await getUser();
-  if (!verifiedUser) return [];
+export const getAllProfiles = unstable_cache(
+  async (): Promise<AdminProfile[]> => {
+    const verifiedUser = await getUser();
+    if (!verifiedUser) return [];
 
-  const supabase = await createServiceClient();
+    const supabase = await createServiceClient();
 
-  const { data, error } = await supabase
-    .from("profiles")
-    .select("id, full_name, email, role, department, is_verified")
-    .order("full_name", { ascending: true });
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("id, full_name, email, role, department, is_verified")
+      .order("full_name", { ascending: true });
 
-  if (error) {
-    console.error("[getAllProfiles] Error fetching profiles:", error);
-    return [];
-  }
+    if (error) {
+      console.error("[getAllProfiles] Error fetching profiles:", error);
+      return [];
+    }
 
-  return data || [];
-}
+    return data || [];
+  },
+  ['admin-profiles'],
+  { revalidate: 600, tags: ['profiles'] }
+);

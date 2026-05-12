@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { getBoardProposals, voteOnResolution } from "@/app/[locale]/admin/actions";
-import { useEffect } from "react";
+
 
 interface ResolutionProposal {
   id: string;
@@ -30,17 +30,19 @@ export default function BoardVoteInterface() {
   const [voting, setVoting] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const loadProposals = async (isInitial = false) => {
+  const loadProposals = useCallback(async (isInitial = false) => {
     if (!isInitial) setLoading(true);
     const data = await getBoardProposals();
     setProposals(data as ResolutionProposal[]);
     setLoading(false);
-  };
+  }, []);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    loadProposals(true);
-  }, []);
+    const init = async () => {
+      await loadProposals(true);
+    };
+    init();
+  }, [loadProposals]);
 
   const handleVote = async (id: string, choice: 'for' | 'against') => {
     setVoting(id);

@@ -125,20 +125,6 @@ export function AssociateClient({
   const [tasks, setTasks] = useState(initialTasks);
   const [attendance, setAttendance] = useState(initialAttendance);
   const [currentTime, setCurrentTime] = useState(new Date());
-
-  // Render-phase sync (Better than useEffect for props-to-state sync)
-  const [prevTasks, setPrevTasks] = useState(initialTasks);
-  const [prevAttendance, setPrevAttendance] = useState(initialAttendance);
-
-  if (initialTasks !== prevTasks) {
-    setTasks(initialTasks);
-    setPrevTasks(initialTasks);
-  }
-  if (initialAttendance !== prevAttendance) {
-    setAttendance(initialAttendance);
-    setPrevAttendance(initialAttendance);
-  }
-
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [comments, setComments] = useState<TaskComment[]>([]);
   const [newComment, setNewComment] = useState("");

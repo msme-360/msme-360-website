@@ -27,7 +27,7 @@ async function ProfileContent({
 }) {
   const { locale, role, applicantId } = await params;
   const user = await getUser();
-  if (!user) redirect(`/${locale}/auth/login`);
+  if (!user) redirect(`/${locale}/login`);
 
   const profile = await getProfile(user.id);
   const userRole = profile?.role || "user";
@@ -78,3 +78,4 @@ function ProfileSkeleton() {
     </div>
   );
 }
+

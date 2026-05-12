@@ -9,7 +9,7 @@ import { AdminViewWrapper } from "@/components/layout/AdminViewWrapper";
 export default async function ExecutivePerformancePage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   const user = await getAuthUser();
-  if (!user) redirect(`/${locale}/auth/login`);
+  if (!user) redirect(`/${locale}/login`);
 
   const profile = await getProfileDirect(user.id);
   const userRole = profile?.role || 'user';
@@ -31,3 +31,4 @@ export default async function ExecutivePerformancePage({ params }: { params: Pro
     </AdminViewWrapper>
   );
 }
+

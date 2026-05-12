@@ -117,7 +117,6 @@ export const ROLE_NAV_CONFIG: Record<string, (locale: string) => NavGroup[]> = {
     }
   ],
   cmo: (l) => [
-    CORE_INTELLIGENCE(l, 'cmo'),
     {
       label: "Marketing Center",
       visible: true,

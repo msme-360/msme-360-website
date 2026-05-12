@@ -41,7 +41,7 @@ async function AssociatePortalContent({
   const user = await getUser();
 
   if (!user) {
-    redirect(`/${locale}/auth/login`);
+    redirect(`/${locale}/login`);
   }
 
   const profile = await getProfile(user.id);
@@ -104,3 +104,4 @@ function AssociatePortalSkeleton() {
     </div>
   );
 }
+
