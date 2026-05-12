@@ -1,5 +1,4 @@
-import { createServiceClient, getUser } from "@/services/supabase/supabase-server";
-import { unstable_cache } from "next/cache";
+import { createServiceClient } from "@/services/supabase/supabase-server";
 
 export interface AdminProfile {
   id: string;
