@@ -24,7 +24,8 @@ const ActionsCell = ({
   onStatusUpdate, 
   onHire, 
   onArchive, 
-  onRestore 
+  onRestore,
+  isGoogleConnected
 }: { 
   row: { original: Applicant }, 
   userRole: string, 
@@ -32,7 +33,8 @@ const ActionsCell = ({
   onStatusUpdate: (id: string, status: string) => void, 
   onHire: (id: string) => void, 
   onArchive: (id: string) => void, 
-  onRestore?: (id: string) => void 
+  onRestore?: (id: string) => void,
+  isGoogleConnected?: boolean
 }) => {
   const app = row.original;
   const [showScheduleDialog, setShowScheduleDialog] = useState(false);
@@ -74,7 +76,7 @@ const ActionsCell = ({
                 className="text-xs text-primary font-bold gap-2 focus:bg-primary/10"
                 onClick={() => setShowScheduleDialog(true)}
               >
-                <Video className="w-3.5 h-3.5" /> Schedule Meet
+                <Video className="w-3.5 h-3.5" /> {(app.metadata as Record<string, unknown>)?.interview_date ? "Reschedule Meet" : "Schedule Meet"}
               </DropdownMenuItem>
               <DropdownMenuSeparator className="bg-white/5" />
             </>
@@ -155,6 +157,7 @@ const ActionsCell = ({
         applicant={app}
         isOpen={showScheduleDialog}
         onOpenChange={setShowScheduleDialog}
+        isGoogleConnected={isGoogleConnected}
       />
     </div>
   );
@@ -167,7 +170,8 @@ export const getHiringColumns = (
   onHire: (id: string) => void,
   onArchive: (id: string) => void,
   onRestore?: (id: string) => void,
-  isArchiveView?: boolean
+  isArchiveView?: boolean,
+  isGoogleConnected?: boolean
 ): ColumnDef<Applicant>[] => [
   {
     accessorKey: "full_name",
@@ -258,6 +262,37 @@ export const getHiringColumns = (
     cell: ({ row }) => <span className="text-sm text-muted-foreground">{row.original.applied_at ? format(new Date(row.original.applied_at), "MMM d, yyyy") : 'N/A'}</span>,
   },
   {
+    accessorKey: "reviewer_name",
+    header: () => <div className="font-bold text-[10px] uppercase tracking-widest text-muted-foreground">Reviewed By</div>,
+    cell: ({ row }) => {
+      const name = row.original.reviewer_name;
+      if (name === "System") return <span className="text-[10px] text-white/20 uppercase font-bold tracking-tighter">Unreviewed</span>;
+      return (
+        <div className="flex items-center gap-2">
+          <div className="w-5 h-5 rounded-full bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-[8px] font-bold text-indigo-400 uppercase">
+            {name?.split(' ').map(n => n[0]).join('')}
+          </div>
+          <span className="text-xs font-medium text-muted-foreground">{name}</span>
+        </div>
+      );
+    }
+  },
+  {
+    id: "interview",
+    header: () => <div className="font-bold text-[10px] uppercase tracking-widest text-muted-foreground">Interview</div>,
+    cell: ({ row }) => {
+      const metadata = (row.original.metadata as Record<string, unknown>) || {};
+      if (!metadata.interview_date) return <span className="text-[10px] text-white/20 uppercase font-bold tracking-tighter">Not Scheduled</span>;
+      
+      return (
+        <div className="flex flex-col gap-0.5">
+          <span className="text-xs font-bold text-primary">{format(new Date(metadata.interview_date as string), "MMM d")}</span>
+          <span className="text-[10px] text-muted-foreground">{metadata.interview_time as string}</span>
+        </div>
+      );
+    }
+  },
+  {
     id: "actions",
     header: () => <div className="text-right">Actions</div>,
     cell: ({ row }) => (
@@ -269,6 +304,7 @@ export const getHiringColumns = (
         onHire={onHire}
         onArchive={onArchive}
         onRestore={onRestore}
+        isGoogleConnected={isGoogleConnected}
       />
     ),
   },

@@ -27,7 +27,7 @@ async function IdentityPortalContent({
 }) {
   const { locale, slug } = await params;
   const user = await getAuthUser();
-  if (!user) redirect(`/${locale}/auth/login`);
+  if (!user) redirect(`/${locale}/login`);
 
   const [profile, progress, performanceData] = await Promise.all([
     getProfileDirect(user.id),
@@ -93,3 +93,4 @@ function IdentityPortalSkeleton() {
     </div>
   );
 }
+

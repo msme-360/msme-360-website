@@ -18,20 +18,28 @@ import { Calendar as CalendarIcon, Clock, Video, Loader2, CheckCircle2 } from "l
 import { cn } from "@/lib/utils";
 import { scheduleInterview } from "../../actions";
 import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
 import { Applicant } from "./HiringTypes";
 
 interface ScheduleMeetDialogProps {
   applicant: Applicant;
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
+  isGoogleConnected?: boolean;
 }
 
-export function ScheduleMeetDialog({ applicant, isOpen, onOpenChange }: ScheduleMeetDialogProps) {
+export function ScheduleMeetDialog({ 
+  applicant, 
+  isOpen, 
+  onOpenChange,
+  isGoogleConnected = false
+}: ScheduleMeetDialogProps) {
   const [date, setDate] = useState<Date>();
   const [time, setTime] = useState<string>("10:00");
   const [isScheduling, setIsScheduling] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [meetLink, setMeetLink] = useState<string>("");
+  const [isRealMeet, setIsRealMeet] = useState(false);
 
   const handleSchedule = async () => {
     if (!date) {
@@ -50,11 +58,12 @@ export function ScheduleMeetDialog({ applicant, isOpen, onOpenChange }: Schedule
       if (res.success) {
         setIsSuccess(true);
         setMeetLink(res.meetLink || "");
+        setIsRealMeet(!!res.isRealGoogleMeet);
         toast.success("Interview scheduled successfully!");
       } else {
         toast.error(res.error || "Failed to schedule interview");
       }
-    } catch (_error) {
+    } catch {
       toast.error("An unexpected error occurred");
     } finally {
       setIsScheduling(false);
@@ -67,7 +76,7 @@ export function ScheduleMeetDialog({ applicant, isOpen, onOpenChange }: Schedule
     return `${hours.toString().padStart(2, "0")}:${minutes}`;
   }).filter(t => {
     const h = parseInt(t.split(':')[0]);
-    return h >= 9 && h <= 18; // 9 AM to 6 PM
+    return h >= 9 && h <= 21 && t <= "21:00"; // 9 AM to 9 PM IST
   });
 
   return (
@@ -99,6 +108,7 @@ export function ScheduleMeetDialog({ applicant, isOpen, onOpenChange }: Schedule
 
         {isSuccess ? (
           <div className="p-8 pt-0 space-y-6 animate-in fade-in zoom-in-95 duration-500">
+            {/* ... success view ... */}
             <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-2xl p-6 flex flex-col items-center text-center gap-4">
               <div className="w-12 h-12 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-500">
                 <CheckCircle2 className="w-6 h-6" />
@@ -112,7 +122,14 @@ export function ScheduleMeetDialog({ applicant, isOpen, onOpenChange }: Schedule
             </div>
 
             <div className="space-y-2">
-              <label className="text-[10px] uppercase font-black tracking-widest text-white/30 ml-1">Generated Meet Link</label>
+              <label className="text-[10px] uppercase font-black tracking-widest text-white/30 ml-1 flex justify-between items-center">
+                <span>Generated Meet Link</span>
+                {isRealMeet && (
+                  <Badge variant="outline" className="text-[9px] h-4 bg-emerald-500/10 text-emerald-500 border-emerald-500/20 py-0 px-1.5 font-black uppercase tracking-tighter">
+                    Direct Google Meet Conference
+                  </Badge>
+                )}
+              </label>
               <div className="flex items-center gap-2">
                 <div className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs font-mono text-primary truncate">
                   {meetLink}
@@ -134,6 +151,42 @@ export function ScheduleMeetDialog({ applicant, isOpen, onOpenChange }: Schedule
             <Button className="w-full h-12 rounded-xl font-bold tracking-tight" onClick={() => onOpenChange(false)}>
               Done
             </Button>
+          </div>
+        ) : !isGoogleConnected ? (
+          <div className="p-8 pt-0 space-y-6 animate-in fade-in slide-in-from-bottom-4">
+            <div className="bg-amber-500/10 border border-amber-500/20 rounded-2xl p-6 flex flex-col items-center text-center gap-4">
+              <div className="w-12 h-12 rounded-full bg-amber-500/20 flex items-center justify-center text-amber-500">
+                <CalendarIcon className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="font-bold text-white mb-1">Google Calendar Required</h3>
+                <p className="text-xs text-white/50 leading-relaxed">
+                  To schedule interviews and generate meeting links, you must first connect your Google Account.
+                </p>
+              </div>
+            </div>
+
+            <Button 
+              className="w-full h-12 rounded-xl font-bold tracking-tight shadow-lg shadow-primary/20"
+              onClick={async () => {
+                const { getGoogleConnectionUrl } = await import("../../actions");
+                // Use a stable redirect URI (base portal path) to avoid redirect_uri_mismatch
+                const parts = window.location.pathname.split('/');
+                const hiringIndex = parts.indexOf('hiring');
+                const stablePath = parts.slice(0, hiringIndex + 2).join('/');
+                const redirectUri = window.location.origin + stablePath;
+                
+                const res = await getGoogleConnectionUrl(redirectUri);
+                if (res.url) window.location.href = res.url;
+                else toast.error("Configuration missing");
+              }}
+            >
+              Connect Gmail Account
+            </Button>
+            
+            <p className="text-[10px] text-center text-white/20">
+              One-time setup required for secure calendar access.
+            </p>
           </div>
         ) : (
           <div className="p-8 pt-0 space-y-6">

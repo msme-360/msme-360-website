@@ -32,16 +32,22 @@ export default getRequestConfig(async ({ requestLocale }) => {
     'careers'
   ];
 
-  const messages = {};
+  const messages: Record<string, unknown> = {};
 
-  // Aggregate all modules for the current locale
+  // Aggregate all modules for the current locale with deep merge to prevent namespace overwriting
   for (const segment of modules) {
     try {
       const mod = (await import(`./messages/${currentLocale}/${segment}.json`)).default;
-      Object.assign(messages, mod);
+      
+      // Deep merge logic
+      for (const key in mod) {
+        if (typeof mod[key] === 'object' && mod[key] !== null && !Array.isArray(mod[key])) {
+          messages[key] = { ...(messages[key] || {}), ...mod[key] };
+        } else {
+          messages[key] = mod[key];
+        }
+      }
     } catch (error) {
-      // Silently skip missing modules - useful for incrementally adding new translations
-      // like about.json, careers.json etc.
       console.error(`[i18n] Failed to load module ${segment} for locale ${currentLocale}:`, error);
     }
   }

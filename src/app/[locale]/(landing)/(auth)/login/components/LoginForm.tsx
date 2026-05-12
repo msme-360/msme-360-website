@@ -8,7 +8,7 @@ import { Shield, ArrowRight, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { supabase } from "@/services/supabase/supabase";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { logger } from "@/lib/logger";
 import { getRoleById } from "@/lib/constants/roles";
 import { toast } from "sonner";
@@ -40,9 +40,11 @@ export function LoginForm({ locale }: LoginFormProps) {
   const [step, setStep] = useState<LoginStep>("email");
   const [isChecking, setIsChecking] = useState(false);
 
+  const initialEmail = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('email') : null;
+
   const form = useForm({
     defaultValues: {
-      email: "",
+      email: initialEmail || "",
       password: "",
       confirmPassword: "",
     } as LoginFields,
@@ -139,6 +141,15 @@ export function LoginForm({ locale }: LoginFormProps) {
       }
     },
   });
+
+  useEffect(() => {
+    if (initialEmail && step === "email") {
+      const timer = setTimeout(() => {
+        form.handleSubmit();
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [initialEmail, step, form]);
 
   return (
     <div className="bg-background border border-border/50 rounded-3xl p-8 md:p-10 shadow-xl shadow-primary/5">

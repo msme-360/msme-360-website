@@ -1,5 +1,6 @@
 import "server-only";
 import { createServerClient } from "@supabase/ssr";
+import { createClient as createBaseClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 
 /**
@@ -43,8 +44,6 @@ export async function createClient() {
  * SESSION: Does NOT use cookies. Static administrative access only.
  */
 export async function createServiceClient() {
-  // CRITICAL SECURITY: Never use NEXT_PUBLIC_ for the service_role key.
-  // This ensures the admin key never leaks to the browser.
   const serviceRoleKey = process.env.SUPABASE_SECRET_KEY;
   
   if (!serviceRoleKey) {
@@ -53,12 +52,17 @@ export async function createServiceClient() {
   
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    serviceRoleKey!,
+    serviceRoleKey,
     {
       cookies: {
         getAll() { return []; },
         setAll() { },
       },
+      auth: {
+        persistSession: false,
+        autoRefreshToken: false,
+        detectSessionInUrl: false
+      }
     }
   );
 }

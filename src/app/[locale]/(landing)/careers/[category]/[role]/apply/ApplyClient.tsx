@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { ArrowLeft, Loader2, Info, Rocket } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { CAREER_ROLES } from "@/lib/roles";
+import { CareerRole, CAREER_ROLES } from "@/lib/roles";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { submitInternApplication, checkApplicationStatus, type InternApplicationInput } from "../../../actions";
@@ -18,7 +18,7 @@ import EducationSection from "./components/EducationSection";
 import AvailabilitySection from "./components/AvailabilitySection";
 import { Badge } from "@/components/ui/badge";
 
-export default function ApplyClient({ roleSlug, initialRoleData }: { roleSlug: string, initialRoleData?: any }) {
+export default function ApplyClient({ roleSlug, initialRoleData }: { roleSlug: string, initialRoleData?: Partial<CareerRole> }) {
   const params = useParams();
   const locale = params?.locale as string || "en";
 
@@ -103,7 +103,7 @@ export default function ApplyClient({ roleSlug, initialRoleData }: { roleSlug: s
       return;
     }
 
-    if (role.total_openings <= 0) {
+    if ((role.total_openings ?? 0) <= 0) {
       setError("Applications for this position are now closed.");
       setLoading(false);
       return;
@@ -139,7 +139,7 @@ export default function ApplyClient({ roleSlug, initialRoleData }: { roleSlug: s
   };
 
   if (success) {
-    return <SuccessState roleTitle={role.title} locale={locale} />;
+    return <SuccessState roleTitle={role.title || "Position"} locale={locale} />;
   }
 
   return (
@@ -165,7 +165,7 @@ export default function ApplyClient({ roleSlug, initialRoleData }: { roleSlug: s
                 <div className="inline-flex items-center gap-2 px-2 py-0.5 rounded-full bg-primary/10 border border-primary/20 text-[10px] font-bold text-primary mb-4 uppercase tracking-widest">
                   {role.slug === 'general' ? 'Talent Pool' : 'Internship Application'}
                 </div>
-                {role.total_openings <= 0 && (
+                {(role.total_openings ?? 0) <= 0 && (
                   <Badge className="bg-red-500/10 text-red-500 border-red-500/20 text-[10px] uppercase font-bold px-3 py-1">
                     Applications Closed
                   </Badge>
@@ -173,7 +173,7 @@ export default function ApplyClient({ roleSlug, initialRoleData }: { roleSlug: s
               </div>
               <CardTitle className="text-3xl font-display font-bold">Apply for {role.title}</CardTitle>
               <CardDescription className="text-muted-foreground text-base">
-                {role.total_openings <= 0 
+                {(role.total_openings ?? 0) <= 0 
                   ? "We've received an overwhelming response and this position is currently closed. You can still apply to our General Talent Pool."
                   : role.slug === 'general'
                     ? "Don't see a role? Join our talent pool to stay updated on future opportunities."
@@ -182,7 +182,7 @@ export default function ApplyClient({ roleSlug, initialRoleData }: { roleSlug: s
             </CardHeader>
 
             <CardContent className="pt-10">
-              {role.total_openings <= 0 ? (
+              {(role.total_openings ?? 0) <= 0 ? (
                 <div className="text-center py-20 space-y-6">
                   <div className="w-20 h-20 bg-red-500/5 rounded-full flex items-center justify-center mx-auto border border-red-500/10">
                     <Info className="w-10 h-10 text-red-500/50" />

@@ -36,7 +36,7 @@ async function DashboardLayoutInner({ children, locale }: { children: React.Reac
   const user = await getAuthUser();
 
   if (!user) {
-    redirect(`/${locale}/auth/login`);
+    redirect(`/${locale}/login`);
   }
 
   const profile = await getProfile(user.id);
@@ -65,3 +65,4 @@ async function DashboardLayoutInner({ children, locale }: { children: React.Reac
     </DashboardClientLayer>
   );
 }
+

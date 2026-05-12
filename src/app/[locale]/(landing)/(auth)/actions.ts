@@ -1,7 +1,6 @@
 "use server";
 
 import { createServiceClient, createClient } from "@/services/supabase/supabase-server";
-import { redirect } from "next/navigation";
 
 /**
  * Activates a hired intern's account by setting their password.
@@ -44,6 +43,9 @@ export async function activateHiredUser(email: string, password: string) {
       console.error("Activation failed: Update error", updateError);
       return { success: false, error: updateError.message };
     }
+
+    // Update profile verification status
+    await supabase.from('profiles').update({ is_verified: true }).eq('id', existingUser.id);
   } else {
     // If they don't exist, create them
     const { error: createError } = await supabase.auth.admin.createUser({

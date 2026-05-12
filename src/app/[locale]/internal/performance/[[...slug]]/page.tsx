@@ -25,7 +25,7 @@ async function PerformanceContent({
 }) {
   const { locale, slug } = await params;
   const user = await getUser();
-  if (!user) redirect(`/${locale}/auth/login`);
+  if (!user) redirect(`/${locale}/login`);
 
   const [profile, performanceData, trendData] = await Promise.all([
     getProfile(user.id, user.email || ""),
@@ -74,3 +74,4 @@ function PerformanceSkeleton() {
     </div>
   );
 }
+

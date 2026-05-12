@@ -44,7 +44,7 @@ async function AdminLayoutInner({
   ]);
 
   if (!user) {
-    redirect(`/${locale}/auth/login`);
+    redirect(`/${locale}/login`);
   }
 
   const userRole = profileResult?.role || 'user';
@@ -98,3 +98,4 @@ async function AdminLayoutInner({
     </SidebarProvider>
   );
 }
+
