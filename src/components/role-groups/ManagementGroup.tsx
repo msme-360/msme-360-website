@@ -5,13 +5,14 @@ import dynamic from "next/dynamic";
 import { AdminViewWrapper } from "@/components/layout/AdminViewWrapper";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DashboardMetric } from "@/types/dashboard";
+import { TrendData } from "@/components/roles/level-3-management/recruiter/RecruitmentTrends";
 
 // Dynamic imports for management role features
-const RecruiterPanel = dynamic<{ metrics?: DashboardMetric[], trends?: any[] }>(() => import("@/components/roles/level-3-management/recruiter/RecruiterPanel"), {
+const RecruiterPanel = dynamic<{ metrics?: DashboardMetric[], trends?: TrendData[] }>(() => import("@/components/roles/level-3-management/recruiter/RecruiterPanel"), {
   loading: () => <Skeleton className="h-64 w-full rounded-3xl" />,
 });
 
-const HRManagerPanel = dynamic<{ metrics?: DashboardMetric[], trends?: any[] }>(() => import("@/components/roles/level-3-management/hr_manager/TalentStrategy"), {
+const HRManagerPanel = dynamic<{ metrics?: DashboardMetric[], trends?: TrendData[] }>(() => import("@/components/roles/level-3-management/hr_manager/TalentStrategy"), {
   loading: () => <Skeleton className="h-64 w-full rounded-3xl" />,
 });
 
@@ -32,10 +33,10 @@ interface ManagementGroupProps {
   role: string;
   subView?: string;
   metrics?: DashboardMetric[];
-  trends?: any[];
+  trends?: TrendData[];
 }
 
-export function ManagementGroup({ role, subView, metrics = [], trends = [] }: ManagementGroupProps) {
+export function ManagementGroup({ role, subView, metrics = [], trends = [] as TrendData[] }: ManagementGroupProps) {
   if (subView) {
     const subViewTitles: Record<string, string> = {
       sla: "SLA Tracker",

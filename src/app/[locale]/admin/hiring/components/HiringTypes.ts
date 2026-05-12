@@ -9,7 +9,9 @@ export interface Applicant {
   status: 'pending' | 'under_review' | 'shortlisted' | 'rejected' | 'hired' | 'onboarded';
   applied_at: string;
   is_archived: boolean;
-  metadata?: any;
+  metadata?: Record<string, unknown>;
+  reviewed_by?: string;
+  reviewer_name?: string;
 }
 
 export interface HiringStats {

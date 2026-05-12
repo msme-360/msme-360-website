@@ -55,13 +55,13 @@ interface Policy {
 }
 
 interface PolicyClientProps {
-  initialPolicies: any[];
-  userRole: string;
+  initialPolicies: Policy[];
+  userRole?: string;
   subView?: string;
 }
 
-export function PolicyClient({ initialPolicies, userRole, subView }: PolicyClientProps) {
-  const [policies, setPolicies] = useState<Policy[]>(initialPolicies as any);
+export function PolicyClient({ initialPolicies }: PolicyClientProps) {
+  const [policies, setPolicies] = useState<Policy[]>(initialPolicies);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isViewOpen, setIsViewOpen] = useState(false);
   const [selectedPolicy, setSelectedPolicy] = useState<Policy | null>(null);
@@ -153,7 +153,7 @@ export function PolicyClient({ initialPolicies, userRole, subView }: PolicyClien
     },
   ];
 
-  const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
     const formData = new FormData(e.currentTarget);
@@ -168,7 +168,7 @@ export function PolicyClient({ initialPolicies, userRole, subView }: PolicyClien
       effective_date: formData.get("effective_date") as string,
     };
 
-    const res = await upsertPolicy(policyData as any);
+    const res = await upsertPolicy(policyData);
     if (res.success) {
       toast.success(selectedPolicy ? "Policy updated" : "Policy created");
       setPolicies(prev => {

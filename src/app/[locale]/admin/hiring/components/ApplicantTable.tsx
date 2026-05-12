@@ -20,6 +20,7 @@ interface ApplicantTableProps {
   activeTab?: string;
   onTabChange?: (value: string) => void;
   loading?: boolean;
+  isGoogleConnected?: boolean;
 }
 
 export default function ApplicantTable({ 
@@ -33,7 +34,8 @@ export default function ApplicantTable({
   isArchiveView,
   activeTab,
   onTabChange,
-  loading 
+  loading,
+  isGoogleConnected
 }: ApplicantTableProps) {
   const columns = getHiringColumns(
     userRole,
@@ -42,7 +44,8 @@ export default function ApplicantTable({
     onHire, 
     onArchive, 
     onRestore, 
-    isArchiveView
+    isArchiveView,
+    isGoogleConnected
   );
 
   return (

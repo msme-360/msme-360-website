@@ -14,36 +14,19 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { AdminViewWrapper } from "@/components/layout/AdminViewWrapper";
 import { formatDistanceToNow } from "date-fns";
-import { Database } from "@/types/supabase";
 import { STARTUP_ROLES } from "@/lib/constants/roles";
 import { DashboardProfile } from "@/types/dashboard";
 
-export interface BoardResolution {
-  id: string;
-  title: string;
-  level: string;
-  status: string;
-  created_at: string;
-  profiles: {
-    full_name: string | null;
-  } | null;
-}
+import { SystemHealth, BoardResolution, GovernanceMetric, NICCode } from "@/types/governance";
 
-export interface GovernanceMetric {
-  label: string;
-  value: string;
-  change: string;
-  status: string;
-}
 
-export type NICCode = Database['public']['Tables']['nic_codes']['Row'];
 
 export interface GovernanceClientProps {
   profile?: DashboardProfile;
   initialResolutions: BoardResolution[];
   initialMetrics: GovernanceMetric[];
   nicCodes: NICCode[];
-  health?: any[];
+  health?: SystemHealth[];
   framework?: { title: string; progress: number; status: string }[];
   role?: string;
 }
@@ -71,7 +54,7 @@ export function GovernanceClient({ initialResolutions, initialMetrics, nicCodes,
             const Icon = ICON_MAP[m.label] || ShieldCheck;
             return (
               <motion.div
-                key={m.label}
+                key={`${m.label}-${i}`}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.1 }}

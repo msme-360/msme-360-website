@@ -124,18 +124,25 @@ export async function getAvailableMentorshipSlots() {
 export async function getProfile(userId: string, userEmail?: string): Promise<DashboardProfile> {
   try {
     const supabase = await createServiceClient();
+    
+    // Explicitly select existing columns to avoid "missing metadata column" error
     const { data, error } = await supabase
       .from('profiles')
-      .select('*')
+      .select('id, full_name, email, role, department, designation, career_level, company_name, avatar_url, is_verified, phone, bio, linkedin_url, manager_id, created_at, updated_at')
       .eq('id', userId)
       .single();
 
     if (error && error.code !== 'PGRST116') throw error;
 
+    // Fetch auth user metadata as the source of truth for dynamic metadata (like tokens)
+    const { data: { user } } = await supabase.auth.admin.getUserById(userId);
+    const authMetadata = user?.user_metadata || {};
+
     const defaults: DashboardProfile = {
       id: userId,
       email: userEmail,
-      role: 'user'
+      role: 'user',
+      metadata: authMetadata
     };
 
     if (!data) return defaults;
@@ -145,7 +152,7 @@ export async function getProfile(userId: string, userEmail?: string): Promise<Da
       data.role = data.role.toLowerCase();
     }
 
-    return { ...defaults, ...data } as DashboardProfile;
+    return { ...defaults, ...data, metadata: authMetadata } as DashboardProfile;
   } catch (error) {
     logger.error("getProfile error", "queries.ts", error);
     return {
@@ -261,18 +268,36 @@ export async function getGTMCampaigns(userId: string) {
   }
 }
 
+export async function getManagedProfiles(managerId: string) {
+  try {
+    const supabase = await createServiceClient();
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('id, full_name, email, role, department, designation, career_level, avatar_url, is_verified, created_at')
+      .eq('manager_id', managerId)
+      .order('full_name');
+
+    if (error) throw error;
+    return data || [];
+  } catch (error) {
+    logger.error("getManagedProfiles error", "queries.ts", error);
+    return [];
+  }
+}
+
 export async function getTeamMembers(userId: string) {
   try {
     const supabase = await createServiceClient();
     const { data, error } = await supabase
       .from('team_members')
       .select('*')
-      .eq('user_id', userId);
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
 
     if (error) throw error;
     return data || [];
   } catch (error) {
-    logger.warn("Falling back to mock team members", "queries.ts", { error });
+    logger.error("getTeamMembers error", "queries.ts", error);
     return [];
   }
 }
@@ -320,7 +345,7 @@ export async function getRecruitmentMetrics() {
 
     if (error) throw error;
 
-    const counts = (apps || []).reduce((acc: Record<string, number>, app: any) => {
+    const counts = (apps || []).reduce((acc: Record<string, number>, app: { status: string }) => {
       acc[app.status] = (acc[app.status] || 0) + 1;
       return acc;
     }, {});
@@ -346,7 +371,7 @@ export async function getRecruitmentTrends() {
 
     if (error) throw error;
 
-    const dailyData = (apps || []).reduce((acc: Record<string, any>, app: any) => {
+    const dailyData = (apps || []).reduce((acc: Record<string, { name: string, applicants: number, shortlisted: number }>, app: { applied_at: string, status: string }) => {
       const date = new Date(app.applied_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
       if (!acc[date]) acc[date] = { name: date, applicants: 0, shortlisted: 0 };
       acc[date].applicants++;

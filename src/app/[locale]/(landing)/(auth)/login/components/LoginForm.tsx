@@ -8,7 +8,7 @@ import { Shield, ArrowRight, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { supabase } from "@/services/supabase/supabase";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { logger } from "@/lib/logger";
 import { getRoleById } from "@/lib/constants/roles";
 import { toast } from "sonner";
@@ -19,7 +19,7 @@ import { LoginFields, LoginStep } from "../../components/AuthTypes";
 
 const loginSchema = z.object({
   email: z.email("Invalid work email address"),
-  password: z.string().min(6, "Password must be at least 6 characters").optional().or(z.literal("")),
+  password: z.string().min(8, "Password must be at least 8 characters").optional().or(z.literal("")),
   confirmPassword: z.string().optional().or(z.literal("")),
 }).refine((data) => {
   if (data.confirmPassword && data.password !== data.confirmPassword) {
@@ -40,9 +40,11 @@ export function LoginForm({ locale }: LoginFormProps) {
   const [step, setStep] = useState<LoginStep>("email");
   const [isChecking, setIsChecking] = useState(false);
 
+  const initialEmail = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('email') : null;
+
   const form = useForm({
     defaultValues: {
-      email: "",
+      email: initialEmail || "",
       password: "",
       confirmPassword: "",
     } as LoginFields,
@@ -140,6 +142,15 @@ export function LoginForm({ locale }: LoginFormProps) {
     },
   });
 
+  useEffect(() => {
+    if (initialEmail && step === "email") {
+      const timer = setTimeout(() => {
+        form.handleSubmit();
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [initialEmail, step, form]);
+
   return (
     <div className="bg-background border border-border/50 rounded-3xl p-8 md:p-10 shadow-xl shadow-primary/5">
       <div className="text-center mb-8">
@@ -175,7 +186,7 @@ export function LoginForm({ locale }: LoginFormProps) {
                   />
                   {field.state.meta.errors.length > 0 && (
                     <p className="text-xs text-destructive mt-1">
-                      {(field.state.meta.errors[0] as any)?.message ?? field.state.meta.errors[0]?.toString()}
+                      {(field.state.meta.errors[0] as { message?: string })?.message ?? field.state.meta.errors[0]?.toString()}
                     </p>
                   )}
                 </div>
@@ -209,7 +220,7 @@ export function LoginForm({ locale }: LoginFormProps) {
                   />
                   {field.state.meta.errors.length > 0 && (
                     <p className="text-xs text-destructive mt-1">
-                      {(field.state.meta.errors[0] as any)?.message ?? field.state.meta.errors[0]?.toString()}
+                      {(field.state.meta.errors[0] as { message?: string })?.message ?? field.state.meta.errors[0]?.toString()}
                     </p>
                   )}
                 </div>
@@ -221,7 +232,7 @@ export function LoginForm({ locale }: LoginFormProps) {
         {step === "activate" && (
           <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-4">
             <div className="p-4 bg-primary/5 border border-primary/20 rounded-2xl">
-              <p className="text-sm font-bold text-primary">Board Approval Detected</p>
+              <p className="text-sm font-bold text-primary">Corporate Approval Detected</p>
               <p className="text-[11px] text-muted-foreground mt-1">Initialize your corporate access by setting a secure password.</p>
             </div>
             <form.Field name="password">
@@ -239,7 +250,7 @@ export function LoginForm({ locale }: LoginFormProps) {
                   />
                   {field.state.meta.errors.length > 0 && (
                     <p className="text-xs text-destructive mt-1">
-                      {(field.state.meta.errors[0] as any)?.message ?? field.state.meta.errors[0]?.toString()}
+                      {(field.state.meta.errors[0] as { message?: string })?.message ?? field.state.meta.errors[0]?.toString()}
                     </p>
                   )}
                 </div>
@@ -259,7 +270,7 @@ export function LoginForm({ locale }: LoginFormProps) {
                   />
                   {field.state.meta.errors.length > 0 && (
                     <p className="text-xs text-destructive mt-1">
-                      {(field.state.meta.errors[0] as any)?.message ?? field.state.meta.errors[0]?.toString()}
+                      {(field.state.meta.errors[0] as { message?: string })?.message ?? field.state.meta.errors[0]?.toString()}
                     </p>
                   )}
                 </div>

@@ -73,7 +73,7 @@ export function VPGroup({ profile, role, subView, metrics = [] }: VPGroupProps) 
       <div className="space-y-10">
         <WelcomeHeader
           profile={profile}
-          t={tStaff}
+          t={tStaff as (key: string, values?: Record<string, unknown>) => string}
           roleName={role.replace("_", " ").toUpperCase()}
         />
 

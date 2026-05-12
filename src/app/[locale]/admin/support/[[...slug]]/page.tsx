@@ -1,6 +1,6 @@
 import { getUser as getAuthUser } from "@/services/supabase/supabase-server";
 import { getProfile as getProfileDirect } from "@/app/[locale]/dashboard/queries";
-import { SupportClient } from "../SupportClient";
+import { SupportClient, type SupportTicket } from "../SupportClient";
 import { hasPermission } from "@/lib/constants/roles";
 import { getSupportTickets } from "../../actions";
 import { RestrictedAccess } from "@/components/auth/RestrictedAccess";
@@ -27,7 +27,7 @@ async function SupportPortalContent({
 }) {
   const { locale, slug } = await params;
   const user = await getAuthUser();
-  if (!user) redirect(`/${locale}/auth/login`);
+  if (!user) redirect(`/${locale}/login`);
   
   const profile = await getProfileDirect(user.id);
   const userRole = profile?.role || "user";
@@ -39,7 +39,6 @@ async function SupportPortalContent({
   }
 
   const requestedRole = slug?.[0];
-  const subView = slug?.[1];
   
   // 1. Role Silo Check
   if (!requestedRole) {
@@ -54,8 +53,7 @@ async function SupportPortalContent({
 
   return (
     <SupportClient 
-      initialTickets={initialTickets as any}
-      subView={subView}
+      initialTickets={initialTickets as unknown as SupportTicket[]}
     />
   );
 }
@@ -74,3 +72,4 @@ function SupportPortalSkeleton() {
     </div>
   );
 }
+

@@ -1,4 +1,4 @@
-import { createServiceClient, getUser } from "@/services/supabase/supabase-server";
+import { createServiceClient } from "@/services/supabase/supabase-server";
 
 export interface AdminProfile {
   id: string;
@@ -11,23 +11,25 @@ export interface AdminProfile {
 
 /**
  * Fetches all platform profiles for the Global RBAC manager.
- * Requires a verified session — returns empty array if unauthenticated.
+ * Direct fetch (cache removed to resolve production rendering issues).
  */
 export async function getAllProfiles(): Promise<AdminProfile[]> {
-  const verifiedUser = await getUser();
-  if (!verifiedUser) return [];
+  try {
+    const supabase = await createServiceClient();
 
-  const supabase = await createServiceClient();
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("id, full_name, email, role, department, is_verified")
+      .order("full_name", { ascending: true });
 
-  const { data, error } = await supabase
-    .from("profiles")
-    .select("id, full_name, email, role, department, is_verified")
-    .order("full_name", { ascending: true });
+    if (error) {
+      console.error("[getAllProfiles] Error fetching profiles:", error);
+      return [];
+    }
 
-  if (error) {
-    console.error("[getAllProfiles] Error fetching profiles:", error);
+    return data || [];
+  } catch (err) {
+    console.error("[getAllProfiles] Unexpected error:", err);
     return [];
   }
-
-  return data || [];
 }

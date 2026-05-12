@@ -1,6 +1,7 @@
 import { getUser as getAuthUser } from "@/services/supabase/supabase-server";
 import { getProfile as getProfileDirect } from "@/app/[locale]/dashboard/queries";
-import { TechnicalPortalClient, type SysStat, type ServiceStatus } from "../TechnicalClient";
+import { TechnicalPortalClient } from "../TechnicalClient";
+import type { SysStat, ServiceStatus } from "@/types/governance";
 import { getRoleById, hasPermission } from "@/lib/constants/roles";
 import { RestrictedAccess } from "@/components/auth/RestrictedAccess";
 import { redirect } from "next/navigation";
@@ -27,7 +28,7 @@ async function TechnicalPortalContent({
 }) {
   const { locale, slug } = await params;
   const user = await getAuthUser();
-  if (!user) redirect(`/${locale}/auth/login`);
+  if (!user) redirect(`/${locale}/login`);
 
   const profile = await getProfileDirect(user.id);
   const userRole = profile?.role || "user";
@@ -79,3 +80,4 @@ function TechnicalPortalSkeleton() {
     </div>
   );
 }
+

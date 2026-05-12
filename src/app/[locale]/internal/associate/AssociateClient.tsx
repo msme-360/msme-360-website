@@ -103,8 +103,11 @@ interface AssociateClientProps {
   } | null;
   view?: 'roadmap' | 'hub' | 'attendance' | 'planner';
   metrics: DashboardMetric[];
-  performanceData: any;
-  trendData: any;
+  performanceData?: {
+    attendanceStats?: { consistency: number };
+    taskStats?: { completion_rate: number };
+    [key: string]: unknown;
+  };
 }
 
 export function AssociateClient({ 
@@ -114,17 +117,14 @@ export function AssociateClient({
   initialChecklist, 
   mentor, 
   promotion, 
-  view, 
-  metrics: initialMetrics,
-  performanceData,
-  trendData
+  view,
+  performanceData
 }: AssociateClientProps) {
   const t = useTranslations("Associate");
   const router = useRouter();
   const [tasks, setTasks] = useState(initialTasks);
   const [attendance, setAttendance] = useState(initialAttendance);
   const [currentTime, setCurrentTime] = useState(new Date());
-
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [comments, setComments] = useState<TaskComment[]>([]);
   const [newComment, setNewComment] = useState("");
@@ -133,10 +133,15 @@ export function AssociateClient({
 
   // Sync state with server-side props (crucial for revalidatePath)
   const [isAddingTask, setIsAddingTask] = useState(false);
-  const [newTask, setNewTask] = useState({
+  const [newTask, setNewTask] = useState<{
+    title: string;
+    description: string;
+    priority: "Low" | "Medium" | "High" | "Urgent";
+    due_date: string;
+  }>({
     title: "",
     description: "",
-    priority: "Medium" as const,
+    priority: "Medium",
     due_date: format(new Date(), "yyyy-MM-dd"),
   });
 
@@ -164,10 +169,6 @@ export function AssociateClient({
       toast.error(t("toasts.taskError"));
     }
   };
-
-  useEffect(() => {
-    setAttendance(initialAttendance);
-  }, [initialAttendance]);
 
   // --- Real Implementation: Dynamic Metrics Calculation ---
   const completedChecklist = initialChecklist.filter(item => item.is_completed).length;
@@ -332,8 +333,7 @@ export function AssociateClient({
                   <div className="space-y-2">
                     <Label className="text-xs font-black uppercase tracking-widest text-white/50">Priority</Label>
                     <Select 
-                      value={newTask.priority} 
-                      onValueChange={(val: any) => setNewTask(prev => ({ ...prev, priority: val }))}
+                      onValueChange={(val: "Low" | "Medium" | "High" | "Urgent") => setNewTask(prev => ({ ...prev, priority: val }))}
                     >
                       <SelectTrigger className="bg-white/5 border-white/10">
                         <SelectValue />
@@ -458,7 +458,6 @@ export function AssociateClient({
           <div className="w-full animate-in zoom-in-95 duration-500">
             <PlannerBoard 
               tasks={tasks}
-              profile={profile}
               onTaskStatus={handleTaskStatus}
               onTaskSelect={handleSelectTask}
             />

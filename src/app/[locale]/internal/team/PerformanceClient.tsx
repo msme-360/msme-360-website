@@ -113,7 +113,7 @@ export function PerformanceClient() {
     },
     {
       id: "actions",
-      cell: ({ row }) => (
+      cell: () => (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="h-8 w-8 p-0 hover:bg-white/10 rounded-full">

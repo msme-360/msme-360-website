@@ -6,7 +6,7 @@ import { DashboardProfile } from "@/types/dashboard";
 
 interface WelcomeHeaderProps {
   profile: DashboardProfile;
-  t: any;
+  t: (key: string, values?: Record<string, unknown>) => string;
   roleName: string;
 }
 

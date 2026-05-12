@@ -10,57 +10,87 @@ import { Button } from "@/components/ui/button";
 import { 
   Mail, GraduationCap, Briefcase, 
   Linkedin, ExternalLink, Check, 
-  FileText, RefreshCcw} from "lucide-react";
+  FileText, RefreshCcw, Video,
+  CalendarIcon,
+  Clock,
+  Star} from "lucide-react";
 import { EvaluationCard } from "./EvaluationCard";
 import OnboardingRegistry from "../../../../admin/hiring/components/OnboardingRegistry";
-import { useTranslations } from "next-intl";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { User } from "@supabase/supabase-js";
+
+const ScheduleMeetDialog = dynamic(() => 
+  import("../../../../admin/hiring/components/ScheduleMeetDialog").then(mod => mod.ScheduleMeetDialog),
+  { ssr: false }
+);
 
 interface ProfileViewerClientProps {
   applicant: Applicant;
   initialMetrics: Metric[];
-  user: any;
+  user: User;
   userRole: string;
 }
 
 export default function ProfileViewerClient({ applicant: initialApplicant, initialMetrics, user, userRole }: ProfileViewerClientProps) {
-  const t = useTranslations("Hiring.profile");
+
   const [applicant, setApplicant] = useState<Applicant>(initialApplicant);
   const [metrics, setMetrics] = useState<Metric[]>(initialMetrics);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [showScheduleDialog, setShowScheduleDialog] = useState(false);
   const router = useRouter();
   const linkedinLink = applicant.links?.find(l => l.label.toLowerCase().includes('linkedin'))?.url;
 
   const handleStatusUpdate = async (status: string) => {
+    const previousStatus = applicant.status;
+    
+    // Optimistic Update
+    setApplicant(prev => ({ 
+      ...prev, 
+      status: status as Applicant['status']
+    }));
+    
     setIsUpdating(true);
-    const res = await updateApplicationStatus(applicant.id, status);
-    if (res.success) {
-      toast.success(status === 'shortlisted' ? "Candidate Shortlisted" : `Status updated to ${status}`);
-      setApplicant({ ...applicant, status: status as any });
-      router.refresh();
-    } else {
-      toast.error(res.error || "Failed to update status");
+    try {
+      const res = await updateApplicationStatus(applicant.id, status);
+      if (res.success) {
+        toast.success(status === 'shortlisted' ? "Candidate Shortlisted" : `Status updated to ${status}`);
+        router.refresh();
+      } else {
+        // Rollback
+        setApplicant(prev => ({ ...prev, status: previousStatus }));
+        toast.error(res.error || "Failed to update status");
+      }
+    } catch {
+      setApplicant(prev => ({ ...prev, status: previousStatus }));
+      toast.error("An unexpected error occurred");
+    } finally {
+      setIsUpdating(false);
     }
-    setIsUpdating(false);
   };
 
   const handleHire = async () => {
+    const previousStatus = applicant.status;
+    setApplicant(prev => ({ ...prev, status: 'hired' }));
+    
     setIsUpdating(true);
     try {
       const res = await onboardIntern(applicant.id);
       if (res.success) {
         toast.success("Candidate Approved & Onboarded!");
-        setApplicant({ ...applicant, status: 'hired' });
         router.refresh();
       } else {
+        setApplicant(prev => ({ ...prev, status: previousStatus }));
         toast.error(res.error || "Failed to onboard candidate");
       }
     } catch {
+      setApplicant(prev => ({ ...prev, status: previousStatus }));
       toast.error("An unexpected error occurred");
+    } finally {
+      setIsUpdating(false);
     }
-    setIsUpdating(false);
   };
 
   const handleMetricUpdate = (updatedMetric: Metric) => {
@@ -102,7 +132,7 @@ export default function ProfileViewerClient({ applicant: initialApplicant, initi
                 <div>
                   <div className="flex items-center gap-3">
                     <CardTitle className="text-2xl font-bold tracking-tight">{applicant.full_name}</CardTitle>
-                    {(applicant as any).is_archived ? (
+                    {applicant.is_archived ? (
                       <Badge variant="outline" className="border-amber-500/50 text-amber-500">ARCHIVED</Badge>
                     ) : null}
                   </div>
@@ -118,6 +148,14 @@ export default function ProfileViewerClient({ applicant: initialApplicant, initi
                                 'bg-blue-500/20 text-blue-400'} border-0`}>
                       {applicant.status.replace('_', ' ').toUpperCase()}
                     </Badge>
+                    {applicant.reviewer_name && applicant.reviewer_name !== "System" && (
+                      <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-white/5 border border-white/10">
+                        <div className="w-4 h-4 rounded-full bg-indigo-500/20 flex items-center justify-center text-[7px] font-bold text-indigo-400">
+                          {applicant.reviewer_name.split(' ').map(n => n[0]).join('')}
+                        </div>
+                        <span className="text-[10px] text-muted-foreground whitespace-nowrap">Reviewed by {applicant.reviewer_name}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -151,6 +189,19 @@ export default function ProfileViewerClient({ applicant: initialApplicant, initi
                     {applicant.status === 'rejected' ? 'Rollback' : 'Reset Registry'}
                   </Button>
                 )}
+                
+                {/* Schedule Meet Button */}
+                {!applicant.is_archived && 
+                 applicant.status !== 'hired' && 
+                 applicant.status !== 'onboarded' && (
+                  <Button 
+                    className="rounded-xl bg-primary/20 text-primary hover:bg-primary/30 border border-primary/20 shadow-lg shadow-primary/5 gap-2"
+                    onClick={() => setShowScheduleDialog(true)}
+                  >
+                    <Video className="w-4 h-4" />
+                    {(applicant.metadata as Record<string, unknown>)?.interview_date ? "Reschedule Meet" : "Schedule Meet"}
+                  </Button>
+                )}
               </div>
             </div>
           </CardHeader>
@@ -167,6 +218,10 @@ export default function ProfileViewerClient({ applicant: initialApplicant, initi
                   <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/5">
                     <p className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Education</p>
                     <p className="text-sm font-medium">{applicant.university}</p>
+                  </div>
+                  <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/5">
+                    <p className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Reviewed By</p>
+                    <p className="text-sm font-medium text-primary">{applicant.reviewer_name || "Unreviewed"}</p>
                   </div>
                   <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/5">
                     <p className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Application Date</p>
@@ -248,6 +303,123 @@ export default function ProfileViewerClient({ applicant: initialApplicant, initi
           </div>
         )}
 
+        {/* 4. Interview Timeline Section */}
+        <Card className="glass-card border-white/10 overflow-hidden animate-in fade-in duration-700">
+          <CardHeader className="bg-white/[0.02] border-b border-white/5 py-6">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+                <Video className="w-4 h-4" />
+              </div>
+              <div>
+                <CardTitle className="text-lg font-bold tracking-tight">Interview Journey</CardTitle>
+                <p className="text-[10px] text-white/40 uppercase font-bold tracking-widest mt-0.5">Meeting History & Rounds</p>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="p-8">
+            {(() => {
+              const history = ((applicant.metadata as Record<string, unknown>)?.history as Record<string, unknown>[]) || [];
+              const journey = ([
+                {
+                  type: 'APPLIED',
+                  timestamp: applicant.applied_at,
+                  label: 'Application Submitted',
+                  icon: <Mail className="w-4 h-4" />
+                },
+                ...history.map((h) => {
+                  const item = h as Record<string, unknown>;
+                  return {
+                    ...item,
+                    timestamp: (item.timestamp || item.scheduled_at || item.created_at) as string,
+                    icon: item.type === 'INTERVIEW' ? <Video className="w-4 h-4" /> : 
+                          item.type === 'STATUS_CHANGE' ? <RefreshCcw className="w-4 h-4" /> :
+                          item.type === 'EVALUATION' ? <Star className="w-4 h-4" /> :
+                          <Clock className="w-4 h-4" />
+                  } as JourneyItem;
+                })
+              ] as JourneyItem[]).sort((a, b) => {
+                const dateA = new Date(a.timestamp || 0).getTime();
+                const dateB = new Date(b.timestamp || 0).getTime();
+                return dateA - dateB;
+              });
+
+              return (
+                <div className="space-y-8 relative before:absolute before:left-[17px] before:top-2 before:bottom-2 before:w-[2px] before:bg-white/5">
+                  {journey.map((item: JourneyItem, idx: number) => (
+                    <div key={idx} className="relative pl-12 group">
+                      <div className={`absolute left-0 top-1 w-[36px] h-[36px] rounded-full bg-[#0a0a0a] border-2 border-white/10 flex items-center justify-center group-hover:border-primary/50 transition-colors z-10 shadow-xl ${
+                        item.type === 'STATUS_CHANGE' ? 'text-amber-400' :
+                        item.type === 'EVALUATION' ? 'text-indigo-400' :
+                        item.type === 'INTERVIEW' ? 'text-primary' : 'text-emerald-400'
+                      }`}>
+                        {item.icon}
+                      </div>
+                      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-5 rounded-2xl bg-white/[0.02] border border-white/5 group-hover:bg-white/[0.04] transition-all">
+                        <div>
+                          <div className="flex items-center gap-3 mb-1">
+                            <h5 className="font-bold text-white">
+                              {item.type === 'INTERVIEW' ? `Interview Round ${item.round}` : item.label}
+                            </h5>
+                            {item.is_google_meet && (
+                              <Badge variant="outline" className="text-[8px] h-4 bg-emerald-500/10 text-emerald-500 border-emerald-500/20 py-0 px-1.5 font-black uppercase tracking-tighter">
+                                Direct Google Meet
+                              </Badge>
+                            )}
+                            {item.status && (
+                              <Badge variant="outline" className={`text-[10px] border-white/10 uppercase ${
+                                item.status === 'shortlisted' ? 'text-emerald-400 bg-emerald-500/5' :
+                                item.status === 'rejected' ? 'text-rose-400 bg-rose-500/5' :
+                                'text-primary bg-primary/5'
+                              }`}>
+                                {item.status.replace('_', ' ')}
+                              </Badge>
+                            )}
+                          </div>
+                          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-white/50">
+                            <span className="flex items-center gap-2">
+                              <CalendarIcon className="w-3 h-3" /> 
+                              {new Date(item.timestamp || item.date || 0).toLocaleDateString(undefined, { dateStyle: 'full' })}
+                            </span>
+                            {(item.time || item.timestamp) && (
+                              <span className="flex items-center gap-2">
+                                <Clock className="w-3 h-3" /> 
+                                {item.time || new Date(item.timestamp || 0).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          {item.type === 'INTERVIEW' && item.meet_link && (
+                            <Button 
+                              variant="secondary" 
+                              size="sm" 
+                              className="h-9 rounded-xl bg-primary/20 text-primary hover:bg-primary/30 border border-primary/20"
+                              asChild
+                            >
+                              <Link href={item.meet_link} target="_blank">
+                                <Video className="w-3.5 h-3.5 mr-2" />
+                                Join Meeting
+                              </Link>
+                            </Button>
+                          )}
+                          {item.type !== 'APPLIED' && (
+                            <div className="text-right hidden sm:block">
+                              <p className="text-[10px] uppercase font-bold text-white/20">Logged</p>
+                              <p className="text-[10px] font-medium text-white/40">
+                                {new Date(item.timestamp || 0).toLocaleDateString()}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              );
+            })()}
+          </CardContent>
+        </Card>
+
         {/* 4. Decision Control */}
         {!applicant.is_archived && applicant.status !== 'rejected' && applicant.status !== 'onboarded' && (
           <div className="flex justify-center gap-6 pt-10 border-t border-white/5 mt-8">
@@ -296,6 +468,26 @@ export default function ProfileViewerClient({ applicant: initialApplicant, initi
           </div>
         )}
       </div>
+
+      <ScheduleMeetDialog 
+        applicant={applicant}
+        isOpen={showScheduleDialog}
+        onOpenChange={setShowScheduleDialog}
+        isGoogleConnected={!!(user.user_metadata as Record<string, unknown>)?.google_tokens}
+      />
     </AdminViewWrapper>
   );
+}
+
+interface JourneyItem {
+  type: string;
+  timestamp?: string;
+  label?: string;
+  icon: React.ReactNode;
+  round?: number;
+  is_google_meet?: boolean;
+  status?: string;
+  date?: string;
+  time?: string;
+  meet_link?: string;
 }

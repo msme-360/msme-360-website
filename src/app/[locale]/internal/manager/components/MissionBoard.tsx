@@ -8,11 +8,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import {
    ClipboardList, Filter, MoreVertical,
    Calendar, Loader2, Send, Plus, 
-   
-   Zap
+   Zap, Star, Award
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { 
   Dialog, DialogContent, DialogDescription, 
   DialogFooter, DialogHeader, DialogTitle, DialogTrigger 
@@ -25,11 +24,12 @@ import {
   Select, SelectContent, SelectItem, 
   SelectTrigger, SelectValue 
 } from "@/components/ui/select";
-import { format } from "date-fns";
+import { format, startOfWeek, endOfWeek } from "date-fns";
 import { Task, TaskComment } from "./ManagerTypes";
 import { DashboardProfile } from "@/types/dashboard";
 import { toast } from "sonner";
-import { createTask } from "@/app/[locale]/internal/actions";
+import { createTask, savePerformanceEvaluation } from "@/app/[locale]/internal/actions";
+import { Slider } from "@/components/ui/slider";
 
 interface MissionBoardProps {
    tasks: Task[];
@@ -58,16 +58,21 @@ export default function MissionBoard({
    setNewComment,
    isSubmittingComment,
    onAddComment,
-   onTaskStatus,
    onRefresh 
 }: MissionBoardProps) {
    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
    const [isSubmitting, setIsSubmitting] = useState(false);
-   const [formData, setFormData] = useState({
+   const [formData, setFormData] = useState<{
+      title: string;
+      description: string;
+      assigned_to: string;
+      priority: "Low" | "Medium" | "High" | "Urgent";
+      due_date: string;
+   }>({
       title: "",
       description: "",
       assigned_to: "",
-      priority: "Medium" as const,
+      priority: "Medium",
       due_date: ""
    });
 
@@ -93,6 +98,36 @@ export default function MissionBoard({
          toast.error(res.error || "Failed to deploy mission.");
       }
       setIsSubmitting(false);
+   };
+
+   const [evalData, setEvalData] = useState({
+      productivity: 80,
+      quality: 80,
+      leadership: 80,
+      comments: ""
+   });
+   const [isEvalSubmitting, setIsEvalSubmitting] = useState(false);
+
+   const handleSaveEvaluation = async (userId: string) => {
+      setIsEvalSubmitting(true);
+      const res = await savePerformanceEvaluation({
+         user_id: userId,
+         reviewer_id: profile.id,
+         productivity_score: evalData.productivity,
+         quality_score: evalData.quality,
+         leadership_score: evalData.leadership,
+         comments: evalData.comments,
+         period_start: startOfWeek(new Date()).toISOString(),
+         period_end: endOfWeek(new Date()).toISOString()
+      });
+
+      if (res.success) {
+         toast.success("Formal evaluation recorded.");
+         setEvalData({ productivity: 80, quality: 80, leadership: 80, comments: "" });
+      } else {
+         toast.error(res.error || "Failed to save evaluation.");
+      }
+      setIsEvalSubmitting(false);
    };
 
    return (
@@ -153,7 +188,7 @@ export default function MissionBoard({
                            </div>
                            <div className="space-y-2">
                               <Label className="text-[10px] uppercase font-black tracking-widest text-white/50">Priority</Label>
-                              <Select value={formData.priority} onValueChange={(val: any) => setFormData({...formData, priority: val})}>
+                              <Select value={formData.priority} onValueChange={(val: "Low" | "Medium" | "High" | "Urgent") => setFormData({...formData, priority: val})}>
                                  <SelectTrigger className="bg-white/5 border-white/10 h-12 rounded-xl">
                                     <SelectValue />
                                  </SelectTrigger>
@@ -230,7 +265,10 @@ export default function MissionBoard({
                            <SheetContent className="glass-card border-white/10 text-white w-[400px] sm:w-[540px]">
                               <SheetHeader>
                                  <SheetTitle className="text-xl font-display font-bold">{task.title}</SheetTitle>
-                                 <div className="flex gap-2 pb-4">
+                                 <SheetDescription className="text-white/40 text-xs">
+                                    Formal mission oversight and performance relay for {task.assigned_to_profile?.full_name}.
+                                 </SheetDescription>
+                                 <div className="flex gap-2 pb-4 border-b border-white/5">
                                     <Badge variant="outline" className="text-[10px] uppercase font-black tracking-widest">{task.status}</Badge>
                                     <Badge variant="outline" className="text-[10px] uppercase font-black tracking-widest text-emerald-400">{task.priority}</Badge>
                                  </div>
@@ -244,8 +282,86 @@ export default function MissionBoard({
                                     </p>
                                  </div>
 
-                                 <div className="flex-1 flex flex-col min-h-0">
-                                    <Label className="text-[10px] font-black uppercase text-emerald-400 mb-4">Feedback Relay (Comments)</Label>
+                                 <div className="flex-1 flex flex-col min-h-0 pt-4">
+                                    <div className="flex items-center justify-between mb-4">
+                                       <Label className="text-[10px] font-black uppercase text-emerald-400">Feedback Relay (Comments)</Label>
+                                       
+                                       <Dialog>
+                                          <DialogTrigger asChild>
+                                             <Button variant="outline" size="sm" className="h-7 text-[9px] uppercase font-black tracking-widest bg-emerald-500/10 border-emerald-500/20 text-emerald-400 hover:bg-emerald-500 hover:text-white rounded-lg">
+                                                <Award className="w-3 h-3 mr-1.5" />
+                                                Formal Evaluation
+                                             </Button>
+                                          </DialogTrigger>
+                                          <DialogContent className="glass-card border-white/10 text-white max-w-md">
+                                             <DialogHeader>
+                                                <DialogTitle className="text-xl font-bold flex items-center gap-2">
+                                                   <Star className="w-5 h-5 text-yellow-400" />
+                                                   Personnel Evaluation
+                                                </DialogTitle>
+                                                <DialogDescription className="text-white/40">
+                                                   Submit a formal performance review for {task.assigned_to_profile?.full_name}.
+                                                </DialogDescription>
+                                             </DialogHeader>
+                                             <div className="space-y-8 py-6">
+                                                <div className="space-y-4">
+                                                   <div className="flex justify-between items-center">
+                                                      <Label className="text-[10px] uppercase font-black tracking-widest text-white/50">Productivity</Label>
+                                                      <span className="text-xs font-black text-emerald-400">{evalData.productivity}%</span>
+                                                   </div>
+                                                   <Slider 
+                                                      value={[evalData.productivity]} 
+                                                      onValueChange={([val]) => setEvalData({...evalData, productivity: val})} 
+                                                      max={100} 
+                                                      step={5} 
+                                                   />
+                                                </div>
+                                                <div className="space-y-4">
+                                                   <div className="flex justify-between items-center">
+                                                      <Label className="text-[10px] uppercase font-black tracking-widest text-white/50">Quality of Work</Label>
+                                                      <span className="text-xs font-black text-emerald-400">{evalData.quality}%</span>
+                                                   </div>
+                                                   <Slider 
+                                                      value={[evalData.quality]} 
+                                                      onValueChange={([val]) => setEvalData({...evalData, quality: val})} 
+                                                      max={100} 
+                                                      step={5} 
+                                                   />
+                                                </div>
+                                                <div className="space-y-4">
+                                                   <div className="flex justify-between items-center">
+                                                      <Label className="text-[10px] uppercase font-black tracking-widest text-white/50">Leadership / Initiative</Label>
+                                                      <span className="text-xs font-black text-emerald-400">{evalData.leadership}%</span>
+                                                   </div>
+                                                   <Slider 
+                                                      value={[evalData.leadership]} 
+                                                      onValueChange={([val]) => setEvalData({...evalData, leadership: val})} 
+                                                      max={100} 
+                                                      step={5} 
+                                                   />
+                                                </div>
+                                                <div className="space-y-2">
+                                                   <Label className="text-[10px] uppercase font-black tracking-widest text-white/50">Professional Commentary</Label>
+                                                   <Textarea 
+                                                      placeholder="Detailed observations on performance..." 
+                                                      className="bg-white/5 border-white/10 min-h-[100px] rounded-xl text-sm"
+                                                      value={evalData.comments}
+                                                      onChange={e => setEvalData({...evalData, comments: e.target.value})}
+                                                   />
+                                                </div>
+                                             </div>
+                                             <DialogFooter>
+                                                <Button 
+                                                   onClick={() => handleSaveEvaluation(task.assigned_to!)}
+                                                   disabled={isEvalSubmitting}
+                                                   className="w-full bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl h-12 font-black uppercase tracking-widest text-[10px]"
+                                                >
+                                                   {isEvalSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : "Authorize Formal Evaluation"}
+                                                </Button>
+                                             </DialogFooter>
+                                          </DialogContent>
+                                       </Dialog>
+                                    </div>
                                     <ScrollArea className="flex-1 pr-4">
                                        <div className="space-y-4">
                                           {isCommentsLoading ? (

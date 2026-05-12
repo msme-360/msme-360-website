@@ -1,23 +1,24 @@
 "use client";
 
 import { LogOut } from "lucide-react";
-import { signOut } from "@/app/[locale]/(landing)/(auth)/actions";
+import { useAuth } from "@/components/providers/AuthProvider";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { SidebarMenuButton } from "@/components/ui/sidebar";
 
 export function LogoutButton({ label }: { label: string }) {
   const t = useTranslations("Common");
+  const { signOut } = useAuth();
 
   const handleLogout = async () => {
     try {
       await signOut();
       toast.success(t("logoutSuccess"));
-    } catch (error) {
-      const message = error instanceof Error ? error.message : t("logoutError");
-      toast.error(message);
+    } catch {
+      toast.error(t("logoutError"));
     }
   };
+
 
   return (
     <SidebarMenuButton

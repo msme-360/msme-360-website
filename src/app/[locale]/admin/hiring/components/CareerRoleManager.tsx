@@ -1,19 +1,12 @@
 "use client";
 
-import { useState, useEffect, useTransition } from "react";
+import { useState, useEffect, useTransition, useCallback } from "react";
 import { CareerRole } from "@/lib/roles";
 import { getCareerRoles, saveCareerRole, deleteCareerRole } from "@/app/[locale]/admin/actions";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { 
-  Plus, Pencil, Trash2, Briefcase, Layout, Database, 
-  Layers, CheckCircle, Brain, FileText, Palette, Share2, Rocket,
-  Loader2
-} from "lucide-react";
-import { 
-  Dialog, DialogContent, DialogHeader, DialogTitle, 
-  DialogDescription, DialogFooter 
-} from "@/components/ui/dialog";
+import { Plus, Pencil, Trash2, Briefcase, Loader2 } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -21,10 +14,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 
-const ICON_MAP: Record<string, any> = {
-  Layout, Database, Layers, CheckCircle, Brain, 
-  FileText, Palette, Share2, Rocket, Briefcase
-};
 
 export default function CareerRoleManager() {
   const [roles, setRoles] = useState<CareerRole[]>([]);
@@ -33,16 +22,18 @@ export default function CareerRoleManager() {
   const [editOpen, setEditOpen] = useState(false);
   const [selectedRole, setSelectedRole] = useState<Partial<CareerRole> | null>(null);
 
-  const fetchRoles = async () => {
-    setLoading(true);
+  const fetchRoles = useCallback(async () => {
     const data = await getCareerRoles();
     setRoles(data);
     setLoading(false);
-  };
+  }, []);
 
   useEffect(() => {
-    fetchRoles();
-  }, []);
+    const init = async () => {
+      await fetchRoles();
+    };
+    init();
+  }, [fetchRoles]);
 
   const handleSave = async () => {
     if (!selectedRole?.title || !selectedRole?.slug) {
@@ -218,7 +209,7 @@ export default function CareerRoleManager() {
                 <Label className="text-[10px] uppercase tracking-widest font-black text-muted-foreground">Job Type</Label>
                 <Select 
                   value={selectedRole?.type || "internship"} 
-                  onValueChange={v => setSelectedRole(prev => ({ ...prev, type: v as any }))}
+                  onValueChange={v => setSelectedRole(prev => ({ ...prev, type: v as "internship" | "job" }))}
                 >
                   <SelectTrigger className="bg-white/5 border-white/10">
                     <SelectValue placeholder="Select Type" />

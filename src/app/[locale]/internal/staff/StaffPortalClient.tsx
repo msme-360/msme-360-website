@@ -37,7 +37,7 @@ export function StaffPortalClient({ profile, initialAnnouncements }: StaffPortal
         {/* Hero Welcome */}
         <WelcomeHeader
           profile={profile}
-          t={t}
+          t={t as (key: string, values?: Record<string, unknown>) => string}
           roleName={profile.role.replace("_", " ").toUpperCase()}
         />
 

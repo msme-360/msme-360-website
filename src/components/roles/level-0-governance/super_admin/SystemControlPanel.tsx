@@ -19,8 +19,9 @@ import {
   executeProtocolZero,
   initiateSystemReIndex,
 } from "@/app/[locale]/admin/actions";
+import { SystemHealth } from "@/types/governance";
 
-export default function SystemControlPanel({ health }: { health?: any[] }) {
+export default function SystemControlPanel({ health }: { health?: SystemHealth[] }) {
   const [maintenance, setMaintenance] = useState(false);
   const [readOnly, setReadOnly] = useState(false);
   const [isPending, startTransition] = useTransition();

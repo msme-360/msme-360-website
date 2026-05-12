@@ -2,7 +2,13 @@
 
 import { AreaChart, Area, XAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
-export function RecruitmentTrends({ data }: { data: any[] }) {
+export interface TrendData {
+  name: string;
+  applicants: number;
+  shortlisted: number;
+}
+
+export function RecruitmentTrends({ data }: { data: TrendData[] }) {
   if (!data || data.length === 0) return null;
 
   return (

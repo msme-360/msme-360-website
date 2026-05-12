@@ -1,6 +1,7 @@
 import { getUser as getAuthUser } from "@/services/supabase/supabase-server";
 import { getProfile as getProfileDirect } from "@/app/[locale]/dashboard/queries";
 import { getAttendanceLogs } from "@/app/[locale]/internal/actions";
+import { AttendanceLog } from "@/app/[locale]/admin/attendance/AttendanceLogClient";
 import { TeamClient } from "../TeamClient";
 import { hasPermission } from "@/lib/constants/roles";
 import { RestrictedAccess } from "@/components/auth/RestrictedAccess";
@@ -20,7 +21,7 @@ export default function TeamPortalPage({
   );
 }
 
-async function AttendancePortalContentWrapper({ params }: { params: any }) {
+async function AttendancePortalContentWrapper({ params }: { params: Promise<{ locale: string, slug?: string[] }> }) {
   return <TeamPortalContent params={params} />;
 }
 
@@ -31,7 +32,7 @@ async function TeamPortalContent({
 }) {
   const { locale, slug } = await params;
   const user = await getAuthUser();
-  if (!user) redirect(`/${locale}/auth/login`);
+  if (!user) redirect(`/${locale}/login`);
   
   const profile = await getProfileDirect(user.id);
   const userRole = profile?.role || "user";
@@ -54,9 +55,9 @@ async function TeamPortalContent({
      return <RestrictedAccess requiredLevel={`Bespoke ${userRole.toUpperCase()} Team Workspace`} />;
   }
 
-  let attendance: any[] = [];
+  let attendance: AttendanceLog[] = [];
   if (subView === 'attendance') {
-    attendance = await getAttendanceLogs();
+    attendance = await getAttendanceLogs() as unknown as AttendanceLog[];
   }
 
   return (
@@ -82,3 +83,4 @@ function TeamPortalSkeleton() {
     </div>
   );
 }
+

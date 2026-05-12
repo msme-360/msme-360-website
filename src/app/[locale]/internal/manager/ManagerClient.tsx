@@ -24,18 +24,6 @@ export function ManagerClient({ profile, initialTasks, initialAttendance, team }
   const t = useTranslations("Common.Manager");
   const tCommon = useTranslations("Common");
   const router = useRouter();
-  const [tasks, setTasks] = useState(initialTasks);
-  const [attendance, setAttendance] = useState(initialAttendance);
-
-  // Sync state with props when revalidatePath triggers
-  useEffect(() => {
-    setTasks(initialTasks);
-  }, [initialTasks]);
-
-  useEffect(() => {
-    setAttendance(initialAttendance);
-  }, [initialAttendance]);
-
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [comments, setComments] = useState<TaskComment[]>([]);
   const [newComment, setNewComment] = useState("");
@@ -112,7 +100,7 @@ export function ManagerClient({ profile, initialTasks, initialAttendance, team }
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <MissionBoard
-            tasks={tasks}
+            tasks={initialTasks}
             profile={profile}
             team={team}
             selectedTask={selectedTask}
@@ -134,7 +122,7 @@ export function ManagerClient({ profile, initialTasks, initialAttendance, team }
           />
 
           <AttendanceMonitor
-            attendance={attendance}
+            attendance={initialAttendance}
             department={profile.department}
           />
         </div>

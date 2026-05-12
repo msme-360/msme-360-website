@@ -4,9 +4,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Activity, Users } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { DashboardMetric } from "@/types/dashboard";
-import { RecruitmentTrends } from "../recruiter/RecruitmentTrends";
+import { RecruitmentTrends, TrendData } from "../recruiter/RecruitmentTrends";
 
-export default function TalentStrategy({ metrics = [], trends = [] }: { metrics?: DashboardMetric[], trends?: any[] }) {
+export default function TalentStrategy({ metrics = [], trends = [] }: { metrics?: DashboardMetric[], trends?: TrendData[] }) {
   return (
     <Card className="glass-card border-indigo-500/20 bg-indigo-500/[0.02] overflow-hidden">
       <CardHeader className="bg-indigo-500/5 border-b border-indigo-500/10">

@@ -5,12 +5,12 @@ import { z } from "zod";
 
 const LinkSchema = z.object({
   label: z.string(),
-  url: z.url("Please enter a valid URL")
+  url: z.string().url("Please enter a valid URL")
 });
 
 const InternApplicationSchema = z.object({
   full_name: z.string().min(2, "Full name is required"),
-  email: z.email("Invalid email address"),
+  email: z.string().email("Invalid email address"),
   phone: z.string().optional(),
   role: z.string().min(1, "Role is required"),
   experience_level: z.string().min(1, "Experience level is required"),
@@ -22,7 +22,8 @@ const InternApplicationSchema = z.object({
   commitment_confirmed: z.boolean().refine(v => v === true, "Must confirm commitment"),
   expectations_confirmed: z.boolean().refine(v => v === true, "Must confirm expectations"),
   attendance_confirmed: z.boolean().refine(v => v === true, "Must confirm attendance"),
-  desired_role: z.string().optional()
+  desired_role: z.string().optional(),
+  role_slug: z.string().min(1, "Role slug is required")
 });
 
 export type InternApplicationInput = z.infer<typeof InternApplicationSchema>;
@@ -32,6 +33,18 @@ export async function submitInternApplication(data: InternApplicationInput) {
     const validatedData = InternApplicationSchema.parse(data);
     const supabase = await createClient();
 
+    // 1. Verify if openings are available
+    const { data: roleData, error: roleError } = await supabase
+      .from("career_roles")
+      .select("total_openings")
+      .eq("slug", validatedData.role_slug)
+      .single();
+
+    if (roleError || !roleData || roleData.total_openings <= 0) {
+      return { success: false, error: "Applications for this position are now closed." };
+    }
+
+    // 2. Insert application
     const { error } = await supabase
       .from("intern_applications")
       .insert({
@@ -55,6 +68,23 @@ export async function submitInternApplication(data: InternApplicationInput) {
       console.error("Database error:", error);
       return { success: false, error: "Failed to submit application. Please try again." };
     }
+
+    // 3. Decrement the opening count
+    const serviceClient = await createServiceClient();
+    const { error: rpcError } = await serviceClient.rpc('decrement_opening_count', { 
+      role_slug: validatedData.role_slug 
+    });
+
+    if (rpcError) {
+      console.warn("RPC decrement failed, using fallback update", rpcError);
+    }
+
+    // Fallback: direct decrement if RPC fails (some environments might not have it yet)
+    await serviceClient
+      .from("career_roles")
+      .update({ total_openings: roleData.total_openings - 1 })
+      .eq("slug", validatedData.role_slug)
+      .gt("total_openings", 0);
 
     return { success: true };
   } catch (error) {
@@ -86,7 +116,6 @@ export async function getTestimonials() {
 }
 
 export async function getCareerRoles(type?: 'internship' | 'job') {
-  // Now redirected to the shared admin actions for better governance
   const { getCareerRoles: getSharedRoles } = await import("@/app/[locale]/admin/actions");
   return getSharedRoles(type);
 }
@@ -112,7 +141,7 @@ export async function getCareerRole(slug: string) {
   }
 }
 
-export async function checkApplicationStatus(email: string, role: string) {
+export async function checkApplicationStatus(email: string) {
   try {
     const supabase = await createServiceClient();
     const { data, error } = await supabase
@@ -129,11 +158,8 @@ export async function checkApplicationStatus(email: string, role: string) {
     }
 
     if (!data) return { allowed: true };
-
-    // Allow re-application if rejected
     if (data.status === 'rejected') return { allowed: true };
 
-    // Block if already hired, shortlisted, or pending
     const statusMessages: Record<string, string> = {
       pending: "Your application is currently being processed. Please wait for the results.",
       under_review: "Your application is under review. We will get back to you soon.",

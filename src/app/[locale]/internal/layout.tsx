@@ -43,7 +43,7 @@ async function InternalLayoutInner({
   ]);
 
   if (!user) {
-    redirect(`/${locale}/auth/login`);
+    redirect(`/${locale}/login`);
   }
 
   const profile = await getProfile(user.id);
@@ -100,3 +100,4 @@ async function InternalLayoutInner({
     </SidebarProvider>
   );
 }
+

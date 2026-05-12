@@ -6,8 +6,7 @@ import {
   getOnboardingChecklist, 
   getMentorDetails,
   getPromotionStatus,
-  getPerformanceData,
-  getPerformanceTrends
+  getPerformanceData
 } from "@/app/[locale]/internal/actions";
 import { AssociateClient } from "../AssociateClient";
 import { redirect } from "next/navigation";
@@ -42,7 +41,7 @@ async function AssociatePortalContent({
   const user = await getUser();
 
   if (!user) {
-    redirect(`/${locale}/auth/login`);
+    redirect(`/${locale}/login`);
   }
 
   const profile = await getProfile(user.id);
@@ -66,14 +65,13 @@ async function AssociatePortalContent({
   }
 
   // 2. Fetch Data (Parallelized for Industry-Grade Performance)
-  const [tasks, attendance, checklist, promotion, metrics, performanceData, trendData] = await Promise.all([
+  const [tasks, attendance, checklist, promotion, metrics, performanceData] = await Promise.all([
     getTasks(user.id),
     getAttendanceLogs(user.id),
     getOnboardingChecklist(user.id),
     getPromotionStatus(user.id),
     getPlatformMetrics('associate'),
-    getPerformanceData(user.id),
-    getPerformanceTrends(user.id)
+    getPerformanceData(user.id)
   ]);
 
   const mentor = profile?.manager_id ? await getMentorDetails(profile.manager_id) : null;
@@ -81,15 +79,14 @@ async function AssociatePortalContent({
   return (
     <AssociateClient
       profile={profile}
-      initialTasks={tasks as any}
-      initialAttendance={attendance as any}
-      initialChecklist={checklist as any}
-      mentor={mentor as any}
-      promotion={promotion as any}
-      view={(queryView || subView) as any}
-      metrics={metrics as any}
-      performanceData={performanceData as any}
-      trendData={trendData as any}
+      initialTasks={tasks}
+      initialAttendance={attendance}
+      initialChecklist={checklist}
+      mentor={mentor}
+      promotion={promotion}
+      view={(queryView || subView) as "roadmap" | "hub" | "attendance" | "planner" | undefined}
+      metrics={metrics}
+      performanceData={performanceData}
     />
   );
 }
@@ -107,3 +104,4 @@ function AssociatePortalSkeleton() {
     </div>
   );
 }
+
