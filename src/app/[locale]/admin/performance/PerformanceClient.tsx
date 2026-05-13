@@ -13,7 +13,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { BarChart3, Users, ShieldCheck, Clock, Search, TrendingUp, Activity } from "lucide-react";
+import { BarChart3, Users, ShieldCheck, Clock, Search, TrendingUp, Activity, Server } from "lucide-react";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
+import { useCallback } from "react";
 
 interface Profile {
   id: string;
@@ -43,24 +45,63 @@ interface SystemLog {
   created_at: string;
 }
 
+interface ServiceHealth {
+  name: string;
+  status: string;
+  load_percentage: number;
+  uptime_percentage: number;
+}
+
 interface PerformanceClientProps {
   profiles: Profile[];
   metrics: Metric[];
   attendance: AttendanceLog[];
   logs: SystemLog[];
+  health: ServiceHealth[];
   role: string;
 }
 
-export function PerformanceClient({ profiles, metrics, attendance, logs, role }: PerformanceClientProps) {
-  const [search, setSearch] = useState("");
+export function PerformanceClient({ profiles, metrics, attendance, logs, health, role }: PerformanceClientProps) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
 
-  // Derived stats
-  const verified = profiles.filter(p => p.is_verified).length;
-  const presentToday = attendance.filter(a => a.status === "present").length;
-  const recentErrors = logs.filter(l => l.status === "error").length;
+  const search = searchParams.get("q") || "";
 
-  // KPI cards - prefer DB metrics, fall back to computed
-  const kpis = [
+  const setSearch = useCallback((term: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (term) {
+      params.set("q", term);
+    } else {
+      params.delete("q");
+    }
+    router.replace(`${pathname}?${params.toString()}`);
+  }, [router, pathname, searchParams]);
+
+  // Pre-process attendance into O(1) lookup Map (Eliminate O(N) nested lookups)
+  const attendanceMap = useMemo(() => {
+    const m = new Map<string, string>();
+    attendance.forEach(a => {
+      // Only keep the most recent status for each user today
+      if (!m.has(a.user_id)) {
+        m.set(a.user_id, a.status);
+      }
+    });
+    return m;
+  }, [attendance]);
+
+  // Derived stats (Memoized for high-frequency telemetry stability)
+  const { verified, presentToday, recentErrors, avgLoad } = useMemo(() => ({
+    verified: profiles.filter(p => p.is_verified).length,
+    presentToday: Array.from(attendanceMap.values()).filter(s => s === "present").length,
+    recentErrors: logs.filter(l => l.status === "error").length,
+    avgLoad: health.length > 0 
+      ? Math.round(health.reduce((acc, h) => acc + (h.load_percentage || 0), 0) / health.length)
+      : 0
+  }), [profiles, attendanceMap, logs, health]);
+
+  // KPI cards - prefer DB metrics, fall back to computed (Memoized)
+  const kpis = useMemo(() => [
     {
       label: "Total Personnel",
       value: profiles.length.toString(),
@@ -79,11 +120,11 @@ export function PerformanceClient({ profiles, metrics, attendance, logs, role }:
     },
     {
       label: "System Health",
-      value: recentErrors === 0 ? "100%" : `${Math.max(0, 100 - recentErrors * 5)}%`,
+      value: health.length > 0 ? `${100 - avgLoad}%` : "100%",
       icon: ShieldCheck,
       color: "text-primary",
       bg: "bg-primary/10",
-      sub: `${recentErrors} error events`,
+      sub: `${health.filter(h => h.status === 'Healthy').length}/${health.length} online`,
     },
     {
       label: "Platform Metrics",
@@ -93,7 +134,7 @@ export function PerformanceClient({ profiles, metrics, attendance, logs, role }:
       bg: "bg-amber-500/10",
       sub: "tracked indicators",
     },
-  ];
+  ], [profiles.length, verified, presentToday, health, avgLoad, metrics.length]);
 
   // Department breakdown
   const deptMap = useMemo(() => {
@@ -105,12 +146,13 @@ export function PerformanceClient({ profiles, metrics, attendance, logs, role }:
     return Array.from(m.entries()).sort((a, b) => b[1] - a[1]);
   }, [profiles]);
 
-  // Filtered personnel table
-  const filtered = profiles.filter(p =>
+  // Filtered personnel table (Memoized)
+  const filtered = useMemo(() => profiles.filter(p =>
     p.full_name?.toLowerCase().includes(search.toLowerCase()) ||
     p.role?.toLowerCase().includes(search.toLowerCase()) ||
     p.department?.toLowerCase().includes(search.toLowerCase())
-  );
+  ), [profiles, search]);
+
 
   return (
     <AdminViewWrapper
@@ -185,7 +227,40 @@ export function PerformanceClient({ profiles, metrics, attendance, logs, role }:
               <CardDescription className="text-xs">Pulled from platform_metrics table</CardDescription>
             </CardHeader>
             <CardContent className="p-0">
-              {metrics.length > 0 ? (
+              {health.length > 0 ? (
+                <Table>
+                  <TableHeader>
+                    <TableRow className="border-white/5 hover:bg-transparent">
+                      <TableHead className="text-[10px] uppercase font-black px-6 py-3">Infrastructure Node</TableHead>
+                      <TableHead className="text-[10px] uppercase font-black px-4 py-3">Status</TableHead>
+                      <TableHead className="text-[10px] uppercase font-black px-4 py-3">Load</TableHead>
+                      <TableHead className="text-[10px] uppercase font-black px-4 py-3">Uptime</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {health.map((h, i) => (
+                      <TableRow key={i} className="border-white/5 hover:bg-white/[0.02]">
+                        <TableCell className="px-6 py-3">
+                          <div className="flex items-center gap-2">
+                             <Server className="w-3.5 h-3.5 text-muted-foreground" />
+                             <span className="font-medium text-sm">{h.name}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="px-4 py-3">
+                          <Badge variant="outline" className={`text-[9px] font-black uppercase ${
+                            h.status === "Healthy" ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" :
+                            "bg-amber-500/10 text-amber-400 border-amber-500/20"
+                          }`}>
+                            {h.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="px-4 py-3 text-xs font-mono">{h.load_percentage}%</TableCell>
+                        <TableCell className="px-4 py-3 text-xs font-mono text-emerald-400/70">{h.uptime_percentage}%</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              ) : metrics.length > 0 ? (
                 <Table>
                   <TableHeader>
                     <TableRow className="border-white/5 hover:bg-transparent">
@@ -216,10 +291,11 @@ export function PerformanceClient({ profiles, metrics, attendance, logs, role }:
                 </Table>
               ) : (
                 <p className="px-6 py-10 text-xs text-muted-foreground italic text-center">
-                  No platform metrics recorded yet.
+                  No telemetry metrics recorded yet.
                 </p>
               )}
             </CardContent>
+
           </Card>
         </div>
 
@@ -282,12 +358,17 @@ export function PerformanceClient({ profiles, metrics, attendance, logs, role }:
                       </TableCell>
                       <TableCell className="px-4 py-3.5">
                         <div className="flex items-center gap-1.5">
-                          <div className={`w-1.5 h-1.5 rounded-full ${p.is_verified ? "bg-emerald-500" : "bg-orange-400"}`} />
+                          <div className={`w-1.5 h-1.5 rounded-full ${
+                            attendanceMap.get(p.id) === 'present' ? 'bg-emerald-500' :
+                            attendanceMap.get(p.id) === 'absent' ? 'bg-rose-500' :
+                            'bg-amber-400'
+                          }`} />
                           <span className="text-[10px] font-black uppercase">
-                            {p.is_verified ? "Verified" : "Pending"}
+                            {attendanceMap.get(p.id) || (p.is_verified ? "Pending Check-in" : "Unverified")}
                           </span>
                         </div>
                       </TableCell>
+
                     </TableRow>
                   ))}
                 </TableBody>

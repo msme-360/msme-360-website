@@ -97,6 +97,42 @@ export function ExecutivePortalClient() {
           ))}
         </div>
 
+        {/* Operational Pulses */}
+        {!loading && data && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card className="glass-card border-indigo-500/10 bg-indigo-500/[0.02] p-6 relative overflow-hidden group">
+               <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                  <Users className="w-24 h-24 text-indigo-400" />
+               </div>
+               <div className="relative z-10 space-y-4">
+                  <div className="flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse" />
+                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-400">Personnel Pulse</span>
+                  </div>
+                  <div>
+                    <p className="text-4xl font-display font-black text-white">{data.metrics.personnelCount}</p>
+                    <p className="text-xs text-indigo-100/40 uppercase font-bold tracking-widest mt-1">Total Verified Agents</p>
+                  </div>
+               </div>
+            </Card>
+            <Card className="glass-card border-amber-500/10 bg-amber-500/[0.02] p-6 relative overflow-hidden group">
+               <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                  <Target className="w-24 h-24 text-amber-400" />
+               </div>
+               <div className="relative z-10 space-y-4">
+                  <div className="flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-400">Support Throughput</span>
+                  </div>
+                  <div>
+                    <p className="text-4xl font-display font-black text-white">{data.metrics.supportLoad}</p>
+                    <p className="text-xs text-amber-100/40 uppercase font-bold tracking-widest mt-1">Pending Operational Tickets</p>
+                  </div>
+               </div>
+            </Card>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Strategic Roadmap */}
           <Card className="lg:col-span-2 glass-card border-white/10 overflow-hidden bg-white/[0.01]">

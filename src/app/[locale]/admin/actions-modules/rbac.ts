@@ -66,10 +66,8 @@ export async function inviteUser(payload: { email: string, full_name: string, ro
   const supabase = await createServiceClient();
   
   // 1. Create Auth User
-  const { data: { user: newUser }, error: authError } = await supabase.auth.admin.createUser({
-    email: payload.email,
-    email_confirm: true,
-    user_metadata: {
+  const { data: { user: newUser }, error: authError } = await supabase.auth.admin.inviteUserByEmail(payload.email, {
+    data: {
       full_name: payload.full_name,
       role: payload.role,
       department: payload.department

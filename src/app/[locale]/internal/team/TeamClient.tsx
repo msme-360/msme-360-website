@@ -14,16 +14,46 @@ import { Database } from "@/types/supabase";
 import { AdminViewWrapper } from "@/components/layout/AdminViewWrapper";
 import { AttendanceLogClient, AttendanceLog } from "@/app/[locale]/admin/attendance/AttendanceLogClient";
 import { PerformanceClient } from "./PerformanceClient";
+import { MissionReviewClient } from "./MissionReviewClient";
 
 type TeamMember = Database['public']['Tables']['team_members']['Row'];
+
+export interface TeamPerformance {
+  id: string;
+  name: string;
+  role: string;
+  reliability: number;
+  completion_rate: number;
+  culture_fit: 'Exceptional' | 'Standard' | 'Developing';
+  last_review: string;
+  avatar_url?: string;
+}
+
+export interface ReviewTask {
+  id: string;
+  title: string;
+  description: string;
+  priority: string;
+  proof_of_work: string;
+  assigned_to: string;
+  updated_at: string;
+  created_at: string;
+  assigned_to_profile?: {
+    full_name: string;
+    role: string;
+  };
+}
 
 interface TeamClientProps {
   initialTeam?: TeamMember[];
   initialAttendance?: AttendanceLog[];
+  initialPerformance?: TeamPerformance[];
+  initialPendingTasks?: ReviewTask[];
   subView?: string;
+  mentorId?: string;
 }
 
-export function TeamClient({ initialTeam = [], initialAttendance = [], subView }: TeamClientProps) {
+export function TeamClient({ initialTeam = [], initialAttendance = [], initialPerformance = [], initialPendingTasks = [], subView, mentorId }: TeamClientProps) {
   const t = useTranslations("Admin.team");
   const displayTeam = initialTeam;
 
@@ -32,7 +62,11 @@ export function TeamClient({ initialTeam = [], initialAttendance = [], subView }
   }
 
   if (subView === 'performance') {
-    return <PerformanceClient />;
+    return <PerformanceClient initialData={initialPerformance} mentorId={mentorId || ""} />;
+  }
+
+  if (subView === 'reviews') {
+    return <MissionReviewClient initialTasks={initialPendingTasks} mentorId={mentorId || ""} />;
   }
 
   if (subView) {
@@ -94,18 +128,32 @@ export function TeamClient({ initialTeam = [], initialAttendance = [], subView }
             const icon = name.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase();
             const colors = "bg-primary text-primary-foreground";
             
+            const isActive = initialAttendance.some(a => a.user_id === member.id && !a.check_out);
+            
             return (
-              <Card key={name} className="glass-card hover:scale-[1.02] transition-all duration-300 group overflow-hidden border-border/50">
+              <Card key={name} className={`glass-card hover:scale-[1.02] transition-all duration-300 group overflow-hidden border-border/50 ${isActive ? 'ring-1 ring-emerald-500/50' : ''}`}>
                 <CardContent className="p-6 relative">
                    {/* Background Glow */}
-                   <div className={`absolute -top-12 -right-12 w-24 h-24 rounded-full blur-3xl opacity-20 ${colors.split(' ')[0]}`} />
+                   <div className={`absolute -top-12 -right-12 w-24 h-24 rounded-full blur-3xl opacity-20 ${isActive ? 'bg-emerald-500' : colors.split(' ')[0]}`} />
                    
                    <div className="flex flex-col items-center text-center space-y-4">
-                      <div className={`w-20 h-20 rounded-2xl flex items-center justify-center text-3xl font-display font-bold shadow-xl group-hover:rotate-6 transition-transform ${colors}`}>
-                        {icon}
+                      <div className="relative">
+                        <div className={`w-20 h-20 rounded-2xl flex items-center justify-center text-3xl font-display font-bold shadow-xl group-hover:rotate-6 transition-transform ${colors}`}>
+                          {icon}
+                        </div>
+                        {isActive && (
+                          <div className="absolute -top-2 -right-2 bg-emerald-500 text-white p-1 rounded-lg shadow-lg shadow-emerald-500/20 border border-white/20 animate-bounce">
+                            <Zap className="w-3 h-3 fill-current" />
+                          </div>
+                        )}
                       </div>
                       <div>
-                        <h3 className="text-xl font-bold font-display group-hover:text-primary transition-colors">{name}</h3>
+                        <div className="flex items-center justify-center gap-2">
+                          <h3 className="text-xl font-bold font-display group-hover:text-primary transition-colors">{name}</h3>
+                          {isActive && (
+                            <Badge className="bg-emerald-500/10 text-emerald-400 border-0 text-[8px] font-black uppercase px-1.5 h-4">Active</Badge>
+                          )}
+                        </div>
                         <p className="text-xs font-medium text-muted-foreground uppercase tracking-widest mt-1">{role}</p>
                         <Badge variant="outline" className="mt-2 bg-muted/50 border-border text-[9px] font-bold uppercase tracking-widest px-2 py-0">
                           {dept}

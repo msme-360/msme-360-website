@@ -280,6 +280,7 @@ export const ROLE_NAV_CONFIG: Record<string, (locale: string) => NavGroup[]> = {
       items: [
         { title: "Personnel Hub", icon: Users, url: `/${l}/internal/manager/hr_manager` },
         { title: "Recruit Pipeline", icon: UserPlus, url: `/${l}/internal/hiring/hr_manager` },
+        { title: "Mission Reviews", icon: ClipboardCheck, url: `/${l}/internal/team/hr_manager/reviews` },
         { title: "Team Attendance", icon: Clock, url: `/${l}/internal/team/hr_manager/attendance` },
         { title: "Performance Metrics", icon: Zap, url: `/${l}/internal/team/hr_manager/performance` },
         { title: "Onboarding Registry", icon: ClipboardCheck, url: `/${l}/internal/hiring/hr_manager/onboarding` },
@@ -335,6 +336,7 @@ export const ROLE_NAV_CONFIG: Record<string, (locale: string) => NavGroup[]> = {
       visible: true,
       items: [
         { title: "Sprint Hub", icon: Target, url: `/${l}/internal/manager/team_lead` },
+        { title: "Mission Reviews", icon: ClipboardCheck, url: `/${l}/internal/team/team_lead/reviews` },
         { title: "Daily Sync", icon: Clock, url: `/${l}/internal/manager/team_lead/sync` },
       ]
     }

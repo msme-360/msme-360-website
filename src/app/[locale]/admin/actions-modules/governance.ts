@@ -188,3 +188,82 @@ export async function initiateSystemReIndex() {
   revalidatePath('/', 'layout');
   return { success: true };
 }
+
+export async function overrideSystemAction(logId: string, action: string, target: string) {
+  const verifiedUser = await getUser();
+  if (!verifiedUser) return { success: false, error: "Unauthorized" };
+
+  const supabase = await createServiceClient();
+
+  // 1. Log the override attempt
+  await logSystemAction(
+    "PROTOCOL_OVERRIDE",
+    `Super Admin ${verifiedUser.id} initiated manual override for ${action} on ${target}.`,
+    'warning',
+    verifiedUser.id
+  );
+
+  // 2. Perform target-specific mutation if applicable (Example: forcing a task resolution)
+  if (action.includes('TASK_BLOCKED')) {
+    await supabase.from('associate_tasks').update({ status: 'completed', resolution_note: 'OVERRIDDEN BY L6 GOVERNANCE' }).eq('id', target);
+  } else if (action.includes('HIRING')) {
+    await supabase.from('career_applications').update({ status: 'hired' }).eq('id', target);
+  }
+
+  revalidatePath('/', 'layout');
+  return { success: true };
+}
+
+/**
+ * THE GUARDIAN: AUTOMATED POLICY ENFORCEMENT
+ * Scans for operational anomalies and logs them to the governance ledger.
+ */
+export async function runPolicyAudit() {
+  const verifiedUser = await getUser();
+  if (!verifiedUser) return { success: false, error: "Unauthorized" };
+
+  const supabase = await createServiceClient();
+  const today = new Date().toISOString();
+
+  // 1. Scan for Overdue Tasks
+  const { data: overdueTasks } = await supabase
+    .from('associate_tasks')
+    .select('id, title, due_date')
+    .eq('status', 'pending')
+    .lt('due_date', today);
+
+  if (overdueTasks && overdueTasks.length > 0) {
+    for (const task of overdueTasks) {
+      await logSystemAction(
+        "POLICY_VIOLATION: OVERDUE_MISSION",
+        `Mission "${task.title}" has exceeded its temporal index. Immediate resolution required.`,
+        'warning',
+        verifiedUser.id,
+        task.id
+      );
+    }
+  }
+
+  // 2. Scan for Stagnant Applications (Older than 14 days)
+  const fourteenDaysAgo = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString();
+  const { data: stagnantApps } = await supabase
+    .from('intern_applications')
+    .select('id, full_name')
+    .eq('status', 'pending')
+    .lt('applied_at', fourteenDaysAgo);
+
+  if (stagnantApps && stagnantApps.length > 0) {
+    for (const app of stagnantApps) {
+      await logSystemAction(
+        "GOVERNANCE_ADVISORY: STAGNANT_APPLICATION",
+        `Application for ${app.full_name} has been pending for >14 days. Protocol optimization recommended.`,
+        'warning',
+        verifiedUser.id,
+        app.id
+      );
+    }
+  }
+
+  revalidatePath('/[locale]/admin/audit', 'page');
+  return { success: true, anomaliesDetected: (overdueTasks?.length || 0) + (stagnantApps?.length || 0) };
+}

@@ -96,6 +96,12 @@ export async function executeProtocolZero(...args: Parameters<typeof governance.
 export async function initiateSystemReIndex(...args: Parameters<typeof governance.initiateSystemReIndex>) {
   return governance.initiateSystemReIndex(...args);
 }
+export async function overrideSystemAction(...args: Parameters<typeof governance.overrideSystemAction>) {
+  return governance.overrideSystemAction(...args);
+}
+export async function runPolicyAudit(...args: Parameters<typeof governance.runPolicyAudit>) {
+  return governance.runPolicyAudit(...args);
+}
 
 // --- AUDIT ACTIONS ---
 export async function getAuditLogs(...args: Parameters<typeof audit.getAuditLogs>) {
@@ -145,6 +151,9 @@ export async function getExecutiveAnalytics(...args: Parameters<typeof executive
 }
 export async function promoteUser(...args: Parameters<typeof executive.promoteUser>) {
   return executive.promoteUser(...args);
+}
+export async function getTeamPerformanceStats(...args: Parameters<typeof executive.getTeamPerformanceStats>) {
+  return executive.getTeamPerformanceStats(...args);
 }
 export type { ExecutiveAnalytics } from "./actions-modules/executive";
 

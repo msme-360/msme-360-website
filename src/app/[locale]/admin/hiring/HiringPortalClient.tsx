@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { 
@@ -94,18 +94,34 @@ export function HiringPortalClient({ initialApplicants, subView, role, profile }
 
   const isGoogleConnected = (profile.metadata as Record<string, unknown>)?.google_tokens;
 
-  const handleStatusUpdate = async (id: string, status: string) => {
+  const handleStatusUpdate = async (id: string, status: string, reviewerName?: string) => {
     if (role === 'recruiter' && (status === 'hired' || status === 'onboarded')) {
       toast.error("Permission denied. Only HR Managers can finalize hiring.");
       return;
     }
 
     setLoadingId(id);
+
+    // If reviewerName is provided, it means the server action was already called (e.g. via ScheduleMeetDialog)
+    if (reviewerName) {
+      setApplicants(prev => prev.map(a => a.id === id ? { 
+        ...a, 
+        status: status as Applicant['status'],
+        reviewer_name: reviewerName
+      } : a));
+      setLoadingId(null);
+      return;
+    }
+
     const res = await updateApplicationStatus(id, status);
 
     if (res.success) {
       toast.success(`Application marked as ${status}`);
-      setApplicants(prev => prev.map(a => a.id === id ? { ...a, status: status as Applicant['status'] } : a));
+      setApplicants(prev => prev.map(a => a.id === id ? { 
+        ...a, 
+        status: status as Applicant['status'],
+        reviewer_name: res.reviewer_name
+      } : a));
     } else {
       toast.error(res.error || "Failed to update status");
     }
@@ -120,9 +136,13 @@ export function HiringPortalClient({ initialApplicants, subView, role, profile }
     setLoadingId(id);
     toast.promise(onboardIntern(id), {
       loading: 'Initiating onboarding and sending invitation...',
-      success: (res) => {
+      success: (res: any) => {
         if (res.success) {
-          setApplicants(prev => prev.map(a => a.id === id ? { ...a, status: 'hired' as Applicant['status'] } : a));
+          setApplicants(prev => prev.map(a => a.id === id ? { 
+            ...a, 
+            status: 'hired' as Applicant['status'],
+            reviewer_name: res.reviewer_name
+          } : a));
           return res.message || "Intern onboarded successfully! Invitation email sent.";
         }
         throw new Error(res.error || "Failed to hire intern");
@@ -173,7 +193,17 @@ export function HiringPortalClient({ initialApplicants, subView, role, profile }
     setLoadingId(null);
   };
 
-  const pipelineApplicants = applicants.filter(a => a.status !== 'hired');
+  const pipelineApplicants = 
+  useMemo(() => 
+    applicants.filter(a => a.status !== 'hired' && a.status !== 'onboarded'),
+  [applicants]);
+
+  const funnelData = useMemo(() => ({
+    applicantsCount: applicants.length,
+    shortlistedCount: applicants.filter(a => a.status === 'shortlisted').length,
+    pendingCount: applicants.filter(a => a.status === 'pending').length,
+    hiredCount: applicants.filter(a => a.status === 'hired' || a.status === 'onboarded').length,
+  }), [applicants]);
 
   if (subView === 'onboarding') {
     const hiredApplicants = (onboardingTab === 'active' ? applicants : archivedApplicants)
@@ -188,10 +218,10 @@ export function HiringPortalClient({ initialApplicants, subView, role, profile }
       >
         <div className="space-y-10 pb-20">
           <FunnelStats
-            applicantsCount={applicants.length}
-            shortlistedCount={applicants.filter(a => a.status === 'shortlisted').length}
-            pendingCount={applicants.filter(a => a.status === 'pending').length}
-            hiredCount={applicants.filter(a => a.status === 'hired' || a.status === 'onboarded').length}
+            applicantsCount={funnelData.applicantsCount}
+            shortlistedCount={funnelData.shortlistedCount}
+            pendingCount={funnelData.pendingCount}
+            hiredCount={funnelData.hiredCount}
           />
           <ApplicantTable
             applicants={hiredApplicants}
@@ -218,17 +248,17 @@ export function HiringPortalClient({ initialApplicants, subView, role, profile }
     >
       <div className="space-y-10 pb-20">
         <FunnelStats
-          applicantsCount={applicants.length}
-          shortlistedCount={applicants.filter(a => a.status === 'shortlisted').length}
-          pendingCount={applicants.filter(a => a.status === 'pending').length}
-          hiredCount={applicants.filter(a => a.status === 'hired' || a.status === 'onboarded').length}
+          applicantsCount={funnelData.applicantsCount}
+          shortlistedCount={funnelData.shortlistedCount}
+          pendingCount={funnelData.pendingCount}
+          hiredCount={funnelData.hiredCount}
         />
 
-        <Tabs value={currentTab} className="w-full flex flex-col" onValueChange={(v) => {
+        <Tabs value={currentTab} className="w-full flex flex-col min-w-0" onValueChange={(v) => {
           setCurrentTab(v);
           if (v === 'archived') fetchArchived();
         }}>
-          <div className="flex items-center justify-between mb-8 border-b border-white/10 pb-4">
+          <div className="flex flex-col xl:flex-row xl:items-center justify-between mb-8 border-b border-white/10 pb-4 gap-4">
             <div className="flex items-center gap-4">
               <Button 
                 variant="outline" 
@@ -275,7 +305,7 @@ export function HiringPortalClient({ initialApplicants, subView, role, profile }
             </div>
           </div>
 
-          <TabsContent value="active" className="mt-0 outline-none">
+          <TabsContent value="active" className="mt-0 outline-none w-full min-w-0">
             <ApplicantTable
               applicants={pipelineApplicants}
               loadingId={loadingId}
@@ -294,7 +324,7 @@ export function HiringPortalClient({ initialApplicants, subView, role, profile }
             <CareerRoleManager />
           </TabsContent>
 
-          <TabsContent value="archived" className="mt-0 outline-none">
+          <TabsContent value="archived" className="mt-0 outline-none w-full min-w-0">
             <ApplicantTable
               applicants={archivedApplicants}
               loadingId={loadingId}

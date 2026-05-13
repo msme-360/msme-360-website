@@ -29,12 +29,19 @@ export async function getApplicants(archived: boolean = false) {
   const supabase = await createServiceClient();
   const { data, error } = await supabase
     .from("intern_applications")
-    .select("*")
+    .select(`
+      *,
+      reviewer:profiles!reviewed_by(full_name)
+    `)
     .eq("is_archived", archived)
     .order("applied_at", { ascending: false });
 
   if (error) return [];
-  return data || [];
+  
+  return (data || []).map(app => ({
+    ...app,
+    reviewer_name: (app as any).reviewer?.full_name || "System"
+  }));
 }
 
 export async function updateApplicationStatus(id: string, status: string) {
@@ -93,6 +100,13 @@ export async function updateApplicationStatus(id: string, status: string) {
 
   if (error) return { success: false, error: error.message };
 
+  // Fetch the reviewer's name to return to the client for immediate UI update
+  const { data: reviewerProfile } = await supabase
+    .from("profiles")
+    .select("full_name")
+    .eq("id", verifiedUser.id)
+    .single();
+
   await logSystemAction(`APPLICATION_STATUS_${status.toUpperCase()}`, `Candidate ${applicant.full_name} moved to ${status}`, 'success', verifiedUser.id);
 
   if (['shortlisted', 'rejected', 'hired', 'onboarded'].includes(status)) {
@@ -103,7 +117,10 @@ export async function updateApplicationStatus(id: string, status: string) {
   revalidatePath("/[locale]/internal/hiring", "layout");
   revalidateTag('executive', "max");
   
-  return { success: true };
+  return { 
+    success: true, 
+    reviewer_name: reviewerProfile?.full_name || "System" 
+  };
 }
 
 export async function onboardIntern(applicationId: string) {
@@ -119,28 +136,71 @@ export async function onboardIntern(applicationId: string) {
 
   if (!application) return { success: false, error: "Application not found" };
 
+  // 1. Ensure Auth User Exists
   const { data: existingUser } = await supabase.auth.admin.listUsers();
-  const userExists = existingUser.users.find(u => u.email === application.email);
+  let userId = existingUser.users.find(u => u.email === application.email)?.id;
 
-  if (!userExists) {
-    const { error: createError } = await supabase.auth.admin.createUser({
-      email: application.email,
-      email_confirm: true,
-      user_metadata: {
+  if (!userId) {
+    const { data: newUser, error: createError } = await supabase.auth.admin.inviteUserByEmail(application.email, {
+      data: {
         full_name: application.full_name,
         role: 'intern',
         department: application.department || 'Operations'
       }
     });
     if (createError) return { success: false, error: createError.message };
+    userId = newUser.user.id;
   }
 
-  await updateApplicationStatus(applicationId, "onboarded");
-  await logSystemAction("INTERN_ONBOARDED", `Intern ${application.full_name} onboarded`, 'success', verifiedUser.id);
+  // 2. Create/Update Profile
+  const { error: profileError } = await supabase.from('profiles').upsert({
+    id: userId,
+    full_name: application.full_name,
+    email: application.email,
+    role: 'intern',
+    department: application.department || 'Operations',
+    designation: application.role || 'Intern',
+    metadata: {
+      hired_from: applicationId,
+      hired_at: new Date().toISOString(),
+      onboarding_status: 'active'
+    }
+  });
+
+  if (profileError) console.error("Profile sync error:", profileError);
+
+  // 3. Initialize Onboarding Checklist
+  const DEFAULT_ONBOARDING_TASKS = [
+    "ACCOUNT: Set up MSME 360 professional profile",
+    "ACCOUNT: Enable Multi-Factor Authentication (MFA)",
+    "LEGAL: Review and sign Non-Disclosure Agreement (NDA)",
+    "LEGAL: Complete Data Privacy Training module",
+    "DEPT: Review Departmental Operational Protocols",
+    "TECHNICAL: Access internal Git repositories and tools",
+    "INFRASTRUCTURE: Configure VPN and secure access nodes",
+    "TECHNICAL: Complete Initial Technical Skills Assessment"
+  ];
+
+  const checklistItems = DEFAULT_ONBOARDING_TASKS.map(task => ({
+    user_id: userId,
+    task_name: task,
+    is_completed: false
+  }));
+
+  const { error: checklistError } = await supabase
+    .from('intern_onboarding_checklists')
+    .insert(checklistItems);
+
+  if (checklistError) console.error("Checklist init error:", checklistError);
+
+  // 4. Update Application Status
+  const updateRes = await updateApplicationStatus(applicationId, "onboarded");
+  await logSystemAction("INTERN_ONBOARDED", `Intern ${application.full_name} onboarded and profile initialized`, 'success', verifiedUser.id);
 
   return { 
     success: true, 
-    message: `Intern ${application.full_name} onboarded successfully! Invitation email sent.` 
+    message: `Intern ${application.full_name} onboarded successfully! Profile and checklist initialized.`,
+    reviewer_name: updateRes.reviewer_name
   };
 }
 
@@ -179,6 +239,8 @@ export async function scheduleInterview(applicationId: string, date: string, tim
     .from("intern_applications")
     .update({ 
       status: 'under_review',
+      reviewed_by: verifiedUser.id,
+      reviewed_at: new Date().toISOString(),
       metadata: {
         ...(application.metadata as Record<string, unknown> || {}),
         interview_date: date,
@@ -189,8 +251,22 @@ export async function scheduleInterview(applicationId: string, date: string, tim
     .eq("id", applicationId);
 
   if (error) return { success: false, error: error.message };
+
+  // Fetch reviewer name for UI
+  const { data: reviewerProfile } = await supabase
+    .from("profiles")
+    .select("full_name")
+    .eq("id", verifiedUser.id)
+    .single();
+
   revalidatePath("/[locale]/admin/hiring", "page");
-  return { success: true, meetLink, isRealGoogleMeet: !!googleTokens };
+
+  return { 
+    success: true, 
+    meetLink, 
+    isRealGoogleMeet: !!googleTokens,
+    reviewer_name: reviewerProfile?.full_name || "System"
+  };
 }
 
 export async function archiveApplication(id: string) {

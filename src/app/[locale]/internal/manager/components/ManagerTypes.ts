@@ -7,6 +7,11 @@ export interface Task {
   due_date?: string;
   assigned_to?: string;
   assigned_to_profile?: { full_name: string; avatar_url?: string };
+  verification_status?: 'pending' | 'verified' | 'rejected';
+  mentor_feedback?: string;
+  verified_at?: string;
+  verified_by?: string;
+  proof_of_work?: string;
 }
 
 export interface AttendanceLog {

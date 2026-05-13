@@ -7,8 +7,11 @@ import { Button } from "@/components/ui/button";
 import { GraduationCap, MessageSquare, ArrowRight } from "lucide-react";
 import { useTranslations } from "next-intl";
 
+import MentorshipEvaluationDialog from "./MentorshipEvaluationDialog";
+
 interface MentorInsightsProps {
   mentor: {
+    id: string;
     full_name: string;
     avatar_url: string | null;
     designation: string;
@@ -50,11 +53,14 @@ export default function MentorInsights({ mentor }: MentorInsightsProps) {
             <p className="text-sm text-indigo-100/60 italic leading-relaxed font-medium">
               &quot;{t("quote")}&quot;
             </p>
-            <Button className="w-full bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl h-12 text-[10px] uppercase font-black tracking-widest shadow-[0_0_20px_rgba(16,185,129,0.2)] flex items-center justify-center gap-2 transition-all hover:-translate-y-0.5 active:translate-y-0">
-              <MessageSquare className="w-3.5 h-3.5" />
-              {t("directComms")}
-              <ArrowRight className="w-3.5 h-3.5" />
-            </Button>
+            <div className="space-y-2">
+              <Button className="w-full bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl h-12 text-[10px] uppercase font-black tracking-widest shadow-[0_0_20px_rgba(16,185,129,0.2)] flex items-center justify-center gap-2 transition-all hover:-translate-y-0.5 active:translate-y-0">
+                <MessageSquare className="w-3.5 h-3.5" />
+                {t("directComms")}
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Button>
+              <MentorshipEvaluationDialog mentorName={mentor.full_name} mentorId={mentor.id} />
+            </div>
           </>
         ) : (
           <div className="py-6 text-center text-muted-foreground">

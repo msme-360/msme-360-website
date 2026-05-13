@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Bell } from "lucide-react";
 import { AdminBreadcrumbs } from "./AdminBreadcrumbs";
-import { Omnibox } from "@/components/dashboard/Omnibox";
+import { CommandCenter } from "@/components/governance/CommandCenter";
 import LocaleSwitcher from "./LocaleSwitcher";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DashboardProfile } from "@/types/dashboard";
@@ -37,7 +37,7 @@ export function AdminHeader({
       </div>
 
       <div className="flex-1 flex justify-center max-w-md">
-        <Omnibox userRole={profile?.role || "user"} locale={locale} />
+        <CommandCenter />
       </div>
 
       <div className="flex items-center gap-4 shrink-0">

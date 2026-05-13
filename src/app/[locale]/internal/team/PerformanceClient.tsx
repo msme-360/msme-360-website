@@ -20,6 +20,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
+import { CommendationDialog } from "./components/CommendationDialog";
+
 interface TeamPerformance {
   id: string;
   name: string;
@@ -31,16 +33,18 @@ interface TeamPerformance {
   avatar_url?: string;
 }
 
-const mockPerformance: TeamPerformance[] = [
-  { id: '1', name: 'Omkar Palika', role: 'HR Manager', reliability: 98, completion_rate: 95, culture_fit: 'Exceptional', last_review: '2026-04-01' },
-  { id: '2', name: 'Jane Doe', role: 'Recruiter', reliability: 92, completion_rate: 88, culture_fit: 'Standard', last_review: '2026-03-15' },
-  { id: '3', name: 'John Smith', role: 'Staff Analyst', reliability: 85, completion_rate: 92, culture_fit: 'Standard', last_review: '2026-04-10' },
-  { id: '4', name: 'Alice Wong', role: 'Lead Recruiter', reliability: 99, completion_rate: 100, culture_fit: 'Exceptional', last_review: '2026-03-20' },
-  { id: '5', name: 'Bob Johnson', role: 'Associate', reliability: 78, completion_rate: 82, culture_fit: 'Developing', last_review: '2026-04-05' },
-];
+export function PerformanceClient({ initialData = [], mentorId }: { initialData?: TeamPerformance[], mentorId: string }) {
+  const [data, setData] = useState<TeamPerformance[]>(initialData);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [commendationTarget, setCommendationTarget] = useState<{ id: string, name: string } | null>(null);
 
-export function PerformanceClient() {
-  const [data] = useState<TeamPerformance[]>(mockPerformance);
+  const handleSync = async () => {
+    setIsSyncing(true);
+    const { getTeamPerformanceStats } = await import("../actions");
+    const res = await getTeamPerformanceStats();
+    if (res) setData(res as TeamPerformance[]);
+    setIsSyncing(false);
+  };
 
   const columns: ColumnDef<TeamPerformance>[] = [
     {
@@ -113,7 +117,7 @@ export function PerformanceClient() {
     },
     {
       id: "actions",
-      cell: () => (
+      cell: ({ row }) => (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="h-8 w-8 p-0 hover:bg-white/10 rounded-full">
@@ -122,7 +126,10 @@ export function PerformanceClient() {
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="glass-card border-white/10 w-48">
             <DropdownMenuLabel className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground">Operations</DropdownMenuLabel>
-            <DropdownMenuItem className="gap-2 cursor-pointer focus:bg-white/10">
+            <DropdownMenuItem 
+              className="gap-2 cursor-pointer focus:bg-white/10"
+              onClick={() => setCommendationTarget({ id: row.original.id, name: row.original.name })}
+            >
               <Award className="w-3.5 h-3.5" /> Commendation
             </DropdownMenuItem>
             <DropdownMenuItem className="gap-2 cursor-pointer focus:bg-white/10">
@@ -144,6 +151,18 @@ export function PerformanceClient() {
       subtitle="Quantitative reliability metrics and qualitative cultural alignment tracking."
       badgeLabel="PERFORMANCE HUB"
       authorityLevel="L3+ Personnel Mgmt"
+      actions={
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={handleSync}
+          disabled={isSyncing}
+          className="bg-indigo-500/5 border-indigo-500/10 text-indigo-400 h-10 px-6 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-500/10"
+        >
+          {isSyncing ? "Syncing..." : "Sync Intelligence"}
+          <Zap className={`ml-2 w-4 h-4 ${isSyncing ? 'animate-pulse' : ''}`} />
+        </Button>
+      }
     >
       <div className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -177,6 +196,14 @@ export function PerformanceClient() {
           defaultSort={[{ id: 'reliability', desc: true }]}
         />
       </div>
+
+      <CommendationDialog 
+        isOpen={!!commendationTarget}
+        onOpenChange={(open) => !open && setCommendationTarget(null)}
+        userId={commendationTarget?.id || ""}
+        userName={commendationTarget?.name || ""}
+        mentorId={mentorId}
+      />
     </AdminViewWrapper>
   );
 }

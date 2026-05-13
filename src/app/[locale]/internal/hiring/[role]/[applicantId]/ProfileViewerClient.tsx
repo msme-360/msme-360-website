@@ -340,7 +340,7 @@ export default function ProfileViewerClient({ applicant: initialApplicant, initi
               ] as JourneyItem[]).sort((a, b) => {
                 const dateA = new Date(a.timestamp || 0).getTime();
                 const dateB = new Date(b.timestamp || 0).getTime();
-                return dateA - dateB;
+                return dateB - dateA;
               });
 
               return (

@@ -69,12 +69,12 @@ async function CompanyRegistryContent({
       .select("id, title, status, due_date, user_id")
       .order("due_date", { ascending: true })
       .limit(50),
-    // Team / workforce registry
+    // Team / workforce registry — unified from profiles with hierarchy data
     supabase
-      .from("team_members")
-      .select("id, name, role, department, status")
-      .order("name", { ascending: true })
-      .limit(100),
+      .from("profiles")
+      .select("id, full_name, role, department, designation, manager_id, avatar_url, is_verified")
+      .not("role", "eq", "user") // Filter out external users
+      .order("full_name", { ascending: true }),
   ]);
 
   return (

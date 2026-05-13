@@ -11,7 +11,7 @@ import { ListFilter } from "lucide-react";
 interface ApplicantTableProps {
   applicants: Applicant[];
   loadingId: string | null;
-  onStatusUpdate: (id: string, status: string) => void;
+  onStatusUpdate: (id: string, status: string, reviewerName?: string) => void;
   onHire: (id: string) => void;
   onArchive: (id: string) => void;
   onRestore?: (id: string) => void;

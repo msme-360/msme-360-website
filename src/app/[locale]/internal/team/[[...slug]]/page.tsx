@@ -1,8 +1,9 @@
 import { getUser as getAuthUser } from "@/services/supabase/supabase-server";
 import { getProfile as getProfileDirect } from "@/app/[locale]/dashboard/queries";
-import { getAttendanceLogs } from "@/app/[locale]/internal/actions";
+import { getAttendanceLogs, getTasksForVerification } from "@/app/[locale]/internal/actions";
+import { getTeamPerformanceStats } from "@/app/[locale]/admin/actions";
 import { AttendanceLog } from "@/app/[locale]/admin/attendance/AttendanceLogClient";
-import { TeamClient } from "../TeamClient";
+import { TeamClient, ReviewTask, TeamPerformance } from "../TeamClient";
 import { hasPermission } from "@/lib/constants/roles";
 import { RestrictedAccess } from "@/components/auth/RestrictedAccess";
 import { redirect } from "next/navigation";
@@ -60,10 +61,23 @@ async function TeamPortalContent({
     attendance = await getAttendanceLogs() as unknown as AttendanceLog[];
   }
 
+  let pendingTasks: ReviewTask[] = [];
+  if (subView === 'reviews') {
+    pendingTasks = await getTasksForVerification(user.id) as unknown as ReviewTask[];
+  }
+
+  let performance: TeamPerformance[] = [];
+  if (subView === 'performance') {
+    performance = await getTeamPerformanceStats() as unknown as TeamPerformance[];
+  }
+
   return (
     <TeamClient 
       initialAttendance={attendance}
+      initialPendingTasks={pendingTasks}
+      initialPerformance={performance}
       subView={subView}
+      mentorId={user.id}
     />
   );
 }

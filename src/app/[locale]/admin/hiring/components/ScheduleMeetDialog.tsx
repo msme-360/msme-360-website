@@ -26,6 +26,7 @@ interface ScheduleMeetDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   isGoogleConnected?: boolean;
+  onSuccess?: (reviewerName: string) => void;
 }
 
 export function ScheduleMeetDialog({ 
@@ -59,6 +60,7 @@ export function ScheduleMeetDialog({
         setIsSuccess(true);
         setMeetLink(res.meetLink || "");
         setIsRealMeet(!!res.isRealGoogleMeet);
+        onSuccess?.(res.reviewer_name || "System");
         toast.success("Interview scheduled successfully!");
       } else {
         toast.error(res.error || "Failed to schedule interview");
@@ -268,3 +270,7 @@ export function ScheduleMeetDialog({
     </Dialog>
   );
 }
+function onSuccess(arg0: any) {
+  throw new Error("Function not implemented.");
+}
+

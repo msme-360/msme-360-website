@@ -51,11 +51,13 @@ async function PerformanceContent({
     { data: metrics },
     { data: attendance },
     { data: logs },
+    { data: health },
   ] = await Promise.all([
     supabase.from("profiles").select("id, full_name, role, department, is_verified").order("full_name"),
     supabase.from("platform_metrics").select("*").order("created_at", { ascending: false }).limit(20),
     supabase.from("attendance_logs").select("user_id, status, date").order("date", { ascending: false }).limit(200),
     supabase.from("system_logs").select("action, status, created_at").order("created_at", { ascending: false }).limit(30),
+    supabase.from("service_health").select("*"),
   ]);
 
   return (
@@ -64,6 +66,7 @@ async function PerformanceContent({
       metrics={metrics || []}
       attendance={attendance || []}
       logs={logs || []}
+      health={health || []}
       role={userRole}
     />
   );

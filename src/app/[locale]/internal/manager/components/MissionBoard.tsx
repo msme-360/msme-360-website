@@ -4,6 +4,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
 import {
    ClipboardList, Filter, MoreVertical,
@@ -28,8 +29,9 @@ import { format, startOfWeek, endOfWeek } from "date-fns";
 import { Task, TaskComment } from "./ManagerTypes";
 import { DashboardProfile } from "@/types/dashboard";
 import { toast } from "sonner";
-import { createTask, savePerformanceEvaluation } from "@/app/[locale]/internal/actions";
+import { createTask, savePerformanceEvaluation, handlePoWReview } from "@/app/[locale]/internal/actions";
 import { Slider } from "@/components/ui/slider";
+import { CheckCircle, XCircle, FileText } from "lucide-react";
 
 interface MissionBoardProps {
    tasks: Task[];
@@ -128,6 +130,28 @@ export default function MissionBoard({
          toast.error(res.error || "Failed to save evaluation.");
       }
       setIsEvalSubmitting(false);
+   };
+
+   const [reviewFeedback, setReviewFeedback] = useState("");
+   const [isReviewing, setIsReviewing] = useState(false);
+
+   const handleVerification = async (taskId: string, decision: 'verified' | 'rejected') => {
+      if (decision === 'rejected' && !reviewFeedback) {
+         toast.error("Please provide feedback for rejection.");
+         return;
+      }
+      
+      setIsReviewing(true);
+      const res = await handlePoWReview(taskId, decision, reviewFeedback, profile.id);
+      
+      if (res.success) {
+         toast.success(`Mission ${decision === 'verified' ? 'authorized' : 'returned for revision'}.`);
+         setReviewFeedback("");
+         if (onRefresh) onRefresh();
+      } else {
+         toast.error(res.error || "Failed to process review.");
+      }
+      setIsReviewing(false);
    };
 
    return (
@@ -282,6 +306,47 @@ export default function MissionBoard({
                                     </p>
                                  </div>
 
+                                 {task.status === 'pending_verification' && (
+                                    <div className="p-5 rounded-2xl bg-emerald-500/5 border border-emerald-500/20 space-y-4 animate-pulse-subtle">
+                                       <div className="flex items-center gap-2 mb-2">
+                                          <FileText className="w-4 h-4 text-emerald-400" />
+                                          <Label className="text-[10px] font-black uppercase text-emerald-400">Proof of Work Received</Label>
+                                       </div>
+                                       <div className="text-xs text-white/80 italic bg-black/40 p-3 rounded-lg border border-white/5">
+                                          "{task.proof_of_work || "No proof provided."}"
+                                       </div>
+                                       
+                                       <div className="space-y-3">
+                                          <Label className="text-[10px] font-black uppercase text-white/40">Review Commentary</Label>
+                                          <Textarea 
+                                             placeholder="Authorize completion or provide revision guidance..."
+                                             className="bg-black/40 border-white/10 text-xs min-h-[80px] text-white"
+                                             value={reviewFeedback}
+                                             onChange={e => setReviewFeedback(e.target.value)}
+                                          />
+                                          <div className="flex gap-2">
+                                             <Button 
+                                                onClick={() => handleVerification(task.id, 'verified')}
+                                                disabled={isReviewing}
+                                                className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white h-10 text-[10px] font-black uppercase tracking-widest gap-2"
+                                             >
+                                                {isReviewing ? <Loader2 className="w-3 h-3 animate-spin" /> : <CheckCircle className="w-4 h-4" />}
+                                                Authorize
+                                             </Button>
+                                             <Button 
+                                                onClick={() => handleVerification(task.id, 'rejected')}
+                                                disabled={isReviewing}
+                                                variant="outline"
+                                                className="flex-1 border-rose-500/40 text-rose-400 hover:bg-rose-500 hover:text-white h-10 text-[10px] font-black uppercase tracking-widest gap-2"
+                                             >
+                                                {isReviewing ? <Loader2 className="w-3 h-3 animate-spin" /> : <XCircle className="w-4 h-4" />}
+                                                Reject
+                                             </Button>
+                                          </div>
+                                       </div>
+                                    </div>
+                                 )}
+
                                  <div className="flex-1 flex flex-col min-h-0 pt-4">
                                     <div className="flex items-center justify-between mb-4">
                                        <Label className="text-[10px] font-black uppercase text-emerald-400">Feedback Relay (Comments)</Label>
@@ -415,8 +480,14 @@ export default function MissionBoard({
                                     }`}>
                                     {task.priority}
                                  </Badge>
-                                 <Badge className="bg-white/5 text-[8px] uppercase tracking-widest">{task.status.replace('_', ' ')}</Badge>
+                                 <Badge className={cn(
+                                    "text-[8px] uppercase tracking-widest",
+                                    task.status === 'pending_verification' ? "bg-amber-500/20 text-amber-400 animate-pulse" : "bg-white/5"
+                                 )}>
+                                    {task.status.replace('_', ' ')}
+                                 </Badge>
                               </div>
+
                               <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-white">
                                  <MoreVertical className="w-4 h-4" />
                               </Button>

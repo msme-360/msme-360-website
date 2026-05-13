@@ -30,7 +30,7 @@ const ActionsCell = ({
   row: { original: Applicant }, 
   userRole: string, 
   isArchiveView?: boolean, 
-  onStatusUpdate: (id: string, status: string) => void, 
+  onStatusUpdate: (id: string, status: string, reviewerName?: string) => void, 
   onHire: (id: string) => void, 
   onArchive: (id: string) => void, 
   onRestore?: (id: string) => void,
@@ -158,6 +158,7 @@ const ActionsCell = ({
         isOpen={showScheduleDialog}
         onOpenChange={setShowScheduleDialog}
         isGoogleConnected={isGoogleConnected}
+        onSuccess={(name) => onStatusUpdate(app.id, 'under_review', name)}
       />
     </div>
   );
@@ -166,7 +167,7 @@ const ActionsCell = ({
 export const getHiringColumns = (
   userRole: string,
   loadingId: string | null,
-  onStatusUpdate: (id: string, status: string) => void,
+  onStatusUpdate: (id: string, status: string, reviewerName?: string) => void,
   onHire: (id: string) => void,
   onArchive: (id: string) => void,
   onRestore?: (id: string) => void,

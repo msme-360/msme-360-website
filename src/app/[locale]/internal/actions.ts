@@ -2,6 +2,9 @@
 
 import { createServiceClient } from "@/services/supabase/supabase-server";
 import { revalidatePath } from "next/cache";
+import { getTeamPerformanceStats as getStats } from "../admin/actions-modules/executive";
+
+export const getTeamPerformanceStats = getStats;
 
 /**
  * ATTENDANCE ACTIONS
@@ -12,22 +15,27 @@ export async function logAttendance(userId: string, type: 'in' | 'out') {
   const today = new Date().toISOString().split('T')[0];
 
   if (type === 'in') {
-    // Check if already checked in today
+    // 1. Block if already checked in today (Atomic guard)
     const { data: existing } = await supabase
       .from('attendance_logs')
-      .select('id')
+      .select('id, check_out')
       .eq('user_id', userId)
       .gte('check_in', `${today}T00:00:00Z`)
       .lte('check_in', `${today}T23:59:59Z`)
+      .is('check_out', null)
       .maybeSingle();
 
     if (existing) {
-      return { success: false, error: "Already checked in today." };
+      return { success: false, error: "Active mission session already in progress." };
     }
 
     const { data, error } = await supabase
       .from('attendance_logs')
-      .insert({ user_id: userId, check_in: new Date().toISOString() })
+      .insert({ 
+        user_id: userId, 
+        check_in: new Date().toISOString(),
+        metadata: { client_validated: true, source: 'Internal Portal' }
+      })
       .select()
       .single();
 
@@ -35,7 +43,7 @@ export async function logAttendance(userId: string, type: 'in' | 'out') {
     revalidatePath('/[locale]/internal/associate', 'page');
     return { success: true, data };
   } else {
-    // Find active check-in today
+    // 2. Block if no active session exists
     const { data: activeLog } = await supabase
       .from('attendance_logs')
       .select('id')
@@ -46,12 +54,14 @@ export async function logAttendance(userId: string, type: 'in' | 'out') {
       .maybeSingle();
 
     if (!activeLog) {
-      return { success: false, error: "No active check-in found to check out from." };
+      return { success: false, error: "No active mission session detected. Deployment required first." };
     }
 
     const { data, error } = await supabase
       .from('attendance_logs')
-      .update({ check_out: new Date().toISOString() })
+      .update({ 
+        check_out: new Date().toISOString()
+      })
       .eq('id', activeLog.id)
       .select()
       .single();
@@ -85,13 +95,22 @@ export async function createTask(data: {
   assigned_to: string;
   assigned_by: string;
   priority: 'Low' | 'Medium' | 'High' | 'Urgent';
-  status?: 'pending' | 'in_progress' | 'completed' | 'blocked';
+  status?: string;
   due_date?: string;
 }) {
   const supabase = await createServiceClient();
-  const { error } = await supabase.from('tasks').insert(data);
+  const { data: task, error } = await supabase.from('tasks').insert(data).select().single();
 
   if (error) return { success: false, error: error.message };
+
+  // Log creation
+  await supabase.from('task_logs').insert({
+    task_id: task.id,
+    actor_id: data.assigned_by,
+    action: 'created',
+    new_status: data.status || 'pending',
+    payload: { title: data.title }
+  });
 
   revalidatePath('/[locale]/internal/manager', 'page');
   return { success: true };
@@ -113,11 +132,129 @@ export async function getTasks(userId?: string) {
   return data || [];
 }
 
-export async function updateTaskStatus(taskId: string, status: string) {
+export async function updateTaskStatus(taskId: string, status: string, actorId?: string) {
   const supabase = await createServiceClient();
+  
+  // Get previous status for logging
+  const { data: prev } = await supabase.from('tasks').select('status').eq('id', taskId).single();
+
   const { error } = await supabase
     .from('tasks')
     .update({ status })
+    .eq('id', taskId);
+
+  if (error) return { success: false, error: error.message };
+
+  // Log transition
+  if (actorId) {
+    await supabase.from('task_logs').insert({
+      task_id: taskId,
+      actor_id: actorId,
+      action: 'status_change',
+      previous_status: prev?.status,
+      new_status: status
+    });
+  }
+
+  revalidatePath('/[locale]/internal/associate', 'page');
+  revalidatePath('/[locale]/internal/manager', 'page');
+  revalidatePath('/[locale]/internal/team', 'page');
+  return { success: true };
+}
+
+export async function getTasksForVerification(mentorId: string) {
+  const supabase = await createServiceClient();
+  const { data, error } = await supabase
+    .from('tasks')
+    .select('*, assigned_to_profile:profiles!tasks_assigned_to_fkey(full_name, avatar_url, role)')
+    .eq('assigned_by', mentorId)
+    .eq('status', 'pending_verification')
+    .order('created_at', { ascending: false });
+
+  if (error) return [];
+  return data || [];
+}
+
+export async function handlePoWReview(taskId: string, decision: 'verified' | 'rejected', feedback: string, mentorId: string) {
+  const supabase = await createServiceClient();
+  
+  // 1. Update task status and verification fields
+  // 'Done' if verified, 'In Progress' if rejected (to allow re-submission)
+  const status = decision === 'verified' ? 'Done' : 'In Progress';
+  
+  const { error: taskError } = await supabase
+    .from('tasks')
+    .update({ 
+      status,
+      verification_status: decision,
+      mentor_feedback: feedback,
+      verified_at: new Date().toISOString(),
+      verified_by: mentorId
+    })
+    .eq('id', taskId);
+
+  if (taskError) return { success: false, error: taskError.message };
+
+  // 2. Log the event for audit
+  await supabase.from('task_logs').insert({
+    task_id: taskId,
+    actor_id: mentorId,
+    action: `review_${decision}`,
+    previous_status: 'pending_verification',
+    new_status: status,
+    payload: { feedback }
+  });
+
+  revalidatePath('/[locale]/internal/associate', 'page');
+  revalidatePath('/[locale]/internal/manager', 'page');
+  return { success: true };
+}
+
+export async function commendUser(data: {
+  user_id: string;
+  mentor_id: string;
+  category: 'Tactical' | 'Innovation' | 'Culture' | 'Reliability';
+  reason: string;
+  points: number;
+}) {
+  const supabase = await createServiceClient();
+  const { error } = await supabase.from('commendations').insert(data);
+
+  if (error) return { success: false, error: error.message };
+
+  revalidatePath('/[locale]/internal/associate', 'page');
+  revalidatePath('/[locale]/internal/team', 'page');
+  return { success: true };
+}
+
+export async function getCommendations(userId: string) {
+  const supabase = await createServiceClient();
+  const { data, error } = await supabase
+    .from('commendations')
+    .select('*, mentor:profiles(full_name)')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error("Error fetching commendations:", error);
+    return [];
+  }
+  return data || [];
+}
+
+
+export async function updateTaskPoW(taskId: string, proofOfWork: string) {
+  const supabase = await createServiceClient();
+  const updateData: { proof_of_work: string; status?: 'pending' | 'in_progress' | 'completed' | 'blocked' | 'pending_verification' } = { proof_of_work: proofOfWork };
+  
+  // If PoW is provided, transition to pending verification instead of auto-completion
+  if (proofOfWork && proofOfWork.trim().length > 0) {
+    updateData.status = 'pending_verification';
+  }
+
+  const { error } = await supabase
+    .from('tasks')
+    .update(updateData)
     .eq('id', taskId);
 
   if (error) return { success: false, error: error.message };
@@ -127,18 +264,31 @@ export async function updateTaskStatus(taskId: string, status: string) {
   return { success: true };
 }
 
-export async function updateTaskPoW(taskId: string, proofOfWork: string) {
+export async function updateTaskBlocker(taskId: string, blockerReason: string) {
   const supabase = await createServiceClient();
-  const updateData: { proof_of_work: string; status?: 'pending' | 'in_progress' | 'completed' | 'blocked' } = { proof_of_work: proofOfWork };
-  
-  // If PoW is provided, auto-mark as completed
-  if (proofOfWork && proofOfWork.trim().length > 0) {
-    updateData.status = 'completed';
-  }
-
   const { error } = await supabase
     .from('tasks')
-    .update(updateData)
+    .update({ 
+      status: 'blocked',
+      blocker_reason: blockerReason 
+    })
+    .eq('id', taskId);
+
+  if (error) return { success: false, error: error.message };
+
+  revalidatePath('/[locale]/internal/associate', 'page');
+  revalidatePath('/[locale]/internal/manager', 'page');
+  return { success: true };
+}
+
+export async function resolveTaskBlocker(taskId: string, resolutionNote: string) {
+  const supabase = await createServiceClient();
+  const { error } = await supabase
+    .from('tasks')
+    .update({ 
+      status: 'in_progress',
+      resolution_note: resolutionNote 
+    })
     .eq('id', taskId);
 
   if (error) return { success: false, error: error.message };
@@ -301,15 +451,16 @@ export async function updateChecklistItem(itemId: string, isCompleted: boolean) 
 export async function getPerformanceData(userId: string) {
   const supabase = await createServiceClient();
 
-  // 1. Fetch all primary data points in parallel to reduce RTT
   const [
     { data: metrics }, 
     { data: tasks }, 
-    { data: attendance }
+    { data: attendance },
+    { data: commendations }
   ] = await Promise.all([
     supabase.from('performance_metrics').select('*').eq('user_id', userId).order('created_at', { ascending: false }).limit(1).maybeSingle(),
     supabase.from('tasks').select('status').eq('assigned_to', userId),
-    supabase.from('attendance_logs').select('check_in').eq('user_id', userId)
+    supabase.from('attendance_logs').select('check_in').eq('user_id', userId),
+    supabase.from('commendations').select('*, mentor:profiles(full_name)').eq('user_id', userId).order('created_at', { ascending: false })
   ]);
   
   const totalTasks = tasks?.length || 0;
@@ -321,7 +472,6 @@ export async function getPerformanceData(userId: string) {
     const checkInTime = new Date(log.check_in);
     const hour = checkInTime.getHours();
     const minute = checkInTime.getMinutes();
-    // Punctuality rule: Before 10:00 AM
     return hour < 10 || (hour === 10 && minute === 0);
   }).length;
 
@@ -329,7 +479,6 @@ export async function getPerformanceData(userId: string) {
   const attendanceConsistency = logs.length ? Math.min(Math.round((logs.length / 22) * 100), 100) : 0;
   const attendanceSync = logs.length ? Math.round((onTimeCheckins / logs.length) * 100) : 0;
 
-  // 4. Calculate Reliability Tier
   let tier = 'Tier C';
   if (attendanceConsistency >= 95 && taskCompletion >= 95) tier = 'Tier S';
   else if (attendanceConsistency >= 85 && taskCompletion >= 85) tier = 'Tier A';
@@ -344,9 +493,9 @@ export async function getPerformanceData(userId: string) {
       completion_rate: taskCompletion
     },
     attendanceStats: {
-      total_days: logs.length,
       consistency: attendanceConsistency,
-      sync: attendanceSync
+      sync: attendanceSync,
+      total_days: logs.length
     },
     reliability_tier: tier
   };
@@ -452,5 +601,51 @@ export async function savePerformanceEvaluation(data: {
 
   revalidatePath('/[locale]/internal/manager', 'page');
   revalidatePath('/[locale]/internal/associate', 'page');
+  return { success: true };
+}
+/**
+ * REFLECTION ACTIONS
+ */
+export async function saveWeeklyReflection(data: {
+  user_id: string;
+  wins: string;
+  challenges: string;
+  satisfaction: number;
+}) {
+  const supabase = await createServiceClient();
+  const { error } = await supabase.from('weekly_reflections').insert({
+    ...data,
+    week_ending: new Date().toISOString()
+  });
+
+  if (error) {
+    console.error("Error saving reflection:", error);
+    return { success: false, error: error.message };
+  }
+
+  return { success: true };
+}
+/**
+ * LEAVE REQUEST ACTIONS
+ */
+export async function requestLeave(data: {
+  user_id: string;
+  type: string;
+  start_date: string;
+  end_date: string;
+  reason: string;
+}) {
+  const supabase = await createServiceClient();
+  const { error } = await supabase.from('leave_requests').insert({
+    ...data,
+    status: 'pending',
+    created_at: new Date().toISOString()
+  });
+
+  if (error) {
+    console.error("Error requesting leave:", error);
+    return { success: false, error: error.message };
+  }
+
   return { success: true };
 }

@@ -26,8 +26,16 @@ export const getExecutiveAnalytics = unstable_cache(
     const totalRes = resolutions?.length || 0;
     const passedRes = resolutions?.filter(r => r.status === 'passed').length || 0;
 
-    // 3. System Metrics
-    const { data: metrics } = await supabase.from('platform_metrics').select('value').eq('label', 'Uptime');
+    // 4. Departmental Pulses
+    const [
+      { data: tickets },
+      { data: team },
+      { data: metrics }
+    ] = await Promise.all([
+      supabase.from('support_tickets').select('status'),
+      supabase.from('profiles').select('id'),
+      supabase.from('platform_metrics').select('value').eq('label', 'Uptime')
+    ]);
 
     return {
       hiringVelocity: Object.values(hiringStats).slice(-6),
@@ -42,7 +50,9 @@ export const getExecutiveAnalytics = unstable_cache(
         totalPresence: "14 States",
         activeInternships: apps?.filter(a => a.status === 'onboarded').length.toString() || "0",
         aiCapability: "Level 4",
-        complianceScore: "98.5%"
+        complianceScore: "98.5%",
+        supportLoad: tickets?.filter(t => t.status === 'open').length.toString() || "0",
+        personnelCount: team?.length.toString() || "0"
       },
       roadmap: [
         { title: "MicroAI Hub Public Release", progress: 85, status: "On Track", color: "bg-primary" },
@@ -93,4 +103,47 @@ export async function promoteUser(userId: string, nextRole: string, careerLevel?
   const { revalidatePath } = await import("next/cache");
   revalidatePath("/[locale]/admin/executive", "layout");
   return { success: true };
+}
+
+export async function getTeamPerformanceStats() {
+  const supabase = await createServiceClient();
+
+  // 1. Fetch all profiles
+  const { data: profiles } = await supabase
+    .from('profiles')
+    .select('id, full_name, role, avatar_url, career_level');
+
+  if (!profiles) return [];
+
+  // 2. Fetch all tasks and attendance logs
+  const [
+    { data: tasks },
+    { data: attendance }
+  ] = await Promise.all([
+    supabase.from('associate_tasks').select('user_id, status'),
+    supabase.from('attendance_logs').select('user_id, check_in, check_out')
+  ]);
+
+  // 3. Aggregate Performance
+  return profiles.map(profile => {
+    const userTasks = tasks?.filter(t => t.user_id === profile.id) || [];
+    const userAttendance = attendance?.filter(a => a.user_id === profile.id) || [];
+
+    const completed = userTasks.filter(t => t.status === 'completed').length;
+    const completionRate = userTasks.length > 0 ? Math.round((completed / userTasks.length) * 100) : 100;
+
+    // Reliability: Based on presence consistency (Mocking some variance for now based on attendance count)
+    const attendanceScore = Math.min(100, Math.max(70, 70 + (userAttendance.length * 5)));
+    
+    return {
+      id: profile.id,
+      name: profile.full_name || "Unknown Agent",
+      role: profile.role || "Associate",
+      avatar_url: profile.avatar_url,
+      reliability: attendanceScore,
+      completion_rate: completionRate,
+      culture_fit: completionRate > 90 ? 'Exceptional' : completionRate > 70 ? 'Standard' : 'Developing',
+      last_review: new Date().toISOString()
+    };
+  });
 }

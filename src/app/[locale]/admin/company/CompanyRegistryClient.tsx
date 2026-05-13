@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { AdminViewWrapper } from "@/components/layout/AdminViewWrapper";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -22,8 +21,12 @@ import {
   CheckCircle2,
   AlertCircle,
   Clock,
+  GitBranch,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
+import { useCallback } from "react";
+import { OrganizationHierarchy } from "./components/OrganizationHierarchy";
 
 interface CompanyProfile {
   id: string;
@@ -52,10 +55,13 @@ interface ComplianceTask {
 
 interface TeamMember {
   id: string;
-  name?: string;
+  full_name?: string;
   role?: string;
   department?: string;
-  status?: string;
+  designation?: string;
+  manager_id?: string | null;
+  avatar_url?: string;
+  is_verified?: boolean;
 }
 
 interface CompanyRegistryClientProps {
@@ -86,9 +92,26 @@ export function CompanyRegistryClient({
   teamMembers,
   role,
 }: CompanyRegistryClientProps) {
-  const [companySearch, setCompanySearch] = useState("");
-  const [nicSearch, setNicSearch] = useState("");
-  const [tab, setTab] = useState<"company" | "nic" | "compliance" | "team">("company");
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+
+  const tab = (searchParams.get("tab") as "company" | "nic" | "compliance" | "team") || "company";
+  const companySearch = searchParams.get("q_entity") || "";
+  const nicSearch = searchParams.get("q_nic") || "";
+
+  const updateParams = useCallback((updates: Record<string, string | null>) => {
+    const params = new URLSearchParams(searchParams.toString());
+    Object.entries(updates).forEach(([key, value]) => {
+      if (value) params.set(key, value);
+      else params.delete(key);
+    });
+    router.replace(`${pathname}?${params.toString()}`);
+  }, [router, pathname, searchParams]);
+
+  const setTab = (newTab: string) => updateParams({ tab: newTab });
+  const setCompanySearch = (val: string) => updateParams({ q_entity: val });
+  const setNicSearch = (val: string) => updateParams({ q_nic: val });
 
   const complianceDone = compliance.filter(c =>
     ["completed", "done"].includes(c.status || "")
@@ -380,55 +403,62 @@ export function CompanyRegistryClient({
 
         {/* Workforce Tab */}
         {tab === "team" && (
-          <Card className="glass-card border-white/10 overflow-hidden">
-            <CardHeader className="border-b border-white/10 bg-white/[0.02] py-4 px-6">
-              <CardTitle className="text-sm">Workforce Register</CardTitle>
-              <CardDescription className="text-xs">{teamMembers.length} team members</CardDescription>
-            </CardHeader>
-            <CardContent className="p-0">
-              <Table>
-                <TableHeader>
-                  <TableRow className="border-white/5 hover:bg-transparent">
-                    <TableHead className="text-[10px] uppercase font-black px-6 py-3">Name</TableHead>
-                    <TableHead className="text-[10px] uppercase font-black px-4 py-3">Role</TableHead>
-                    <TableHead className="text-[10px] uppercase font-black px-4 py-3">Department</TableHead>
-                    <TableHead className="text-[10px] uppercase font-black px-4 py-3">Status</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {teamMembers.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={4} className="py-16 text-center text-muted-foreground italic text-xs">
-                        No team members found.
-                      </TableCell>
+          <div className="space-y-6">
+            <OrganizationHierarchy profiles={teamMembers as any} />
+            
+            <Card className="glass-card border-white/10 overflow-hidden mt-8">
+              <CardHeader className="border-b border-white/10 bg-white/[0.02] py-4 px-6">
+                <CardTitle className="text-sm">Personnel Ledger</CardTitle>
+                <CardDescription className="text-xs">Granular workforce data and status tracking</CardDescription>
+              </CardHeader>
+              <CardContent className="p-0">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="border-white/5 hover:bg-transparent">
+                      <TableHead className="text-[10px] uppercase font-black px-6 py-3">Name</TableHead>
+                      <TableHead className="text-[10px] uppercase font-black px-4 py-3">Designation</TableHead>
+                      <TableHead className="text-[10px] uppercase font-black px-4 py-3">Department</TableHead>
+                      <TableHead className="text-[10px] uppercase font-black px-4 py-3">Status</TableHead>
                     </TableRow>
-                  ) : teamMembers.map(m => (
-                    <TableRow key={m.id} className="border-white/5 hover:bg-white/[0.02] group">
-                      <TableCell className="px-6 py-3.5">
-                        <div className="flex items-center gap-2.5">
-                          <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-[10px] text-primary font-bold shrink-0">
-                            {(m.name || "?").slice(0, 2).toUpperCase()}
+                  </TableHeader>
+                  <TableBody>
+                    {teamMembers.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={4} className="py-16 text-center text-muted-foreground italic text-xs">
+                          No personnel found.
+                        </TableCell>
+                      </TableRow>
+                    ) : teamMembers.map(m => (
+                      <TableRow key={m.id} className="border-white/5 hover:bg-white/[0.02] group">
+                        <TableCell className="px-6 py-3.5">
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-[10px] text-primary font-bold shrink-0">
+                              {(m.full_name || "?").slice(0, 2).toUpperCase()}
+                            </div>
+                            <span className="font-semibold text-sm group-hover:text-primary transition-colors">
+                              {m.full_name || "—"}
+                            </span>
                           </div>
-                          <span className="font-semibold text-sm group-hover:text-primary transition-colors">
-                            {m.name || "—"}
-                          </span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="px-4 py-3.5 text-xs text-muted-foreground">{m.role || "—"}</TableCell>
-                      <TableCell className="px-4 py-3.5 text-xs text-muted-foreground">{m.department || "—"}</TableCell>
-                      <TableCell className="px-4 py-3.5">
-                        <div className="flex items-center gap-1.5">
-                          <div className={`w-1.5 h-1.5 rounded-full ${m.status === "active" ? "bg-emerald-500" : "bg-muted-foreground"}`} />
-                          <span className="text-[10px] font-black uppercase">{m.status || "—"}</span>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
+                        </TableCell>
+                        <TableCell className="px-4 py-3.5 text-xs text-muted-foreground">
+                          {m.designation || m.role?.replace(/_/g, " ") || "—"}
+                        </TableCell>
+                        <TableCell className="px-4 py-3.5 text-xs text-muted-foreground">{m.department || "—"}</TableCell>
+                        <TableCell className="px-4 py-3.5">
+                          <div className="flex items-center gap-1.5">
+                            <div className={`w-1.5 h-1.5 rounded-full ${m.is_verified ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" : "bg-amber-400"}`} />
+                            <span className="text-[10px] font-black uppercase">{m.is_verified ? "Verified" : "Pending"}</span>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </div>
         )}
+
 
       </div>
     </AdminViewWrapper>

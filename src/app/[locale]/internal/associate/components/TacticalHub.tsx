@@ -76,10 +76,11 @@ export default function TacticalHub({
                     )}
                   </div>
                   <Badge variant="outline" className={`text-[8px] rounded-md transition-colors ${task.status === 'completed' ? 'border-emerald-500/30 text-emerald-400 bg-emerald-500/5' :
+                    task.status === 'pending_verification' ? 'border-amber-500/30 text-amber-400 bg-amber-500/5' :
                     task.status === 'in_progress' ? 'border-indigo-500/30 text-indigo-400 bg-indigo-500/5' :
                       'border-white/10 text-muted-foreground'
                     }`}>
-                    {t(`status.${task.status?.toLowerCase()}`)}
+                    {task.status === 'pending_verification' ? 'Pending Review' : t(`status.${task.status?.toLowerCase()}`)}
                   </Badge>
                 </div>
 
@@ -87,13 +88,19 @@ export default function TacticalHub({
                   <Button
                     size="icon"
                     variant="ghost"
-                    onClick={() => onTaskStatus(task.id, task.status === 'completed' ? 'pending' : 'completed')}
-                    className={`w-5 h-5 mt-0.5 rounded-full border transition-all ${task.status === 'completed'
-                      ? 'bg-emerald-500 border-emerald-500 text-white'
-                      : 'border-white/20 hover:border-emerald-500/50'
-                      }`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (task.status === 'pending_verification') return;
+                      onTaskStatus(task.id, task.status === 'completed' ? 'pending' : 'completed');
+                    }}
+                    className={`w-5 h-5 mt-0.5 rounded-full border transition-all ${
+                      task.status === 'completed' ? 'bg-emerald-500 border-emerald-500 text-white' : 
+                      task.status === 'pending_verification' ? 'border-amber-500 text-amber-500 cursor-wait' :
+                      'border-white/20 hover:border-emerald-500/50'
+                    }`}
                   >
                     {task.status === 'completed' && <CheckCircle2 className="w-3 h-3" />}
+                    {task.status === 'pending_verification' && <Clock className="w-2.5 h-2.5" />}
                   </Button>
                   <div className="flex-1 min-w-0">
                     <p className={`text-sm font-bold transition-all duration-300 truncate ${task.status === 'completed' ? 'text-white/40 line-through' : 'text-white'}`}>
