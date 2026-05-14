@@ -40,7 +40,7 @@ export async function getApplicants(archived: boolean = false) {
   
   return (data || []).map(app => ({
     ...app,
-    reviewer_name: (app as any).reviewer?.full_name || "System"
+    reviewer_name: (app as unknown as { reviewer: { full_name: string } }).reviewer?.full_name || "System"
   }));
 }
 
@@ -152,6 +152,8 @@ export async function onboardIntern(applicationId: string) {
     userId = newUser.user.id;
   }
 
+  const mentorId = (application.metadata as Record<string, unknown>)?.mentor_id as string | undefined;
+
   // 2. Create/Update Profile
   const { error: profileError } = await supabase.from('profiles').upsert({
     id: userId,
@@ -160,6 +162,7 @@ export async function onboardIntern(applicationId: string) {
     role: 'intern',
     department: application.department || 'Operations',
     designation: application.role || 'Intern',
+    manager_id: mentorId,
     metadata: {
       hired_from: applicationId,
       hired_at: new Date().toISOString(),
@@ -204,7 +207,7 @@ export async function onboardIntern(applicationId: string) {
   };
 }
 
-export async function scheduleInterview(applicationId: string, date: string, time: string) {
+export async function scheduleInterview(applicationId: string, date: string, time: string, repeat: 'none' | 'daily' | 'weekly' | 'monthly' = 'none') {
   const verifiedUser = await getUser();
   if (!verifiedUser) return { success: false, error: "Unauthorized" };
 
@@ -216,6 +219,12 @@ export async function scheduleInterview(applicationId: string, date: string, tim
   const googleTokens = user?.user_metadata?.google_tokens;
 
   let meetLink = `https://meet.google.com/placeholder`;
+  let recurrence: string[] | undefined = undefined;
+
+  if (repeat === 'daily') recurrence = ['RRULE:FREQ=DAILY;COUNT=30'];
+  else if (repeat === 'weekly') recurrence = ['RRULE:FREQ=WEEKLY;COUNT=12'];
+  else if (repeat === 'monthly') recurrence = ['RRULE:FREQ=MONTHLY;COUNT=6'];
+
   if (googleTokens) {
     try {
       oauth2Client.setCredentials(googleTokens);
@@ -227,13 +236,28 @@ export async function scheduleInterview(applicationId: string, date: string, tim
         description: `Scheduled via MSME360 Hiring Portal`,
         startTime: startTime.toISOString(),
         endTime: endTime.toISOString(),
-        attendees: [application.email]
+        attendees: [application.email],
+        recurrence
       });
       if (event.hangoutLink) meetLink = event.hangoutLink;
     } catch (e) {
       console.error("Calendar integration failed", e);
     }
   }
+
+  const currentMetadata = (application.metadata as Record<string, unknown>) || {};
+  const history = Array.isArray(currentMetadata.history) ? currentMetadata.history : [];
+  
+  const historyItem = {
+    type: 'INTERVIEW',
+    round: history.filter((h: Record<string, unknown>) => h.type === 'INTERVIEW').length + 1,
+    timestamp: new Date().toISOString(),
+    date: date,
+    time: time,
+    meet_link: meetLink,
+    is_google_meet: !!googleTokens,
+    label: 'Interview Scheduled'
+  };
 
   const { error } = await supabase
     .from("intern_applications")
@@ -242,10 +266,11 @@ export async function scheduleInterview(applicationId: string, date: string, tim
       reviewed_by: verifiedUser.id,
       reviewed_at: new Date().toISOString(),
       metadata: {
-        ...(application.metadata as Record<string, unknown> || {}),
+        ...currentMetadata,
         interview_date: date,
         interview_time: time,
-        meeting_link: meetLink
+        meeting_link: meetLink,
+        history: [...history, historyItem]
       }
     })
     .eq("id", applicationId);
@@ -404,5 +429,52 @@ export async function updateOnboardingDetails(applicationId: string, details: { 
 
   if (error) return { success: false, error: error.message };
   revalidatePath("/[locale]/admin/hiring", "page");
+  return { success: true };
+}
+
+export async function updateApplicationRole(id: string, newRole: string) {
+  const verifiedUser = await getUser();
+  if (!verifiedUser) return { success: false, error: "Unauthorized" };
+
+  const supabase = await createServiceClient();
+
+  const { data: applicant } = await supabase
+    .from("intern_applications")
+    .select("full_name, role, metadata")
+    .eq("id", id)
+    .single();
+
+  if (!applicant) return { success: false, error: "Application not found" };
+
+  const currentMetadata = (applicant.metadata as Record<string, unknown>) || {};
+  const history = Array.isArray(currentMetadata.history) ? currentMetadata.history : [];
+
+  const historyItem = {
+    type: 'ROLE_CHANGE',
+    old_role: applicant.role,
+    new_role: newRole,
+    timestamp: new Date().toISOString(),
+    by: verifiedUser.id,
+    label: `Role changed from ${applicant.role} to ${newRole}`
+  };
+
+  const { error } = await supabase
+    .from("intern_applications")
+    .update({ 
+      role: newRole,
+      metadata: {
+        ...currentMetadata,
+        history: [...history, historyItem]
+      }
+    })
+    .eq("id", id);
+
+  if (error) return { success: false, error: error.message };
+
+  await logSystemAction('APPLICATION_ROLE_UPDATE', `Candidate ${applicant.full_name} role updated to ${newRole}`, 'warning', verifiedUser.id);
+
+  revalidatePath("/[locale]/admin/hiring", "page");
+  revalidatePath("/[locale]/internal/hiring", "layout");
+  
   return { success: true };
 }

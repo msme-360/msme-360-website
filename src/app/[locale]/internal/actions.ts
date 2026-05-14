@@ -3,6 +3,8 @@
 import { createServiceClient } from "@/services/supabase/supabase-server";
 import { revalidatePath } from "next/cache";
 import { getTeamPerformanceStats as getStats } from "../admin/actions-modules/executive";
+import { oauth2Client, createCalendarEvent } from "@/lib/google-calendar";
+import { getUser } from "@/services/supabase/supabase-server";
 
 export const getTeamPerformanceStats = getStats;
 
@@ -497,7 +499,8 @@ export async function getPerformanceData(userId: string) {
       sync: attendanceSync,
       total_days: logs.length
     },
-    reliability_tier: tier
+    reliability_tier: tier,
+    commendations: commendations || []
   };
 }
 
@@ -543,15 +546,34 @@ export async function getPerformanceTrends(userId: string) {
   return trendData.reverse();
 }
 
-export async function getTeamMembers() {
+export async function getManagedTeam(managerId: string) {
   const supabase = await createServiceClient();
   const { data, error } = await supabase
-    .from('team_members')
-    .select('*, profiles(avatar_url)')
-    .order('created_at', { ascending: true });
+    .from('profiles')
+    .select('*')
+    .eq('manager_id', managerId)
+    .order('full_name', { ascending: true });
 
   if (error) return [];
   return data || [];
+}
+
+export async function getUnassignedInterns() {
+  const supabase = await createServiceClient();
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('role', 'intern')
+    .is('manager_id', null)
+    .order('full_name', { ascending: true });
+
+  if (error) return [];
+  return data || [];
+}
+
+export async function assignInternToManager(internId: string, managerId: string | null) {
+  const { updateUserMapping } = await import("../admin/actions-modules/rbac");
+  return updateUserMapping(internId, managerId);
 }
 
 export async function getAnnouncements() {
@@ -648,4 +670,186 @@ export async function requestLeave(data: {
   }
 
   return { success: true };
+}
+
+export async function getTeamReflections(managerId: string) {
+  const supabase = await createServiceClient();
+  
+  // 1. Get managed user IDs
+  const { data: team } = await supabase
+    .from('profiles')
+    .select('id')
+    .eq('manager_id', managerId);
+    
+  if (!team || team.length === 0) return [];
+  const teamIds = team.map(m => m.id);
+
+  // 2. Fetch reflections
+  const { data, error } = await supabase
+    .from('weekly_reflections')
+    .select('*, profiles(full_name, role)')
+    .in('user_id', teamIds)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error("Error fetching team reflections:", error);
+    return [];
+  }
+  return data;
+}
+
+export async function getTeamLeaveRequests(managerId: string) {
+  const supabase = await createServiceClient();
+  
+  // 1. Get managed user IDs
+  const { data: team } = await supabase
+    .from('profiles')
+    .select('id')
+    .eq('manager_id', managerId);
+    
+  if (!team || team.length === 0) return [];
+  const teamIds = team.map(m => m.id);
+
+  // 2. Fetch leave requests
+  const { data, error } = await supabase
+    .from('leave_requests')
+    .select('*, profiles(full_name, role)')
+    .in('user_id', teamIds)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error("Error fetching team leaves:", error);
+    return [];
+  }
+  return data;
+}
+
+export async function updateLeaveStatus(requestId: string, status: 'approved' | 'rejected') {
+  const verifiedUser = await getUser();
+  if (!verifiedUser) return { success: false, error: "Unauthorized" };
+
+  const supabase = await createServiceClient();
+  const { error } = await supabase
+    .from('leave_requests')
+    .update({ 
+      status,
+      reviewed_by: verifiedUser.id,
+      reviewed_at: new Date().toISOString()
+    })
+    .eq('id', requestId);
+
+  if (error) {
+    console.error("Error updating leave status:", error);
+    return { success: false, error: error.message };
+  }
+
+  revalidatePath('/[locale]/internal/team', 'layout');
+  return { success: true };
+}
+
+export async function getInternProfiles() {
+  const supabase = await createServiceClient();
+  const { data } = await supabase
+    .from("profiles")
+    .select("id, full_name, role, department, avatar_url")
+    .eq("role", "intern");
+  
+  return data || [];
+}
+
+export async function getMentorProfiles() {
+  const supabase = await createServiceClient();
+  const { data } = await supabase
+    .from("profiles")
+    .select("id, full_name, role, department, avatar_url")
+    .in("role", ["team_lead", "manager", "super_admin", "supervisor"]);
+  
+  return data || [];
+}
+
+export async function scheduleInternalMeeting(data: {
+  targetUserId: string,
+  title: string,
+  description: string,
+  date: string,
+  time: string,
+  repeat: 'none' | 'daily' | 'weekly' | 'monthly'
+}) {
+  const verifiedUser = await getUser();
+  if (!verifiedUser) return { success: false, error: "Unauthorized" };
+
+  const supabase = await createServiceClient();
+  
+  // 1. Get target user email
+  const { data: targetUser } = await supabase
+    .from("profiles")
+    .select("email, full_name")
+    .eq("id", data.targetUserId)
+    .single();
+  
+  if (!targetUser) return { success: false, error: "Target user not found" };
+
+  // 2. Get current user google tokens
+  const { data: { user } } = await supabase.auth.admin.getUserById(verifiedUser.id);
+  const googleTokens = user?.user_metadata?.google_tokens;
+
+  let meetLink = `https://meet.google.com/placeholder`;
+  let recurrence: string[] | undefined = undefined;
+
+  if (data.repeat === 'daily') recurrence = ['RRULE:FREQ=DAILY;COUNT=30'];
+  else if (data.repeat === 'weekly') recurrence = ['RRULE:FREQ=WEEKLY;COUNT=12'];
+  else if (data.repeat === 'monthly') recurrence = ['RRULE:FREQ=MONTHLY;COUNT=6'];
+
+  if (googleTokens) {
+    try {
+      oauth2Client.setCredentials(googleTokens);
+      const startTime = new Date(`${data.date}T${data.time}:00+05:30`);
+      const endTime = new Date(startTime.getTime() + 30 * 60000); // Default 30 mins
+      
+      const event = await createCalendarEvent(oauth2Client, {
+        summary: data.title,
+        description: data.description || `Internal Sync via MSME360 Portal`,
+        startTime: startTime.toISOString(),
+        endTime: endTime.toISOString(),
+        attendees: [targetUser.email || ""],
+        recurrence
+      });
+      if (event.hangoutLink) meetLink = event.hangoutLink;
+    } catch (e) {
+      console.error("Calendar integration failed", e);
+    }
+  }
+
+  // 3. Log meeting in mentorship_bookings for visibility
+  const { error } = await supabase
+    .from('mentorship_bookings')
+    .insert({
+      mentee_id: data.targetUserId,
+      mentor_name: user?.user_metadata?.full_name || "System",
+      expertise: data.title,
+      scheduled_at: `${data.date}T${data.time}:00Z`,
+      status: 'confirmed'
+    });
+
+  if (error) return { success: false, error: error.message };
+
+  revalidatePath('/[locale]/internal/team', 'page');
+  revalidatePath('/[locale]/internal/associate', 'page');
+
+  return { 
+    success: true, 
+    meetLink, 
+    isRealGoogleMeet: !!googleTokens 
+  };
+}
+import * as googleAuth from "../admin/actions-modules/google-auth";
+
+export async function getGoogleConnectionUrl(...args: Parameters<typeof googleAuth.getGoogleConnectionUrl>) {
+  return googleAuth.getGoogleConnectionUrl(...args);
+}
+export async function linkGoogleAccount(...args: Parameters<typeof googleAuth.linkGoogleAccount>) {
+  return googleAuth.linkGoogleAccount(...args);
+}
+export async function disconnectGoogleAccount(...args: Parameters<typeof googleAuth.disconnectGoogleAccount>) {
+  return googleAuth.disconnectGoogleAccount(...args);
 }

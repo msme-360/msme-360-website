@@ -313,7 +313,7 @@ export default function MissionBoard({
                                           <Label className="text-[10px] font-black uppercase text-emerald-400">Proof of Work Received</Label>
                                        </div>
                                        <div className="text-xs text-white/80 italic bg-black/40 p-3 rounded-lg border border-white/5">
-                                          "{task.proof_of_work || "No proof provided."}"
+                                          &ldquo;{task.proof_of_work || "No proof provided."}&rdquo;
                                        </div>
                                        
                                        <div className="space-y-3">

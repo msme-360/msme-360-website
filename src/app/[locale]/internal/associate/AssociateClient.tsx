@@ -50,8 +50,9 @@ import TaskDetailSheet from "./components/TaskDetailSheet";
 import MissionDialog from "./components/MissionDialog";
 import { WeeklyReflectionDialog } from "./components/WeeklyReflectionDialog";
 import { LeaveRequestDialog } from "./components/LeaveRequestDialog";
-import { ClipboardCheck, Plane } from "lucide-react";
+import { ClipboardCheck, Plane, Calendar as CalendarIcon } from "lucide-react";
 import { Commendation } from "./components/AssociateTypes";
+import { InternalScheduleDialog } from "../components/InternalScheduleDialog";
 
 // Dynamic imports for role-specific feature panels
 const InternOnboardingFlow = dynamic(() => import("@/components/roles/level-5-associates/intern/OnboardingFlow"), {
@@ -107,6 +108,7 @@ export function AssociateClient({
   const router = useRouter();
   const [currentTime, setCurrentTime] = useState(new Date());
   const [attendance, setAttendance] = useState(initialAttendance);
+  const [isScheduleOpen, setIsScheduleOpen] = useState(false);
 
   const {
     tasks,
@@ -226,6 +228,16 @@ export function AssociateClient({
             {view === 'planner' ? 'List View' : 'Board View'}
           </Button>
 
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="text-[10px] font-black uppercase tracking-widest text-indigo-400 hover:bg-indigo-500/10 h-9 gap-2 bg-indigo-500/5 border border-indigo-500/10 px-4"
+            onClick={() => setIsScheduleOpen(true)}
+          >
+            <CalendarIcon className="w-4 h-4 text-primary" />
+            Schedule Sync
+          </Button>
+
           <MissionDialog onCreateTask={handleCreateTask} />
         </div>
       }
@@ -332,6 +344,13 @@ export function AssociateClient({
         isOpen={isLeaveRequestOpen}
         onClose={() => setIsLeaveRequestOpen(false)}
         onSubmit={handleLeaveSubmit}
+      />
+
+      <InternalScheduleDialog 
+        isOpen={isScheduleOpen}
+        onOpenChange={setIsScheduleOpen}
+        isGoogleConnected={!!profile.metadata?.google_tokens}
+        currentUserRole={profile.role}
       />
     </AdminViewWrapper>
   );

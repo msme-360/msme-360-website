@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { AdminViewWrapper } from "@/components/layout/AdminViewWrapper";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -91,7 +91,7 @@ export function PerformanceClient({ profiles, metrics, attendance, logs, health,
   }, [attendance]);
 
   // Derived stats (Memoized for high-frequency telemetry stability)
-  const { verified, presentToday, recentErrors, avgLoad } = useMemo(() => ({
+  const { verified, presentToday, avgLoad } = useMemo(() => ({
     verified: profiles.filter(p => p.is_verified).length,
     presentToday: Array.from(attendanceMap.values()).filter(s => s === "present").length,
     recentErrors: logs.filter(l => l.status === "error").length,

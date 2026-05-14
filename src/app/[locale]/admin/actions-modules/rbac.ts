@@ -64,7 +64,7 @@ export async function inviteUser(payload: { email: string, full_name: string, ro
   if (!verifiedUser) return { success: false, error: "Unauthorized" };
 
   const supabase = await createServiceClient();
-  
+
   // 1. Create Auth User
   const { data: { user: newUser }, error: authError } = await supabase.auth.admin.inviteUserByEmail(payload.email, {
     data: {
@@ -82,10 +82,9 @@ export async function inviteUser(payload: { email: string, full_name: string, ro
   }
 
   const newUserId = newUser?.id;
-
   if (newUserId) {
-    // 2. Create Profile
-    await supabase.from('profiles').upsert({
+    // 2. Create/Update Profile (Redundant with trigger but ensures role/dept sync)
+    const { error: profileError } = await supabase.from('profiles').upsert({
       id: newUserId,
       email: payload.email,
       full_name: payload.full_name,
@@ -93,6 +92,11 @@ export async function inviteUser(payload: { email: string, full_name: string, ro
       department: payload.department,
       is_verified: false,
     }, { onConflict: 'id' });
+
+    if (profileError) {
+      console.error("Error creating profile during invite:", profileError);
+      return { success: false, error: "Auth account created, but profile synchronization failed." };
+    }
   }
 
   await logSystemAction(
@@ -140,6 +144,40 @@ export async function deleteUserProfile(userId: string) {
   );
 
   revalidatePath('/[locale]/admin/roles', 'page');
+  revalidateTag('profiles', "max");
+  return { success: true };
+}
+
+export async function updateUserMapping(userId: string, managerId: string | null) {
+  const verifiedUser = await getUser();
+  if (!verifiedUser) return { success: false, error: "Unauthorized" };
+
+  const supabase = await createServiceClient();
+  const { data: target } = await supabase.from('profiles').select('full_name').eq('id', userId).single();
+  const { data: manager } = managerId ? await supabase.from('profiles').select('full_name').eq('id', managerId).single() : { data: null };
+
+  const { error } = await supabase
+    .from('profiles')
+    .update({
+      manager_id: managerId,
+      updated_at: new Date().toISOString()
+    })
+    .eq('id', userId);
+
+  if (error) {
+    console.error("Error updating mapping:", error);
+    return { success: false, error: error.message };
+  }
+
+  await logSystemAction(
+    "MAPPING_UPDATED",
+    `${target?.full_name}: Assigned to Lead ${manager?.full_name || "None"}`,
+    'success',
+    verifiedUser.id
+  );
+
+  revalidatePath('/[locale]/admin/company', 'page');
+  revalidatePath('/[locale]/internal/team', 'layout');
   revalidateTag('profiles', "max");
   return { success: true };
 }

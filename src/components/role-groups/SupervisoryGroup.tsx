@@ -12,7 +12,7 @@ const ProjectLeadPanel = dynamic<{ metrics?: DashboardMetric[] }>(() => import("
   loading: () => <Skeleton className="h-64 w-full rounded-3xl" />,
 });
 
-const TeamLeadPanel = dynamic<{ metrics?: DashboardMetric[]; managedProfiles?: TeamMember[] }>(() => import("@/components/roles/level-3-5-supervisory/team_lead/MentorshipOversight"), {
+const TeamLeadPanel = dynamic<{ metrics?: DashboardMetric[]; managedProfiles?: TeamMember[]; mentorId?: string }>(() => import("@/components/roles/level-3-5-supervisory/team_lead/MentorshipOversight"), {
   loading: () => <Skeleton className="h-[500px] w-full rounded-3xl" />,
 });
 
@@ -29,9 +29,10 @@ interface SupervisoryGroupProps {
   subView?: string;
   metrics?: DashboardMetric[];
   managedProfiles?: TeamMember[];
+  mentorId?: string;
 }
 
-export function SupervisoryGroup({ role, subView, metrics = [], managedProfiles = [] }: SupervisoryGroupProps) {
+export function SupervisoryGroup({ role, subView, metrics = [], managedProfiles = [], mentorId }: SupervisoryGroupProps) {
   if (subView) {
     const subViewTitles: Record<string, string> = {
       inspection: "Site Inspection Hub",
@@ -73,7 +74,7 @@ export function SupervisoryGroup({ role, subView, metrics = [], managedProfiles 
       <div className="space-y-10">
         <Suspense fallback={<Skeleton className="h-96 w-full rounded-3xl" />}>
           {role === 'project_lead' && <ProjectLeadPanel metrics={metrics} />}
-          {role === 'team_lead' && <TeamLeadPanel metrics={metrics} managedProfiles={managedProfiles} />}
+          {role === 'team_lead' && <TeamLeadPanel metrics={metrics} managedProfiles={managedProfiles} mentorId={mentorId} />}
           {role === 'supervisor' && <SupervisorPanel metrics={metrics} />}
           {role === 'coordinator' && <CoordinatorPanel metrics={metrics} />}
           {!['project_lead', 'team_lead', 'supervisor', 'coordinator'].includes(role) && (

@@ -1,22 +1,32 @@
 "use client";
 
-import { 
-  Search, Mail, Linkedin, Globe,
-  Award, Zap, Star, Coffee, Heart
+import {
+  Search, Mail, Linkedin, Award, Zap, Star, Coffee, Heart, Calendar as CalendarIcon,
+  Target
 } from "lucide-react";
+import { InternalScheduleDialog } from "../components/InternalScheduleDialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useTranslations } from "next-intl";
 import { Database } from "@/types/supabase";
-
+import { useState } from "react";
 import { AdminViewWrapper } from "@/components/layout/AdminViewWrapper";
 import { AttendanceLogClient, AttendanceLog } from "@/app/[locale]/admin/attendance/AttendanceLogClient";
 import { PerformanceClient } from "./PerformanceClient";
 import { MissionReviewClient } from "./MissionReviewClient";
+import { TeamReflectionClient } from "./TeamReflectionClient";
+import { TeamLeaveClient } from "./TeamLeaveClient";
+import CreateMissionDialog from "./components/CreateMissionDialog";
+import AssignPersonnelDialog from "./components/AssignPersonnelDialog";
+import { OnboardingRegistry } from "./components/OnboardingRegistry";
+import { PolicyHub } from "./components/PolicyHub";
+import { Reflection } from "./TeamReflectionClient";
+import { LeaveRequest } from "./TeamLeaveClient";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
-type TeamMember = Database['public']['Tables']['team_members']['Row'];
+export type TeamMember = Database['public']['Tables']['profiles']['Row'];
 
 export interface TeamPerformance {
   id: string;
@@ -49,12 +59,29 @@ interface TeamClientProps {
   initialAttendance?: AttendanceLog[];
   initialPerformance?: TeamPerformance[];
   initialPendingTasks?: ReviewTask[];
+  initialReflections?: Reflection[];
+  initialLeaveRequests?: LeaveRequest[];
   subView?: string;
   mentorId?: string;
+  userRole?: string;
+  isGoogleConnected?: boolean;
 }
 
-export function TeamClient({ initialTeam = [], initialAttendance = [], initialPerformance = [], initialPendingTasks = [], subView, mentorId }: TeamClientProps) {
+export function TeamClient({ 
+  initialTeam = [], 
+  initialAttendance = [], 
+  initialPerformance = [], 
+  initialPendingTasks = [], 
+  initialReflections = [],
+  initialLeaveRequests = [],
+  subView, 
+  mentorId, 
+  userRole = "team_lead", 
+  isGoogleConnected = false 
+}: TeamClientProps) {
+
   const t = useTranslations("Admin.team");
+  const [isScheduleOpen, setIsScheduleOpen] = useState(false);
   const displayTeam = initialTeam;
 
   if (subView === 'attendance') {
@@ -69,7 +96,23 @@ export function TeamClient({ initialTeam = [], initialAttendance = [], initialPe
     return <MissionReviewClient initialTasks={initialPendingTasks} mentorId={mentorId || ""} />;
   }
 
-  if (subView) {
+  if (subView === 'reflections') {
+    return <TeamReflectionClient reflections={initialReflections} />;
+  }
+
+  if (subView === 'leaves') {
+    return <TeamLeaveClient initialRequests={initialLeaveRequests} />;
+  }
+
+  if (subView === 'onboarding') {
+    return <OnboardingRegistry />;
+  }
+
+  if (subView === 'policies') {
+    return <PolicyHub />;
+  }
+
+  if (subView && subView !== 'directory') {
     const subViewTitles: Record<string, string> = {
       directory: "Personnel Registry",
       hierarchy: "Organizational Chart",
@@ -103,11 +146,30 @@ export function TeamClient({ initialTeam = [], initialAttendance = [], initialPe
 
   return (
     <AdminViewWrapper
-      title="Team Directory"
-      subtitle="Discover the mission-driven personnel behind MSME 360."
-      badgeLabel="CULTURE & PEOPLE"
-      authorityLevel="Personnel View"
+      title={userRole === 'hr_manager' ? "Personnel Command" : "Team Directory"}
+      subtitle={userRole === 'hr_manager' ? "Universal personnel registry and workforce orchestration." : "Discover the mission-driven personnel behind MSME 360."}
+      badgeLabel={userRole === 'hr_manager' ? "HR COMMAND" : "CULTURE & PEOPLE"}
+      authorityLevel={userRole === 'hr_manager' ? "L4 Human Resources" : "Personnel View"}
+      actions={
+        <div className="flex items-center gap-3">
+          <AssignPersonnelDialog managerId={mentorId || ""} userRole={userRole} />
+          <CreateMissionDialog 
+            mentorId={mentorId || ""} 
+            teamMembers={displayTeam.map(m => ({ id: m.id, full_name: m.full_name }))}
+          />
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="bg-primary/5 border-primary/20 hover:bg-primary/10 text-primary font-bold rounded-xl h-9 px-4 gap-2"
+            onClick={() => setIsScheduleOpen(true)}
+          >
+            <CalendarIcon className="w-4 h-4" />
+            Schedule Sync
+          </Button>
+        </div>
+      }
     >
+
       <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-20">
         <div className="flex items-center justify-center gap-4 max-w-xl mx-auto mb-10">
           <div className="relative flex-1 group">
@@ -123,24 +185,25 @@ export function TeamClient({ initialTeam = [], initialAttendance = [], initialPe
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {displayTeam.map((member) => {
             const name = member.full_name || "Team Member";
-            const role = member.role_key || "Executive";
+            const role = member.role || "Executive";
             const dept = "Operations";
-            const icon = name.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase();
-            const colors = "bg-primary text-primary-foreground";
             
             const isActive = initialAttendance.some(a => a.user_id === member.id && !a.check_out);
             
             return (
-              <Card key={name} className={`glass-card hover:scale-[1.02] transition-all duration-300 group overflow-hidden border-border/50 ${isActive ? 'ring-1 ring-emerald-500/50' : ''}`}>
+              <Card key={member.id} className={`glass-card hover:scale-[1.02] transition-all duration-300 group overflow-hidden border-border/50 ${isActive ? 'ring-1 ring-emerald-500/50' : ''}`}>
                 <CardContent className="p-6 relative">
                    {/* Background Glow */}
-                   <div className={`absolute -top-12 -right-12 w-24 h-24 rounded-full blur-3xl opacity-20 ${isActive ? 'bg-emerald-500' : colors.split(' ')[0]}`} />
+                   <div className={`absolute -top-12 -right-12 w-24 h-24 rounded-full blur-3xl opacity-20 ${isActive ? 'bg-emerald-500' : 'bg-primary'}`} />
                    
                    <div className="flex flex-col items-center text-center space-y-4">
                       <div className="relative">
-                        <div className={`w-20 h-20 rounded-2xl flex items-center justify-center text-3xl font-display font-bold shadow-xl group-hover:rotate-6 transition-transform ${colors}`}>
-                          {icon}
-                        </div>
+                        <Avatar className="w-20 h-20 border-2 border-white/10 shadow-xl group-hover:rotate-6 transition-transform">
+                          <AvatarImage src={member.avatar_url ?? undefined} />
+                          <AvatarFallback className="bg-primary text-primary-foreground text-3xl font-bold">
+                            {name.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
                         {isActive && (
                           <div className="absolute -top-2 -right-2 bg-emerald-500 text-white p-1 rounded-lg shadow-lg shadow-emerald-500/20 border border-white/20 animate-bounce">
                             <Zap className="w-3 h-3 fill-current" />
@@ -163,15 +226,22 @@ export function TeamClient({ initialTeam = [], initialAttendance = [], initialPe
                         &quot;MSME 360 Core Personnel&quot;
                       </p>
                       
-                      <div className="flex items-center justify-center gap-4 pt-2">
+                      <div className="flex items-center justify-center gap-3 pt-2">
                         <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-primary/10 hover:text-primary">
                           <Mail className="w-4 h-4" />
                         </Button>
+                        <CreateMissionDialog 
+                          mentorId={mentorId || ""} 
+                          targetUserId={member.id} 
+                          targetUserName={name}
+                          trigger={
+                            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-primary/10 hover:text-primary">
+                              <Target className="w-4 h-4" />
+                            </Button>
+                          }
+                        />
                         <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-primary/10 hover:text-primary">
                           <Linkedin className="w-4 h-4" />
-                        </Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-primary/10 hover:text-primary">
-                          <Globe className="w-4 h-4" />
                         </Button>
                       </div>
                    </div>
@@ -217,6 +287,13 @@ export function TeamClient({ initialTeam = [], initialAttendance = [], initialPe
            <div className="flex items-center gap-2"><Zap className="w-5 h-5" /> <span className="text-[10px] font-bold uppercase tracking-widest">Async Workflow</span></div>
         </div>
       </div>
+
+      <InternalScheduleDialog 
+        isOpen={isScheduleOpen}
+        onOpenChange={setIsScheduleOpen}
+        isGoogleConnected={isGoogleConnected}
+        currentUserRole={userRole}
+      />
     </AdminViewWrapper>
   );
 }

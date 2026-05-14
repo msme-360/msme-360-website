@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ChevronDown, ChevronRight, User, Building2, Zap } from "lucide-react";
+import { ChevronDown, ChevronRight, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface Profile {

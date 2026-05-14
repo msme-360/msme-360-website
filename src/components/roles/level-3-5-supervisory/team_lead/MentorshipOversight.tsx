@@ -17,29 +17,37 @@ import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import Link from "next/link";
+import { useParams } from "next/navigation";
+import CreateMissionDialog from "@/app/[locale]/internal/team/components/CreateMissionDialog";
 
 export interface TeamMember {
   id: string;
   full_name: string | null;
   role: string;
   designation: string;
-  avatar_url?: string;
+  avatar_url?: string | null;
   is_verified: boolean;
   career_level?: string;
 }
 
 export default function MentorshipOversight({ 
   metrics = [],
-  managedProfiles = [] 
+  managedProfiles = [],
+  mentorId = ""
 }: { 
   metrics?: DashboardMetric[];
   managedProfiles?: TeamMember[];
+  mentorId?: string;
 }) {
+  const params = useParams();
+  const locale = params.locale as string;
+
   // Mock data for project pulse if real data isn't available
   const projects = [
-    { name: "AML Screening Protocol", status: "Active", progress: 65, color: "bg-blue-500" },
-    { name: "Vendor Onboarding Automation", status: "Review", progress: 85, color: "bg-emerald-500" },
-    { name: "Risk Assessment v2", status: "Draft", progress: 30, color: "bg-amber-500" }
+    { name: "Team Mission Velocity", status: "Active", progress: 75, color: "bg-blue-500" },
+    { name: "Quality Assurance", status: "Review", progress: 92, color: "bg-emerald-500" },
+    { name: "Unit Synchronization", status: "Active", progress: 45, color: "bg-amber-500" }
   ];
 
   return (
@@ -77,9 +85,11 @@ export default function MentorshipOversight({
                 <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Managed Units & Mentorship</p>
               </div>
             </div>
-            <Button variant="ghost" size="sm" className="text-primary hover:text-primary hover:bg-primary/5">
-              Manage All <ChevronRight className="w-4 h-4 ml-1" />
-            </Button>
+            <Link href={`/${locale}/internal/team/team_lead/directory`}>
+              <Button variant="ghost" size="sm" className="text-primary hover:text-primary hover:bg-primary/5">
+                Manage All <ChevronRight className="w-4 h-4 ml-1" />
+              </Button>
+            </Link>
           </CardHeader>
           <CardContent className="p-0">
             <ScrollArea className="h-[400px]">
@@ -89,7 +99,7 @@ export default function MentorshipOversight({
                     <div key={member.id} className="p-6 flex items-center justify-between hover:bg-white/[0.02] transition-colors group">
                       <div className="flex items-center gap-4">
                         <Avatar className="w-12 h-12 border-2 border-white/5 group-hover:border-primary/20 transition-all">
-                          <AvatarImage src={member.avatar_url} />
+                          <AvatarImage src={member.avatar_url ?? undefined} />
                           <AvatarFallback className="bg-primary/10 text-primary font-bold">
                             {member.full_name?.substring(0, 2).toUpperCase()}
                           </AvatarFallback>
@@ -123,7 +133,7 @@ export default function MentorshipOversight({
                       <UserPlus className="w-6 h-6 text-muted-foreground/30" />
                     </div>
                     <p className="text-sm text-muted-foreground font-medium">No assigned mentees yet.</p>
-                    <p className="text-[10px] text-muted-foreground/30 uppercase tracking-widest mt-1">Assign members via RBAC portal</p>
+                    <p className="text-[10px] text-muted-foreground/30 uppercase tracking-widest mt-1">Assign members via Personnel Registry</p>
                   </div>
                 )}
               </div>
@@ -154,38 +164,49 @@ export default function MentorshipOversight({
           </Card>
 
           <Card className="glass-card border-white/5 bg-emerald-500/[0.01]">
-            <CardHeader>
+            <CardHeader className="flex flex-row items-center justify-between border-b border-white/5">
               <div className="flex items-center gap-3">
                 <Calendar className="w-5 h-5 text-primary" />
                 <CardTitle className="text-lg">Mentorship Queue</CardTitle>
               </div>
+              <CreateMissionDialog 
+                mentorId={mentorId} 
+                teamMembers={managedProfiles.map(p => ({ id: p.id, full_name: p.full_name }))}
+              />
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/5 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-emerald-500/10 rounded-lg">
-                      <Clock className="w-4 h-4 text-emerald-400" />
+                {managedProfiles.length > 0 ? (
+                  <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/5 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-emerald-500/10 rounded-lg">
+                        <Clock className="w-4 h-4 text-emerald-400" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold">Weekly Performance Review</p>
+                        <p className="text-[10px] text-muted-foreground uppercase font-black">All Units Sync</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-sm font-bold">1-on-1: Sarah Chen</p>
-                      <p className="text-[10px] text-muted-foreground uppercase font-black">Technical Review</p>
-                    </div>
+                    <Badge className="bg-primary text-primary-foreground font-bold">In 2h</Badge>
                   </div>
-                  <Badge className="bg-primary text-primary-foreground font-bold">Today</Badge>
-                </div>
+                ) : (
+                  <p className="text-[10px] text-center text-muted-foreground uppercase tracking-widest py-8">No scheduled sessions</p>
+                )}
                 
-                <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/5 opacity-50 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-white/10 rounded-lg text-muted-foreground">
-                      <Activity className="w-4 h-4" />
+                <Link href={`/${locale}/internal/team/team_lead/reviews`} className="block group/item">
+                  <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/5 hover:bg-white/[0.05] transition-all flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-white/10 rounded-lg text-muted-foreground group-hover/item:text-primary transition-colors">
+                        <Activity className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold">Pending Task Reviews</p>
+                        <p className="text-[10px] text-muted-foreground uppercase font-black">Action Required</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-sm font-bold">Unit Sync</p>
-                      <p className="text-[10px] text-muted-foreground uppercase font-black">Tomorrow, 10:00 AM</p>
-                    </div>
+                    <ChevronRight className="w-4 h-4 text-muted-foreground group-hover/item:translate-x-1 transition-transform" />
                   </div>
-                </div>
+                </Link>
               </div>
             </CardContent>
           </Card>

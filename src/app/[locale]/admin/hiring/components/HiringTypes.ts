@@ -6,7 +6,7 @@ export interface Applicant {
   bio?: string;
   university?: string;
   links?: { url: string; label: string }[];
-  status: 'pending' | 'under_review' | 'shortlisted' | 'rejected' | 'hired' | 'onboarded';
+  status: 'pending' | 'under_review' | 'shortlisted' | 'rejected' | 'hired' | 'onboarded' | 'contacted';
   applied_at: string;
   is_archived: boolean;
   metadata?: Record<string, unknown>;

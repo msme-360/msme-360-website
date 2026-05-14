@@ -136,7 +136,7 @@ export function HiringPortalClient({ initialApplicants, subView, role, profile }
     setLoadingId(id);
     toast.promise(onboardIntern(id), {
       loading: 'Initiating onboarding and sending invitation...',
-      success: (res: any) => {
+      success: (res: { success: boolean; message?: string; error?: string; reviewer_name?: string }) => {
         if (res.success) {
           setApplicants(prev => prev.map(a => a.id === id ? { 
             ...a, 
@@ -258,12 +258,12 @@ export function HiringPortalClient({ initialApplicants, subView, role, profile }
           setCurrentTab(v);
           if (v === 'archived') fetchArchived();
         }}>
-          <div className="flex flex-col xl:flex-row xl:items-center justify-between mb-8 border-b border-white/10 pb-4 gap-4">
-            <div className="flex items-center gap-4">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-8 border-b border-white/10 pb-4 gap-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full lg:w-auto">
               <Button 
                 variant="outline" 
                 onClick={handleGoogleConnect}
-                className={`h-11 px-6 rounded-xl border-white/10 gap-2 text-[10px] font-black uppercase tracking-widest transition-all ${
+                className={`h-11 px-6 w-full sm:w-auto rounded-xl border-white/10 gap-2 text-[10px] font-black uppercase tracking-widest transition-all shrink-0 ${
                   isGoogleConnected ? 'bg-green-500/10 text-green-400 border-green-500/20' : 'bg-white/5 hover:bg-white/10'
                 }`}
               >
@@ -279,29 +279,31 @@ export function HiringPortalClient({ initialApplicants, subView, role, profile }
                   </>
                 )}
               </Button>
-              <TabsList className="bg-white/5 p-1 rounded-xl border border-white/10 h-11">
-                <TabsTrigger 
-                  value="active" 
-                  className="gap-2 text-xs font-bold uppercase tracking-widest px-6 data-[state=active]:bg-primary/20 data-[state=active]:text-primary transition-all"
-                >
-                  <Users className="w-3.5 h-3.5" />
-                  Active Pipeline
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="roles" 
-                  className="gap-2 text-xs font-bold uppercase tracking-widest px-6 data-[state=active]:bg-indigo-500/20 data-[state=active]:text-indigo-400 transition-all"
-                >
-                  <Briefcase className="w-3.5 h-3.5" />
-                  Recruitment Manager
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="archived" 
-                  className="gap-2 text-xs font-bold uppercase tracking-widest px-6 data-[state=active]:bg-amber-500/20 data-[state=active]:text-amber-500 transition-all"
-                >
-                  <ArchiveIcon className="w-3.5 h-3.5" />
-                  Archived
-                </TabsTrigger>
-              </TabsList>
+              <div className="overflow-x-auto no-scrollbar w-full sm:w-auto">
+                <TabsList className="bg-white/5 p-1 rounded-xl border border-white/10 h-11 w-max">
+                  <TabsTrigger 
+                    value="active" 
+                    className="gap-2 text-xs font-bold uppercase tracking-widest px-6 data-[state=active]:bg-primary/20 data-[state=active]:text-primary transition-all"
+                  >
+                    <Users className="w-3.5 h-3.5" />
+                    Active Pipeline
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="roles" 
+                    className="gap-2 text-xs font-bold uppercase tracking-widest px-6 data-[state=active]:bg-indigo-500/20 data-[state=active]:text-indigo-400 transition-all"
+                  >
+                    <Briefcase className="w-3.5 h-3.5" />
+                    Recruitment Manager
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="archived" 
+                    className="gap-2 text-xs font-bold uppercase tracking-widest px-6 data-[state=active]:bg-amber-500/20 data-[state=active]:text-amber-500 transition-all"
+                  >
+                    <ArchiveIcon className="w-3.5 h-3.5" />
+                    Archived
+                  </TabsTrigger>
+                </TabsList>
+              </div>
             </div>
           </div>
 

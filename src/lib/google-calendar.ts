@@ -20,15 +20,16 @@ export async function createCalendarEvent(auth: Auth.OAuth2Client, eventDetails:
   startTime: string;
   endTime: string;
   attendees: string[];
+  recurrence?: string[];
 }) {
   const calendar = google.calendar({ version: 'v3', auth });
 
-  const event = {
+  const event: import('googleapis').calendar_v3.Schema$Event = {
     summary: eventDetails.summary,
     description: eventDetails.description,
     start: {
       dateTime: eventDetails.startTime,
-      timeZone: 'UTC', // You can make this dynamic
+      timeZone: 'UTC', 
     },
     end: {
       dateTime: eventDetails.endTime,
@@ -42,6 +43,10 @@ export async function createCalendarEvent(auth: Auth.OAuth2Client, eventDetails:
       },
     },
   };
+
+  if (eventDetails.recurrence) {
+    event.recurrence = eventDetails.recurrence;
+  }
 
   const response = await calendar.events.insert({
     calendarId: 'primary',

@@ -20,13 +20,19 @@ import {
   Users,
   CheckCircle2,
   AlertCircle,
-  Clock,
-  GitBranch,
+  Clock
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { OrganizationHierarchy } from "./components/OrganizationHierarchy";
+import { updateUserMapping } from "../actions";
+import { toast } from "sonner";
+import { 
+  Select, SelectContent, SelectItem, 
+  SelectTrigger, SelectValue 
+} from "@/components/ui/select";
+
 
 interface CompanyProfile {
   id: string;
@@ -112,6 +118,26 @@ export function CompanyRegistryClient({
   const setTab = (newTab: string) => updateParams({ tab: newTab });
   const setCompanySearch = (val: string) => updateParams({ q_entity: val });
   const setNicSearch = (val: string) => updateParams({ q_nic: val });
+
+  const [isUpdating, setIsUpdating] = useState<string | null>(null);
+
+  const handleUpdateMapping = async (userId: string, managerId: string | null) => {
+    setIsUpdating(userId);
+    const res = await updateUserMapping(userId, managerId);
+    if (res.success) {
+      toast.success("Workforce mapping updated");
+    } else {
+      toast.error(res.error || "Update failed");
+    }
+    setIsUpdating(null);
+  };
+
+  const potentialLeads = teamMembers.filter(m => 
+    ["team_lead", "manager", "super_admin", "supervisor", "coordinator", "managing_partner", "ceo"].includes(m.role || "")
+  );
+
+  const isHR = ["hr_manager", "super_admin", "operations_lead"].includes(role);
+
 
   const complianceDone = compliance.filter(c =>
     ["completed", "done"].includes(c.status || "")
@@ -404,7 +430,7 @@ export function CompanyRegistryClient({
         {/* Workforce Tab */}
         {tab === "team" && (
           <div className="space-y-6">
-            <OrganizationHierarchy profiles={teamMembers as any} />
+            <OrganizationHierarchy profiles={teamMembers} />
             
             <Card className="glass-card border-white/10 overflow-hidden mt-8">
               <CardHeader className="border-b border-white/10 bg-white/[0.02] py-4 px-6">
@@ -418,13 +444,14 @@ export function CompanyRegistryClient({
                       <TableHead className="text-[10px] uppercase font-black px-6 py-3">Name</TableHead>
                       <TableHead className="text-[10px] uppercase font-black px-4 py-3">Designation</TableHead>
                       <TableHead className="text-[10px] uppercase font-black px-4 py-3">Department</TableHead>
+                      <TableHead className="text-[10px] uppercase font-black px-4 py-3">Assigned Lead</TableHead>
                       <TableHead className="text-[10px] uppercase font-black px-4 py-3">Status</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {teamMembers.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={4} className="py-16 text-center text-muted-foreground italic text-xs">
+                        <TableCell colSpan={5} className="py-16 text-center text-muted-foreground italic text-xs">
                           No personnel found.
                         </TableCell>
                       </TableRow>
@@ -444,6 +471,31 @@ export function CompanyRegistryClient({
                           {m.designation || m.role?.replace(/_/g, " ") || "—"}
                         </TableCell>
                         <TableCell className="px-4 py-3.5 text-xs text-muted-foreground">{m.department || "—"}</TableCell>
+                        <TableCell className="px-4 py-3.5 min-w-[200px]">
+                          {isHR ? (
+                            <Select 
+                              disabled={isUpdating === m.id}
+                              value={m.manager_id || "none"} 
+                              onValueChange={(val) => handleUpdateMapping(m.id, val === "none" ? null : val)}
+                            >
+                              <SelectTrigger className="h-8 bg-white/5 border-white/10 text-[10px] rounded-lg">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent className="glass-card border-white/10">
+                                <SelectItem value="none" className="text-[10px]">No Assigned Lead</SelectItem>
+                                {potentialLeads.filter(l => l.id !== m.id).map(lead => (
+                                  <SelectItem key={lead.id} value={lead.id} className="text-[10px]">
+                                    {lead.full_name} ({lead.role?.replace(/_/g, " ").toUpperCase()})
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          ) : (
+                            <span className="text-[10px] text-muted-foreground font-bold italic">
+                              {teamMembers.find(l => l.id === m.manager_id)?.full_name || "Not Assigned"}
+                            </span>
+                          )}
+                        </TableCell>
                         <TableCell className="px-4 py-3.5">
                           <div className="flex items-center gap-1.5">
                             <div className={`w-1.5 h-1.5 rounded-full ${m.is_verified ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" : "bg-amber-400"}`} />

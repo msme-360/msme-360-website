@@ -13,8 +13,8 @@ import {
 import { 
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue 
 } from "@/components/ui/select";
-import { format } from "date-fns";
-import { Calendar as CalendarIcon, Clock, Video, Loader2, CheckCircle2 } from "lucide-react";
+import { format, startOfDay } from "date-fns";
+import { Calendar as CalendarIcon, Clock, Video, Loader2, CheckCircle2, Repeat } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { scheduleInterview } from "../../actions";
 import { toast } from "sonner";
@@ -33,7 +33,8 @@ export function ScheduleMeetDialog({
   applicant, 
   isOpen, 
   onOpenChange,
-  isGoogleConnected = false
+  isGoogleConnected = false,
+  onSuccess
 }: ScheduleMeetDialogProps) {
   const [date, setDate] = useState<Date>();
   const [time, setTime] = useState<string>("10:00");
@@ -41,6 +42,7 @@ export function ScheduleMeetDialog({
   const [isSuccess, setIsSuccess] = useState(false);
   const [meetLink, setMeetLink] = useState<string>("");
   const [isRealMeet, setIsRealMeet] = useState(false);
+  const [repeat, setRepeat] = useState<'none' | 'daily' | 'weekly' | 'monthly'>('none');
 
   const handleSchedule = async () => {
     if (!date) {
@@ -53,7 +55,8 @@ export function ScheduleMeetDialog({
       const res = await scheduleInterview(
         applicant.id, 
         format(date, "yyyy-MM-dd"), 
-        time
+        time,
+        repeat
       );
 
       if (res.success) {
@@ -120,6 +123,11 @@ export function ScheduleMeetDialog({
                 <p className="text-xs text-white/50">
                   Interview scheduled for {date && format(date, "PPP")} at {time}.
                 </p>
+                {repeat !== 'none' && (
+                  <Badge variant="outline" className="mt-2 text-[8px] bg-primary/10 text-primary border-primary/20">
+                    Repeats {repeat}
+                  </Badge>
+                )}
               </div>
             </div>
 
@@ -214,7 +222,7 @@ export function ScheduleMeetDialog({
                       selected={date}
                       onSelect={setDate}
                       initialFocus
-                      disabled={(date) => date < new Date() || date.getDay() === 0 || date.getDay() === 6}
+                      disabled={(date) => date < startOfDay(new Date())}
                     />
                   </PopoverContent>
                 </Popover>
@@ -235,6 +243,24 @@ export function ScheduleMeetDialog({
                         {slot} {parseInt(slot.split(':')[0]) >= 12 ? 'PM' : 'AM'}
                       </SelectItem>
                     ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-3">
+                <label className="text-[10px] uppercase font-black tracking-widest text-white/30 ml-1">Repeat Options</label>
+                <Select value={repeat} onValueChange={(val: 'none' | 'daily' | 'weekly' | 'monthly') => setRepeat(val)}>
+                  <SelectTrigger className="h-12 bg-white/5 border-white/10 rounded-xl focus:ring-primary/20">
+                    <div className="flex items-center gap-2">
+                      <Repeat className="w-4 h-4 text-primary" />
+                      <SelectValue />
+                    </div>
+                  </SelectTrigger>
+                  <SelectContent className="glass-card border-white/10">
+                    <SelectItem value="none">Does not repeat</SelectItem>
+                    <SelectItem value="daily">Daily</SelectItem>
+                    <SelectItem value="weekly">Weekly</SelectItem>
+                    <SelectItem value="monthly">Monthly</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -269,8 +295,5 @@ export function ScheduleMeetDialog({
       </DialogContent>
     </Dialog>
   );
-}
-function onSuccess(arg0: any) {
-  throw new Error("Function not implemented.");
 }
 

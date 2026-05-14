@@ -54,7 +54,8 @@ export default async function CategoryPage({
     const dbRole = dbRoles.find(dr => dr.slug === sr.slug);
     // Omit the icon component here as it cannot be serialized
     // It will be re-resolved by the client using the slug
-    const { icon: _, ...staticRest } = sr;
+    const staticRest = { ...sr } as Record<string, unknown>;
+    delete staticRest.icon;
     return {
       ...staticRest,
       ...dbRole

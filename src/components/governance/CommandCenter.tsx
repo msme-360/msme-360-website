@@ -10,12 +10,20 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 
-export function CommandCenter() {
+interface CommandCenterProps {
+  roleLevel: number;
+  roleId: string;
+}
+
+
+export function CommandCenter({ roleLevel, roleId }: CommandCenterProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState("");
   const router = useRouter();
+  const params = useParams();
+  const locale = params.locale as string;
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
@@ -28,16 +36,32 @@ export function CommandCenter() {
     return () => document.removeEventListener("keydown", down);
   }, []);
 
-  const results = [
-    { id: '1', title: 'Audit Logs', subtitle: 'L6 Governance Ledger', icon: History, url: '/admin/audit', category: 'Governance' },
-    { id: '2', title: 'Hiring Dashboard', subtitle: 'Applicant Pipeline', icon: Zap, url: '/admin/hiring', category: 'Operational' },
-    { id: '3', title: 'Team Directory', subtitle: 'Personnel Registry', icon: User, url: '/internal/team', category: 'Personnel' },
-    { id: '4', title: 'System Health', subtitle: 'Real-time Telemetry', icon: Activity, url: '/admin/audit?tab=health', category: 'Infrastructure' },
-    { id: '5', title: 'Security Ops', subtitle: 'Threat Mitigation', icon: Shield, url: '/admin/audit?tab=security', category: 'Infrastructure' },
-  ].filter(item => 
-    item.title.toLowerCase().includes(query.toLowerCase()) || 
-    item.category.toLowerCase().includes(query.toLowerCase())
-  );
+  const allResults = [
+    // GOVERNANCE & EXEC (L0 - L2)
+    { id: '1', title: 'Audit Logs', subtitle: 'L6 Governance Ledger', icon: History, url: `/${locale}/admin/audit`, category: 'Governance', minLevel: 0, maxLevel: 2 },
+    { id: '4', title: 'System Health', subtitle: 'Real-time Telemetry', icon: Activity, url: `/${locale}/admin/tech/super_admin`, category: 'Infrastructure', minLevel: 0, maxLevel: 1 },
+    
+    // MANAGEMENT (L3)
+    { id: '2', title: 'Hiring Dashboard', subtitle: 'Applicant Pipeline', icon: Zap, url: `/${locale}/internal/hiring`, category: 'Operational', minLevel: 0, maxLevel: 3 },
+    
+    // PERSONNEL & SUPERVISORY (L3 - L3.5)
+    { id: '3', title: 'Team Directory', subtitle: 'Personnel Registry', icon: User, url: `/${locale}/internal/team/${roleId}/directory`, category: 'Personnel', minLevel: 0, maxLevel: 3.5 },
+    { id: '6', title: 'Team Reflections', subtitle: 'Sentiment Analysis', icon: Activity, url: `/${locale}/internal/team/${roleId}/reflections`, category: 'Personnel', minLevel: 0, maxLevel: 3.5 },
+    { id: '7', title: 'Leave Management', subtitle: 'Availability Hub', icon: Zap, url: `/${locale}/internal/team/${roleId}/leaves`, category: 'Operational', minLevel: 0, maxLevel: 3.5 },
+    { id: '8', title: 'Mission Reviews', subtitle: 'PoW Verification', icon: Zap, url: `/${locale}/internal/team/${roleId}/reviews`, category: 'Operational', minLevel: 0, maxLevel: 3.5 },
+    { id: '9', title: 'Onboarding Registry', subtitle: 'Protocol Activation', icon: Activity, url: `/${locale}/internal/team/${roleId}/onboarding`, category: 'Personnel', minLevel: 0, maxLevel: 3.5 },
+    { id: '10', title: 'Policy Hub', subtitle: 'Operational Handbooks', icon: Shield, url: `/${locale}/internal/team/${roleId}/policies`, category: 'Governance', minLevel: 0, maxLevel: 3.5 },
+    
+    // GENERAL
+    { id: '5', title: 'Security Ops', subtitle: 'Threat Mitigation', icon: Shield, url: `/${locale}/admin/audit?tab=security`, category: 'Infrastructure', minLevel: 0, maxLevel: 2 },
+  ];
+
+  const results = allResults
+    .filter(item => roleLevel >= item.minLevel && roleLevel <= item.maxLevel)
+    .filter(item => 
+      item.title.toLowerCase().includes(query.toLowerCase()) || 
+      item.category.toLowerCase().includes(query.toLowerCase())
+    );
 
   const handleSelect = (url: string) => {
     router.push(url);
@@ -71,7 +95,10 @@ export function CommandCenter() {
               onChange={(e) => setQuery(e.target.value)}
               className="border-0 bg-transparent text-lg focus-visible:ring-0 placeholder:text-white/20 h-12"
             />
-            <Badge variant="outline" className="bg-indigo-500/10 text-indigo-400 border-indigo-500/20 text-[9px] font-black uppercase tracking-widest">L6 COMMAND</Badge>
+            <Badge variant="outline" className="bg-indigo-500/10 text-indigo-400 border-indigo-500/20 text-[9px] font-black uppercase tracking-widest">
+              L{roleLevel} COMMAND
+            </Badge>
+
           </div>
           
           <div className="max-h-[450px] overflow-y-auto p-2">

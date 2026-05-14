@@ -49,7 +49,7 @@ export default function ApplicantTable({
   );
 
   return (
-    <Card className="glass-card border-white/10 overflow-hidden shadow-2xl shadow-black/50">
+    <Card className="glass-card border-white/10 overflow-hidden shadow-2xl shadow-black/50 w-full min-w-0">
       <CardHeader className="bg-white/[0.02] border-b border-white/5 py-8 px-8 flex flex-row items-center justify-between">
         <div className="space-y-1">
           <CardTitle className="text-xl font-display font-black tracking-tight flex items-center gap-3">
@@ -85,8 +85,8 @@ export default function ApplicantTable({
           </Button>
         </div>
       </CardHeader>
-      <CardContent className="px-8">
-        <div className="relative">
+      <CardContent className="px-8 w-full min-w-0 overflow-hidden">
+        <div className="relative w-full min-w-0">
           <DataTable 
             columns={columns} 
             data={applicants} 

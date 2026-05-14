@@ -37,7 +37,7 @@ export function AdminHeader({
       </div>
 
       <div className="flex-1 flex justify-center max-w-md">
-        <CommandCenter />
+        <CommandCenter roleLevel={roleData.level} roleId={roleData.id} />
       </div>
 
       <div className="flex items-center gap-4 shrink-0">

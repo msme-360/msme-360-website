@@ -2,7 +2,8 @@ import {
   LayoutDashboard, Settings, Users, ShieldCheck, BarChart3, FileText, Globe,
   Wallet, Zap, Cpu, Lock, Network, Megaphone, PieChart, HardDrive,
   Target, Gauge, Briefcase, Building2, Clock, UserPlus, ClipboardCheck,
-  type LucideIcon, History, UserCircle, LineChart, TrendingUp
+  type LucideIcon, History, UserCircle, LineChart, TrendingUp,
+  Activity
 } from "lucide-react";
 import { STARTUP_ROLES } from "@/lib/constants/roles";
 
@@ -337,6 +338,9 @@ export const ROLE_NAV_CONFIG: Record<string, (locale: string) => NavGroup[]> = {
       items: [
         { title: "Sprint Hub", icon: Target, url: `/${l}/internal/manager/team_lead` },
         { title: "Mission Reviews", icon: ClipboardCheck, url: `/${l}/internal/team/team_lead/reviews` },
+        { title: "Personnel Registry", icon: Users, url: `/${l}/internal/team/team_lead/directory` },
+        { title: "Team Reflections", icon: Activity, url: `/${l}/internal/team/team_lead/reflections` },
+        { title: "Leave Management", icon: Clock, url: `/${l}/internal/team/team_lead/leaves` },
         { title: "Daily Sync", icon: Clock, url: `/${l}/internal/manager/team_lead/sync` },
       ]
     }
