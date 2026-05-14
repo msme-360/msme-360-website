@@ -1,9 +1,18 @@
 import { getUser as getAuthUser } from "@/services/supabase/supabase-server";
 import { getProfile as getProfileDirect } from "@/app/[locale]/dashboard/queries";
-import { getAttendanceLogs, getTasksForVerification } from "@/app/[locale]/internal/actions";
+import { 
+  getAttendanceLogs, 
+  getTasksForVerification, 
+  getManagedTeam,
+  getTeamReflections,
+  getTeamLeaveRequests
+} from "@/app/[locale]/internal/actions";
 import { getTeamPerformanceStats } from "@/app/[locale]/admin/actions";
+
 import { AttendanceLog } from "@/app/[locale]/admin/attendance/AttendanceLogClient";
-import { TeamClient, ReviewTask, TeamPerformance } from "../TeamClient";
+import { TeamClient, ReviewTask, TeamPerformance, TeamMember } from "../TeamClient";
+import { Reflection } from "../TeamReflectionClient";
+import { LeaveRequest } from "../TeamLeaveClient";
 import { hasPermission } from "@/lib/constants/roles";
 import { RestrictedAccess } from "@/components/auth/RestrictedAccess";
 import { redirect } from "next/navigation";
@@ -39,8 +48,8 @@ async function TeamPortalContent({
   const userRole = profile?.role || "user";
 
   // --- Hub Silo Guard ---
-  // Manager level or higher (L3+)
-  if (!hasPermission(userRole, 3)) {
+  // Supervisory level or higher (L3.5+)
+  if (!hasPermission(userRole, 3.5)) {
     return <RestrictedAccess requiredLevel="Management" />;
   }
 
@@ -71,14 +80,33 @@ async function TeamPortalContent({
     performance = await getTeamPerformanceStats() as unknown as TeamPerformance[];
   }
 
+  let reflections: Reflection[] = [];
+  if (subView === 'reflections') {
+    reflections = await getTeamReflections(user.id);
+  }
+
+  let leaveRequests: LeaveRequest[] = [];
+  if (subView === 'leaves') {
+    leaveRequests = await getTeamLeaveRequests(user.id);
+  }
+
+
+  const teamMembers = await getManagedTeam(user.id);
+
   return (
     <TeamClient 
+      initialTeam={teamMembers as unknown as TeamMember[]}
       initialAttendance={attendance}
       initialPendingTasks={pendingTasks}
       initialPerformance={performance}
+      initialReflections={reflections}
+      initialLeaveRequests={leaveRequests}
       subView={subView}
       mentorId={user.id}
+      userRole={userRole}
+      isGoogleConnected={!!profile?.metadata?.google_tokens}
     />
+
   );
 }
 

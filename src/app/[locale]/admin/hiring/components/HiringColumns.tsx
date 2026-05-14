@@ -6,7 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { 
   MoreVertical, Mail, Linkedin, X, Star, ArchiveRestore,
-  ArrowUpDown, FileSearch, Archive, UserPlus
+  ArrowUpDown, FileSearch, Archive, UserPlus,
+  MessageSquare
 } from "lucide-react";
 import { 
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger 
@@ -15,6 +16,7 @@ import Link from "next/link";
 import { format } from "date-fns";
 import { useState } from "react";
 import { ScheduleMeetDialog } from "./ScheduleMeetDialog";
+import AssignMentorDialog from "./AssignMentorDialog";
 import { Video } from "lucide-react";
 
 const ActionsCell = ({ 
@@ -38,6 +40,7 @@ const ActionsCell = ({
 }) => {
   const app = row.original;
   const [showScheduleDialog, setShowScheduleDialog] = useState(false);
+  const [showAssignDialog, setShowAssignDialog] = useState(false);
   const linkedinLink = Array.isArray(app.links) ? app.links.find((l: { label?: string; url?: string }) => l.label?.toLowerCase().includes('linkedin')) : undefined;
 
   return (
@@ -69,7 +72,7 @@ const ActionsCell = ({
             <MoreVertical className="w-4 h-4 text-muted-foreground" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="glass-card border-white/10">
+        <DropdownMenuContent align="end" className="glass-card border-white/10 w-5xs">
           {!isArchiveView && (userRole === 'recruiter' || userRole === 'hr_manager' || userRole === 'super_admin') && (
             <>
               <DropdownMenuItem 
@@ -104,6 +107,15 @@ const ActionsCell = ({
           )}
           {!isArchiveView && app.status !== 'hired' && app.status !== 'onboarded' && (
             <>
+              {app.status !== 'contacted' && (
+                <DropdownMenuItem 
+                  className="text-xs text-orange-400 gap-2"
+                  onClick={() => onStatusUpdate(app.id, 'contacted')}
+                  disabled={userRole === 'recruiter'}
+                >
+                  <MessageSquare className="w-3.5 h-3.5" /> Mark Contacted
+                </DropdownMenuItem>
+              )}
               {app.status !== 'shortlisted' && (
                 <DropdownMenuItem 
                   className="text-xs text-yellow-500 gap-2"
@@ -129,6 +141,18 @@ const ActionsCell = ({
                 disabled={userRole === 'recruiter'}
               >
                 <X className="w-3.5 h-3.5" /> Reject Application
+              </DropdownMenuItem>
+            </>
+          )}
+          
+          {app.status !== 'rejected' && (userRole === 'hr_manager' || userRole === 'super_admin') && (
+            <>
+              <DropdownMenuSeparator className="bg-white/5" />
+              <DropdownMenuItem 
+                className="text-xs text-indigo-400 font-bold gap-2 focus:bg-indigo-500/10"
+                onClick={() => setShowAssignDialog(true)}
+              >
+                <UserPlus className="w-3.5 h-3.5" /> Assign Team Lead
               </DropdownMenuItem>
             </>
           )}
@@ -160,7 +184,77 @@ const ActionsCell = ({
         isGoogleConnected={isGoogleConnected}
         onSuccess={(name) => onStatusUpdate(app.id, 'under_review', name)}
       />
+
+      <AssignMentorDialog 
+        applicationId={app.id} 
+        currentMentorId={(app.metadata as Record<string, unknown>)?.mentor_id as string | undefined}
+        isOpen={showAssignDialog}
+        onOpenChange={setShowAssignDialog}
+        onSuccess={() => onStatusUpdate(app.id, app.status)}
+      />
     </div>
+  );
+};
+
+const StatusCell = ({ 
+  row, 
+  onStatusUpdate,
+  userRole 
+}: { 
+  row: { original: Applicant }, 
+  onStatusUpdate: (id: string, status: string) => void,
+  userRole: string
+}) => {
+  const status = row.original.status || 'pending';
+  const colors: Record<string, string> = {
+    pending: 'bg-blue-500',
+    contacted: 'bg-orange-500',
+    shortlisted: 'bg-yellow-500',
+    under_review: 'bg-purple-500',
+    hired: 'bg-green-500',
+    onboarded: 'bg-indigo-500',
+    rejected: 'bg-red-500'
+  };
+
+  const options = [
+    { value: 'pending', label: 'Pending', color: 'bg-blue-500' },
+    { value: 'contacted', label: 'Contacted', color: 'bg-orange-500' },
+    { value: 'shortlisted', label: 'Shortlisted', color: 'bg-yellow-500' },
+    { value: 'under_review', label: 'Under Review', color: 'bg-purple-500' },
+    { value: 'rejected', label: 'Rejected', color: 'bg-red-500' },
+    { value: 'hired', label: 'Hired', color: 'bg-green-500' },
+    { value: 'onboarded', label: 'Onboarded', color: 'bg-indigo-500' }
+  ];
+
+  // Restrict editing for basic roles if needed, but usually recruiters/HR can edit
+  const canEdit = userRole !== 'user';
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild disabled={!canEdit}>
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          className="h-8 flex items-center gap-2 hover:bg-white/5 px-2 -ml-2 transition-all group"
+        >
+          <div className={`w-1.5 h-1.5 rounded-full ${colors[status] || 'bg-gray-500'} group-hover:scale-125 transition-transform`} />
+          <span className="text-xs font-medium capitalize">{status.replace('_', ' ')}</span>
+          <ArrowUpDown className="w-3 h-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start" className="glass-card border-white/10 w-40">
+        {options.map((opt) => (
+          <DropdownMenuItem 
+            key={opt.value}
+            className={`text-xs gap-2 ${status === opt.value ? 'bg-white/5 text-primary' : ''}`}
+            onClick={() => onStatusUpdate(row.original.id, opt.value)}
+          >
+            <div className={`w-1.5 h-1.5 rounded-full ${opt.color}`} />
+            {opt.label}
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 };
 
@@ -230,23 +324,13 @@ export const getHiringColumns = (
         <ArrowUpDown className="ml-2 h-3 w-3" />
       </Button>
     ),
-    cell: ({ row }) => {
-      const status = row.original.status || 'pending';
-      const colors: Record<string, string> = {
-        pending: 'bg-blue-500',
-        shortlisted: 'bg-yellow-500',
-        under_review: 'bg-purple-500',
-        hired: 'bg-green-500',
-        onboarded: 'bg-indigo-500',
-        rejected: 'bg-red-500'
-      };
-      return (
-        <div className="flex items-center gap-2">
-          <div className={`w-1.5 h-1.5 rounded-full ${colors[status] || 'bg-gray-500'}`} />
-          <span className="text-xs font-medium capitalize">{status.replace('_', ' ')}</span>
-        </div>
-      );
-    },
+    cell: ({ row }) => (
+      <StatusCell 
+        row={row} 
+        onStatusUpdate={onStatusUpdate} 
+        userRole={userRole} 
+      />
+    ),
   },
   {
     accessorKey: "applied_at",
@@ -281,6 +365,7 @@ export const getHiringColumns = (
   {
     id: "interview",
     header: () => <div className="font-bold text-[10px] uppercase tracking-widest text-muted-foreground">Interview</div>,
+    minSize: 120,
     cell: ({ row }) => {
       const metadata = (row.original.metadata as Record<string, unknown>) || {};
       if (!metadata.interview_date) return <span className="text-[10px] text-white/20 uppercase font-bold tracking-tighter">Not Scheduled</span>;
@@ -296,6 +381,7 @@ export const getHiringColumns = (
   {
     id: "actions",
     header: () => <div className="text-right">Actions</div>,
+    minSize: 150,
     cell: ({ row }) => (
       <ActionsCell 
         row={row} 

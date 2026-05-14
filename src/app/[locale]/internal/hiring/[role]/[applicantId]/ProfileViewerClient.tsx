@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { updateApplicationStatus, onboardIntern } from "@/app/[locale]/admin/actions";
+import { updateApplicationStatus, onboardIntern, updateApplicationRole } from "@/app/[locale]/admin/actions";
 import { Applicant, Metric } from "../../../../admin/hiring/components/HiringTypes";
 import { AdminViewWrapper } from "@/components/layout/AdminViewWrapper";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,9 +11,8 @@ import {
   Mail, GraduationCap, Briefcase, 
   Linkedin, ExternalLink, Check, 
   FileText, RefreshCcw, Video,
-  CalendarIcon,
-  Clock,
-  Star} from "lucide-react";
+  CalendarIcon, Clock, Star
+} from "lucide-react";
 import { EvaluationCard } from "./EvaluationCard";
 import OnboardingRegistry from "../../../../admin/hiring/components/OnboardingRegistry";
 import dynamic from "next/dynamic";
@@ -21,6 +20,14 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { User } from "@supabase/supabase-js";
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from "@/components/ui/select";
+import { CareerRole } from "@/lib/roles";
 
 const ScheduleMeetDialog = dynamic(() => 
   import("../../../../admin/hiring/components/ScheduleMeetDialog").then(mod => mod.ScheduleMeetDialog),
@@ -32,9 +39,10 @@ interface ProfileViewerClientProps {
   initialMetrics: Metric[];
   user: User;
   userRole: string;
+  availableRoles?: CareerRole[];
 }
 
-export default function ProfileViewerClient({ applicant: initialApplicant, initialMetrics, user, userRole }: ProfileViewerClientProps) {
+export default function ProfileViewerClient({ applicant: initialApplicant, initialMetrics, user, userRole, availableRoles = [] }: ProfileViewerClientProps) {
 
   const [applicant, setApplicant] = useState<Applicant>(initialApplicant);
   const [metrics, setMetrics] = useState<Metric[]>(initialMetrics);
@@ -65,6 +73,26 @@ export default function ProfileViewerClient({ applicant: initialApplicant, initi
       }
     } catch {
       setApplicant(prev => ({ ...prev, status: previousStatus }));
+      toast.error("An unexpected error occurred");
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const handleRoleUpdate = async (newRole: string) => {
+    if (newRole === applicant.role) return;
+    
+    setIsUpdating(true);
+    try {
+      const res = await updateApplicationRole(applicant.id, newRole);
+      if (res.success) {
+        setApplicant(prev => ({ ...prev, role: newRole }));
+        toast.success(`Role updated to ${newRole}`);
+        router.refresh();
+      } else {
+        toast.error(res.error || "Failed to update role");
+      }
+    } catch {
       toast.error("An unexpected error occurred");
     } finally {
       setIsUpdating(false);
@@ -137,7 +165,33 @@ export default function ProfileViewerClient({ applicant: initialApplicant, initi
                     ) : null}
                   </div>
                   <div className="flex flex-wrap gap-3 mt-2">
-                    <Badge variant="secondary" className="bg-white/5 gap-1.5"><Briefcase className="w-3 h-3" /> {applicant.role}</Badge>
+                    {userRole === 'recruiter' || userRole === 'hr_manager' || userRole === 'super_admin' ? (
+                      <Select
+                        defaultValue={applicant.role}
+                        onValueChange={handleRoleUpdate}
+                        disabled={isUpdating}
+                      >
+                        <SelectTrigger className="h-7 w-fit bg-white/5 border-white/10 gap-1.5 rounded-full px-3 text-xs font-medium hover:bg-white/10 transition-colors">
+                          <div className="flex items-center gap-1.5">
+                            <Briefcase className="w-3 h-3 text-primary" />
+                            <SelectValue placeholder="Select Role" />
+                          </div>
+                        </SelectTrigger>
+                        <SelectContent className="glass-card border-white/10">
+                          {availableRoles.length > 0 ? (
+                            availableRoles.map(role => (
+                              <SelectItem key={role.slug} value={role.title}>
+                                {role.title}
+                              </SelectItem>
+                            ))
+                          ) : (
+                            <SelectItem value={applicant.role}>{applicant.role}</SelectItem>
+                          )}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <Badge variant="secondary" className="bg-white/5 gap-1.5"><Briefcase className="w-3 h-3" /> {applicant.role}</Badge>
+                    )}
                     <Badge variant="outline" className="border-white/10 gap-1.5"><GraduationCap className="w-3 h-3" /> {applicant.university || "N/A"}</Badge>
                     <Badge className={`
                       ${applicant.status === 'hired' ? 'bg-emerald-500/20 text-emerald-400' :

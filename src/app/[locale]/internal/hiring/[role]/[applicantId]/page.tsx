@@ -47,6 +47,8 @@ async function ProfileContent({
   }
 
   const metrics = await getApplicationMetrics(applicantId);
+  const { getCareerRoles } = await import("@/app/[locale]/admin/actions");
+  const availableRoles = await getCareerRoles();
 
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -55,6 +57,7 @@ async function ProfileContent({
         initialMetrics={metrics}
         user={user}
         userRole={userRole}
+        availableRoles={availableRoles}
       />
     </div>
   );

@@ -11,6 +11,7 @@ import { CheckCircle2, XCircle, Clock, User, ExternalLink, Award } from "lucide-
 import { formatDistanceToNow } from "date-fns";
 import { AdminViewWrapper } from "@/components/layout/AdminViewWrapper";
 import { CommendationDialog } from "./components/CommendationDialog";
+import { TaskCommentSection } from "./components/TaskCommentSection";
 
 interface ReviewTask {
   id: string;
@@ -123,7 +124,12 @@ export function MissionReviewClient({ initialTasks = [], mentorId }: { initialTa
                     </div>
                   </div>
 
-                  <div className="space-y-4 pt-4">
+                  <div className="pt-4 border-t border-white/5">
+                    <TaskCommentSection taskId={task.id} currentUserId={mentorId} />
+                  </div>
+
+                  <div className="space-y-4 pt-4 border-t border-white/5">
+
                     <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-400">Mentor Resolution Note</h4>
                     <Textarea 
                       placeholder="Provide feedback or instructions for mission finalization..."

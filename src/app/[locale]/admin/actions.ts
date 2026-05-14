@@ -59,6 +59,9 @@ export async function saveApplicationMetric(...args: Parameters<typeof hiring.sa
 export async function deleteApplicationMetric(...args: Parameters<typeof hiring.deleteApplicationMetric>) {
   return hiring.deleteApplicationMetric(...args);
 }
+export async function updateApplicationRole(...args: Parameters<typeof hiring.updateApplicationRole>) {
+  return hiring.updateApplicationRole(...args);
+}
 
 // --- ONBOARDING & MENTORSHIP ---
 export async function getMentorProfiles(...args: Parameters<typeof hiring.getMentorProfiles>) {
@@ -123,6 +126,9 @@ export async function inviteNewUser(...args: Parameters<typeof rbac.inviteNewUse
 }
 export async function requestAccessElevation(...args: Parameters<typeof rbac.requestAccessElevation>) {
   return rbac.requestAccessElevation(...args);
+}
+export async function updateUserMapping(...args: Parameters<typeof rbac.updateUserMapping>) {
+  return rbac.updateUserMapping(...args);
 }
 export async function deleteUserProfile(...args: Parameters<typeof rbac.deleteUserProfile>) {
   return rbac.deleteUserProfile(...args);

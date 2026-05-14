@@ -30,7 +30,8 @@ export default async function RolePage({
   if (!dbRole && !staticRole) notFound();
 
   // Merge DB data into static role if available
-  const { icon: _, ...staticRest } = (staticRole || {}) as Partial<CareerRole>;
+  const staticRest = { ...(staticRole || {}) } as Partial<CareerRole>;
+  delete staticRest.icon;
   const roleData = {
     ...staticRest,
     ...dbRole,

@@ -81,7 +81,7 @@ async function InternalLayoutInner({
   return (
     <SidebarProvider>
       <AdminSidebar userId={user.id} serverRole={userRole} />
-      <SidebarInset className="bg-background relative">
+      <SidebarInset className="bg-background relative min-w-0">
         <AdminHeader
           profile={profile}
           roleData={roleData}
@@ -91,7 +91,7 @@ async function InternalLayoutInner({
           portalContext="internal"
         />
 
-        <main className="flex-1 overflow-y-auto">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden">
           <div className="max-w-7xl mx-auto py-10 px-4 md:px-6 lg:px-8 w-full">
             {children}
           </div>
