@@ -8,7 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { DashboardMetric, DashboardProfile } from "@/types/dashboard";
 import { SystemHealth } from "@/types/governance";
 import { WelcomeHeader } from "@/components/dashboard/WelcomeHeader";
-import { ShieldAlert, Book, Vote, LogOut } from "lucide-react";
+import { ShieldAlert, Book, Vote, LogOut, Users } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -34,6 +34,10 @@ const BoardVoteInterface = dynamic(() => import("@/components/roles/level-0-gove
 });
 
 const StrategicExitFlow = dynamic(() => import("@/components/roles/level-0-governance/super_admin/StrategicExitFlow"), {
+  loading: () => <Skeleton className="h-64 w-full rounded-3xl" />,
+});
+
+const MeetingManagement = dynamic(() => import("@/components/roles/level-0-governance/super_admin/MeetingManagement"), {
   loading: () => <Skeleton className="h-64 w-full rounded-3xl" />,
 });
 
@@ -70,6 +74,7 @@ export function GovernanceGroup({ profile, role, subView, initialMetrics, initia
       voting: "Board Resolutions",
       assets: "Capital Assets",
       audit: "System Audit Logs",
+      meetings: "Meeting Management",
     };
 
     if (subView === "voting") {
@@ -78,6 +83,10 @@ export function GovernanceGroup({ profile, role, subView, initialMetrics, initia
 
     if (subView === "exit") {
       return <StrategicExitFlow />;
+    }
+
+    if (subView === "meetings") {
+      return <MeetingManagement />;
     }
 
     const title = subViewTitles[subView] || subView.charAt(0).toUpperCase() + subView.slice(1);
@@ -190,6 +199,23 @@ export function GovernanceGroup({ profile, role, subView, initialMetrics, initia
             </div>
           </CardContent>
         </Card>
+
+        {isSuperAdmin && (
+          <Card
+            className="glass-card border-blue-500/20 bg-blue-500/[0.02] cursor-pointer hover:bg-blue-500/5 transition-all group"
+            onClick={() => router.push(`${pathname}/meetings`)}
+          >
+            <CardContent className="p-8 flex items-center gap-6">
+              <div className="p-4 bg-blue-500/10 rounded-2xl text-blue-400 group-hover:scale-110 transition-transform">
+                <Users className="w-8 h-8" />
+              </div>
+              <div className="space-y-1">
+                <h3 className="text-xl font-bold tracking-tight">Meeting Desk</h3>
+                <p className="text-xs text-muted-foreground uppercase font-black tracking-widest">Temporal Coordination</p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );

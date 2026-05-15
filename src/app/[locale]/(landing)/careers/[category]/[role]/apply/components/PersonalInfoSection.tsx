@@ -29,8 +29,10 @@ export default function PersonalInfoSection({ isGeneral = false }: { isGeneral?:
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-2">
-          <Label htmlFor="phone" className="text-muted-foreground">{t('personal.phoneLabel')}</Label>
-          <Input id="phone" name="phone" placeholder={t('personal.phonePlaceholder')} className="bg-white/5 border-white/10 h-11 rounded-xl" />
+          <Label htmlFor="phone" className="text-muted-foreground flex items-center">
+            {t('personal.phoneLabel')} <span className="text-primary ml-1">*</span>
+          </Label>
+          <Input id="phone" name="phone" placeholder={t('personal.phonePlaceholder')} required className="bg-white/5 border-white/10 h-11 rounded-xl" />
         </div>
         <div className="space-y-2">
           <Label htmlFor="experience_level" className="text-muted-foreground flex items-center">

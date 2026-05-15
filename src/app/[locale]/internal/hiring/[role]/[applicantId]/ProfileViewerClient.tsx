@@ -11,7 +11,7 @@ import {
   Mail, GraduationCap, Briefcase, 
   Linkedin, ExternalLink, Check, 
   FileText, RefreshCcw, Video,
-  CalendarIcon, Clock, Star
+  CalendarIcon, Clock, Star, Phone
 } from "lucide-react";
 import { EvaluationCard } from "./EvaluationCard";
 import OnboardingRegistry from "../../../../admin/hiring/components/OnboardingRegistry";
@@ -143,8 +143,8 @@ export default function ProfileViewerClient({ applicant: initialApplicant, initi
 
   return (
     <AdminViewWrapper
-      title={applicant.full_name}
-      subtitle={`Reviewing candidate for ${applicant.role}`}
+      title="Recruitment Portal"
+      subtitle="Comprehensive candidate evaluation and hiring lifecycle management"
       badgeLabel="TALENT PROFILE"
       authorityLevel={userRole === 'hr_manager' ? 'HR Manager' : 'Recruiter'}
     >
@@ -159,28 +159,28 @@ export default function ProfileViewerClient({ applicant: initialApplicant, initi
                 </div>
                 <div>
                   <div className="flex items-center gap-3">
-                    <CardTitle className="text-2xl font-bold tracking-tight">{applicant.full_name}</CardTitle>
-                    {applicant.is_archived ? (
-                      <Badge variant="outline" className="border-amber-500/50 text-amber-500">ARCHIVED</Badge>
-                    ) : null}
+                    <CardTitle className="text-3xl font-bold tracking-tight bg-gradient-to-r from-white to-white/60 bg-clip-text text-transparent">
+                      {applicant.full_name}
+                    </CardTitle>
+                    {applicant.is_archived && (
+                      <Badge variant="outline" className="border-amber-500/50 text-amber-500 font-black text-[10px]">ARCHIVED</Badge>
+                    )}
                   </div>
-                  <div className="flex flex-wrap gap-3 mt-2">
+                  <div className="flex flex-wrap items-center gap-3 mt-3">
                     {userRole === 'recruiter' || userRole === 'hr_manager' || userRole === 'super_admin' ? (
                       <Select
                         defaultValue={applicant.role}
                         onValueChange={handleRoleUpdate}
                         disabled={isUpdating}
                       >
-                        <SelectTrigger className="h-7 w-fit bg-white/5 border-white/10 gap-1.5 rounded-full px-3 text-xs font-medium hover:bg-white/10 transition-colors">
-                          <div className="flex items-center gap-1.5">
-                            <Briefcase className="w-3 h-3 text-primary" />
-                            <SelectValue placeholder="Select Role" />
-                          </div>
+                        <SelectTrigger className="h-8 w-fit bg-primary/10 border-primary/20 gap-2 rounded-xl px-4 text-xs font-bold text-primary hover:bg-primary/20 transition-all shadow-lg shadow-primary/5">
+                          <Briefcase className="w-3.5 h-3.5" />
+                          <SelectValue placeholder="Select Role" />
                         </SelectTrigger>
                         <SelectContent className="glass-card border-white/10">
                           {availableRoles.length > 0 ? (
                             availableRoles.map(role => (
-                              <SelectItem key={role.slug} value={role.title}>
+                              <SelectItem key={role.slug} value={role.title} className="text-xs">
                                 {role.title}
                               </SelectItem>
                             ))
@@ -190,108 +190,123 @@ export default function ProfileViewerClient({ applicant: initialApplicant, initi
                         </SelectContent>
                       </Select>
                     ) : (
-                      <Badge variant="secondary" className="bg-white/5 gap-1.5"><Briefcase className="w-3 h-3" /> {applicant.role}</Badge>
+                      <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20 h-8 px-4 rounded-xl gap-2 text-xs font-bold">
+                        <Briefcase className="w-3.5 h-3.5" /> {applicant.role}
+                      </Badge>
                     )}
-                    <Badge variant="outline" className="border-white/10 gap-1.5"><GraduationCap className="w-3 h-3" /> {applicant.university || "N/A"}</Badge>
-                    <Badge className={`
-                      ${applicant.status === 'hired' ? 'bg-emerald-500/20 text-emerald-400' :
-                        applicant.status === 'shortlisted' ? 'bg-amber-500/20 text-amber-400' :
-                          applicant.status === 'rejected' ? 'bg-rose-500/20 text-rose-400' :
-                            applicant.status === 'under_review' ? 'bg-purple-500/20 text-purple-400' :
-                              applicant.status === 'onboarded' ? 'bg-indigo-500/20 text-indigo-400 shadow-lg shadow-indigo-500/20' :
-                                'bg-blue-500/20 text-blue-400'} border-0`}>
+                    <Badge variant="outline" className={`
+                      h-8 px-4 rounded-xl text-xs font-bold border-0 shadow-lg
+                      ${applicant.status === 'hired' ? 'bg-emerald-500/20 text-emerald-400 shadow-emerald-500/10' :
+                        applicant.status === 'shortlisted' ? 'bg-amber-500/20 text-amber-400 shadow-amber-500/10' :
+                        applicant.status === 'rejected' ? 'bg-rose-500/20 text-rose-400 shadow-rose-500/10' :
+                        applicant.status === 'under_review' ? 'bg-purple-500/20 text-purple-400 shadow-purple-500/10' :
+                        applicant.status === 'onboarded' ? 'bg-indigo-500/20 text-indigo-400 shadow-indigo-500/10' :
+                        'bg-blue-500/20 text-blue-400 shadow-blue-500/10'}
+                    `}>
                       {applicant.status.replace('_', ' ').toUpperCase()}
                     </Badge>
-                    {applicant.reviewer_name && applicant.reviewer_name !== "System" && (
-                      <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-white/5 border border-white/10">
-                        <div className="w-4 h-4 rounded-full bg-indigo-500/20 flex items-center justify-center text-[7px] font-bold text-indigo-400">
-                          {applicant.reviewer_name.split(' ').map(n => n[0]).join('')}
-                        </div>
-                        <span className="text-[10px] text-muted-foreground whitespace-nowrap">Reviewed by {applicant.reviewer_name}</span>
-                      </div>
-                    )}
                   </div>
                 </div>
               </div>
-              <div className="flex gap-2">
-                <Button variant="outline" className="rounded-xl border-white/10 bg-white/5 hover:bg-white/10" asChild>
-                  <Link href={`mailto:${applicant.email}`}><Mail className="w-4 h-4 mr-2" /> Email</Link>
-                </Button>
-                {linkedinLink && (
-                  <Button className="rounded-xl bg-[#0077b5] hover:bg-[#0077b5]/90 shadow-lg shadow-[#0077b5]/20" asChild>
-                    <Link href={linkedinLink} target="_blank"><Linkedin className="w-4 h-4 mr-2" /> LinkedIn</Link>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Button variant="outline" className="h-10 rounded-xl border-white/5 bg-white/[0.02] hover:bg-white/[0.05] text-xs font-bold" asChild>
+                    <Link href={`mailto:${applicant.email}`}><Mail className="w-3.5 h-3.5 mr-2" /> Email</Link>
                   </Button>
-                )}
-                {/* Personnel Management Logic (Silo Guarded) */}
-                {!applicant.is_archived && 
-                 applicant.status !== 'pending' && 
-                 (userRole === 'hr_manager' || userRole === 'super_admin') && 
-                 applicant.status !== 'onboarded' && (
-                  <Button
-                    variant="outline"
-                    className="rounded-xl border-amber-500/20 bg-amber-500/5 hover:bg-amber-500/10 text-amber-500"
-                    onClick={() => {
-                      if (applicant.status === 'rejected') {
-                        handleStatusUpdate('shortlisted');
-                      } else {
-                        handleStatusUpdate('pending');
-                      }
-                    }}
-                    disabled={isUpdating || userRole === 'hr_manager'}
-                  >
-                    <RefreshCcw className={`w-4 h-4 mr-2 ${isUpdating ? 'animate-spin' : ''}`} />
-                    {applicant.status === 'rejected' ? 'Rollback' : 'Reset Registry'}
-                  </Button>
-                )}
-                
-                {/* Schedule Meet Button */}
-                {!applicant.is_archived && 
-                 applicant.status !== 'hired' && 
-                 applicant.status !== 'onboarded' && (
-                  <Button 
-                    className="rounded-xl bg-primary/20 text-primary hover:bg-primary/30 border border-primary/20 shadow-lg shadow-primary/5 gap-2"
-                    onClick={() => setShowScheduleDialog(true)}
-                  >
-                    <Video className="w-4 h-4" />
-                    {(() => {
-                      const metadata = (applicant.metadata as Record<string, unknown>) || {};
-                      const isHR = userRole === 'hr_manager';
-                      const hasInterview = isHR ? !!metadata.hr_interview_date : !!metadata.interview_date;
-                      return hasInterview ? "Reschedule Meet" : "Schedule Meet";
-                    })()}
-                  </Button>
-                )}
-              </div>
+                  {applicant.phone && (
+                    <Button variant="outline" className="h-10 rounded-xl border-white/5 bg-white/[0.02] hover:bg-white/[0.05] text-xs font-bold" asChild>
+                      <Link href={`tel:${applicant.phone}`}><Phone className="w-3.5 h-3.5 mr-2" /> Phone</Link>
+                    </Button>
+                  )}
+                  <div className="w-px h-6 bg-white/5 mx-2 hidden md:block" />
+                  {!applicant.is_archived && 
+                   applicant.status !== 'hired' && 
+                   applicant.status !== 'onboarded' && (
+                    <Button 
+                      className="h-10 rounded-xl bg-primary/20 text-primary hover:bg-primary/30 border border-primary/20 shadow-xl shadow-primary/5 text-xs font-bold"
+                      onClick={() => setShowScheduleDialog(true)}
+                    >
+                      <Video className="w-3.5 h-3.5 mr-2" />
+                      {(() => {
+                        const metadata = (applicant.metadata as Record<string, unknown>) || {};
+                        const isHR = userRole === 'hr_manager';
+                        const hasInterview = isHR ? !!metadata.hr_interview_date : !!metadata.interview_date;
+                        return hasInterview ? "Reschedule Meet" : "Schedule Meet";
+                      })()}
+                    </Button>
+                  )}
+                </div>
             </div>
           </CardHeader>
           <CardContent className="p-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-              <div className="space-y-6">
-                <div>
-                  <h4 className="text-xs font-black uppercase tracking-widest text-muted-foreground mb-3">About Candidate</h4>
-                  <p className="text-sm leading-relaxed text-muted-foreground/80 bg-white/[0.01] p-4 rounded-2xl border border-white/5 italic">
-                    &ldquo;Experienced applicant from {applicant.university} with a strong focus on {applicant.role}. Looking to contribute to MSME 360&apos;s mission.&rdquo;
-                  </p>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/5">
-                    <p className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Education</p>
-                    <p className="text-sm font-medium">{applicant.university}</p>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              {/* Column 1: Academic Profile */}
+              <div className="space-y-4">
+                <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 flex items-center gap-2">
+                  <GraduationCap className="w-3 h-3" /> Academic Profile
+                </h4>
+                <div className="p-5 rounded-2xl bg-white/[0.02] border border-white/5 space-y-4 h-full">
+                  <div>
+                    <p className="text-[10px] uppercase font-bold text-muted-foreground mb-1">University</p>
+                    <p className="text-sm font-bold text-white leading-tight">{applicant.university || "N/A"}</p>
                   </div>
-                  <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/5">
-                    <p className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Reviewed By</p>
-                    <p className="text-sm font-medium text-primary">{applicant.reviewer_name || "Unreviewed"}</p>
-                  </div>
-                  <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/5">
-                    <p className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Application Date</p>
-                    <p className="text-sm font-medium">{new Date(applicant.applied_at).toLocaleDateString()}</p>
+                  <div className="grid grid-cols-2 gap-4 pt-4 border-t border-white/5">
+                    <div>
+                      <p className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Degree</p>
+                      <p className="text-xs font-medium text-white/80">{applicant.degree || "N/A"}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Class Of</p>
+                      <p className="text-xs font-medium text-white/80">{applicant.graduation_year || "N/A"}</p>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              <div className="space-y-6">
-                <h4 className="text-xs font-black uppercase tracking-widest text-muted-foreground mb-3">Professional Links</h4>
-                <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+              {/* Column 2: Application Details */}
+              <div className="space-y-4">
+                <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 flex items-center gap-2">
+                  <Briefcase className="w-3 h-3" /> Professional Context
+                </h4>
+                <div className="p-5 rounded-2xl bg-white/[0.02] border border-white/5 space-y-4 h-full">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Exp. Level</p>
+                      <p className="text-xs font-bold text-white">{applicant.experience_level || "N/A"}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Availability</p>
+                      <p className="text-xs font-bold text-primary">
+                        {applicant.availability_date ? new Date(applicant.availability_date).toLocaleDateString() : "N/A"}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="pt-4 border-t border-white/5 flex justify-between items-end">
+                    <div>
+                      <p className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Applied Date</p>
+                      <p className="text-xs font-medium text-white/60">{new Date(applicant.applied_at).toLocaleDateString()}</p>
+                    </div>
+                    {applicant.reviewer_name && applicant.reviewer_name !== "System" && (
+                      <div className="text-right">
+                        <p className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Reviewer</p>
+                        <p className="text-xs font-bold text-indigo-400">{applicant.reviewer_name}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                {applicant.desired_role && (
+                  <div className="p-4 rounded-xl bg-primary/5 border border-primary/10">
+                    <p className="text-[10px] uppercase font-bold text-primary mb-1">Interest</p>
+                    <p className="text-xs text-muted-foreground italic">&ldquo;{applicant.desired_role}&rdquo;</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Column 3: Professional Links */}
+              <div className="space-y-4">
+                <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 flex items-center gap-2">
+                  <ExternalLink className="w-3 h-3" /> Resources & Links
+                </h4>
+                <div className="grid grid-cols-1 gap-2">
                   {applicant.links && applicant.links.length > 0 ? (
                     applicant.links.map((link, idx) => (
                       link.url && (
@@ -300,21 +315,21 @@ export default function ProfileViewerClient({ applicant: initialApplicant, initi
                           href={link.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="flex items-center gap-4 p-3 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-primary/20 hover:bg-white/[0.04] transition-all group/link"
+                          className="flex items-center justify-between p-3 rounded-xl bg-white/[0.02] border border-white/5 hover:border-primary/30 hover:bg-primary/5 transition-all group/link"
                         >
-                          <div className={`p-2 rounded-lg ${(link.label || '').toLowerCase().includes('linkedin') ? 'bg-blue-500/10 text-blue-400' : 'bg-primary/10 text-primary'}`}>
-                            {(link.label || '').toLowerCase().includes('linkedin') ? <Linkedin className="w-4 h-4" /> : <FileText className="w-4 h-4" />}
+                          <div className="flex items-center gap-3">
+                            <div className={`p-2 rounded-lg ${(link.label || '').toLowerCase().includes('linkedin') ? 'bg-blue-500/10 text-blue-400' : (link.label || '').toLowerCase().includes('resume') ? 'bg-emerald-500/10 text-emerald-400' : 'bg-primary/10 text-primary'}`}>
+                              {(link.label || '').toLowerCase().includes('linkedin') ? <Linkedin className="w-3.5 h-3.5" /> : (link.label || '').toLowerCase().includes('resume') ? <FileText className="w-3.5 h-3.5" /> : <ExternalLink className="w-3.5 h-3.5" />}
+                            </div>
+                            <span className="text-xs font-bold text-white/80 group-hover/link:text-white transition-colors">{link.label}</span>
                           </div>
-                          <div className="flex-1">
-                            <span className="text-sm font-medium block">{link.label}</span>
-                          </div>
-                          <ExternalLink className="w-3.5 h-3.5 opacity-0 group-hover/link:opacity-100 transition-opacity text-muted-foreground" />
+                          <ExternalLink className="w-3 h-3 text-white/20 group-hover/link:text-primary transition-colors" />
                         </Link>
                       )
                     ))
                   ) : (
-                    <div className="p-4 rounded-2xl bg-white/[0.02] border border-dashed border-white/10 text-center">
-                      <p className="text-xs text-muted-foreground">No professional links provided</p>
+                    <div className="p-8 rounded-2xl bg-white/[0.01] border border-dashed border-white/10 text-center">
+                      <p className="text-xs text-muted-foreground italic">No links available</p>
                     </div>
                   )}
                 </div>

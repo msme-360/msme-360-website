@@ -11,6 +11,12 @@ export interface Applicant {
   is_archived: boolean;
   metadata?: Record<string, unknown>;
   reviewed_by?: string;
+  phone?: string;
+  experience_level?: string;
+  graduation_year?: string;
+  availability_date?: string;
+  desired_role?: string;
+  degree?: string;
   reviewer_name?: string;
 }
 

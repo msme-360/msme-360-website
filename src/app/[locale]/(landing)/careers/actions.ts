@@ -11,7 +11,7 @@ const LinkSchema = z.object({
 const InternApplicationSchema = z.object({
   full_name: z.string().min(2, "Full name is required"),
   email: z.string().email("Invalid email address"),
-  phone: z.string().optional(),
+  phone: z.string().min(10, "Valid phone number is required"),
   role: z.string().min(1, "Role is required"),
   experience_level: z.string().min(1, "Experience level is required"),
   university: z.string().min(2, "University name is required"),

@@ -52,6 +52,7 @@ export const ROLE_NAV_CONFIG: Record<string, (locale: string) => NavGroup[]> = {
         { title: "Global RBAC", icon: Lock, url: `/${l}/admin/roles` },
         { title: "Network Health", icon: Zap, url: `/${l}/admin/tech/super_admin` },
         { title: "Security Audit", icon: History, url: `/${l}/admin/audit/super_admin` },
+        { title: "Meeting Desk", icon: Users, url: `/${l}/admin/governance/super_admin/meetings` },
       ]
     }
   ],

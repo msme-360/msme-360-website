@@ -184,11 +184,16 @@ export async function updateApplicationStatus(id: string, status: string) {
 
   const { data: applicant } = await supabase
     .from("intern_applications")
-    .select("full_name, email, metadata")
+    .select("full_name, email, metadata, status")
     .eq("id", id)
     .single();
 
   if (!applicant) return { success: false, error: "Application not found" };
+
+  // PREVENT DUPLICATE EMAILS & LOGS: If status is same, skip
+  if (applicant.status === status) {
+    return { success: true, message: "Status already set to this value." };
+  }
 
   const currentMetadata = (applicant.metadata as Record<string, unknown>) || {};
   const history = Array.isArray(currentMetadata.history) ? currentMetadata.history : [];
@@ -428,11 +433,17 @@ export async function scheduleInterview(applicationId: string, date: string, tim
 
   if (error) return { success: false, error: error.message };
 
-  await sendCandidateEmail(application.email, application.full_name, isHR ? 'hr_interview_scheduled' : 'interview_scheduled', {
-    date: date,
-    time: time,
-    meet_link: meetLink
-  });
+  const isDuplicateMeeting = isHR 
+    ? (currentMetadata.hr_interview_date === date && currentMetadata.hr_interview_time === time)
+    : (currentMetadata.interview_date === date && currentMetadata.interview_time === time);
+
+  if (!isDuplicateMeeting) {
+    await sendCandidateEmail(application.email, application.full_name, isHR ? 'hr_interview_scheduled' : 'interview_scheduled', {
+      date: date,
+      time: time,
+      meet_link: meetLink
+    });
+  }
 
   revalidatePath("/[locale]/admin/hiring", "page");
 

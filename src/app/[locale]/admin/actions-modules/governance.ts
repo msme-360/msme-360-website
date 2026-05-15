@@ -267,3 +267,59 @@ export async function runPolicyAudit() {
   revalidatePath('/[locale]/admin/audit', 'page');
   return { success: true, anomaliesDetected: (overdueTasks?.length || 0) + (stagnantApps?.length || 0) };
 }
+
+export async function getMeetingData() {
+  const supabase = await createServiceClient();
+  const { data: applicants } = await supabase
+    .from("intern_applications")
+    .select(`
+      id, full_name, role, status, metadata,
+      reviewer:profiles!reviewed_by(full_name)
+    `)
+    .not("metadata", "is", null);
+
+  const meetings = (applicants || []).flatMap(app => {
+    const meta = (app.metadata as Record<string, any>) || {};
+    const reviewerName = (app as any).reviewer?.full_name || "System";
+    const list = [];
+    
+    if (meta.interview_date && meta.interview_time) {
+      list.push({
+        id: `${app.id}_interview`,
+        userId: app.id,
+        userName: app.full_name,
+        role: app.role,
+        reviewerName,
+        type: 'Technical Interview',
+        date: meta.interview_date,
+        time: meta.interview_time,
+        link: meta.meeting_link,
+        status: app.status
+      });
+    }
+    
+    if (meta.hr_interview_date && meta.hr_interview_time) {
+      list.push({
+        id: `${app.id}_hr_interview`,
+        userId: app.id,
+        userName: app.full_name,
+        role: app.role,
+        reviewerName,
+        type: 'HR Interview',
+        date: meta.hr_interview_date,
+        time: meta.hr_interview_time,
+        link: meta.hr_meeting_link,
+        status: app.status
+      });
+    }
+    
+    return list;
+  });
+
+  // Sort by date and time descending (latest first)
+  return meetings.sort((a, b) => {
+    const dateA = new Date(`${a.date}T${a.time}`);
+    const dateB = new Date(`${b.date}T${b.time}`);
+    return dateB.getTime() - dateA.getTime();
+  });
+}
