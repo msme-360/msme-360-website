@@ -11,7 +11,8 @@ import {
   Mail, GraduationCap, Briefcase, 
   Linkedin, ExternalLink, Check, 
   FileText, RefreshCcw, Video,
-  CalendarIcon, Clock, Star, Phone
+  CalendarIcon, Clock, Star, Phone,
+  UserCheck
 } from "lucide-react";
 import { EvaluationCard } from "./EvaluationCard";
 import OnboardingRegistry from "../../../../admin/hiring/components/OnboardingRegistry";
@@ -28,6 +29,18 @@ import {
   SelectValue 
 } from "@/components/ui/select";
 import { CareerRole } from "@/lib/roles";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+
 
 const ScheduleMeetDialog = dynamic(() => 
   import("../../../../admin/hiring/components/ScheduleMeetDialog").then(mod => mod.ScheduleMeetDialog),
@@ -107,7 +120,7 @@ export default function ProfileViewerClient({ applicant: initialApplicant, initi
     try {
       const res = await onboardIntern(applicant.id);
       if (res.success) {
-        toast.success("Candidate Approved & Onboarded!");
+        toast.success("Candidate Hired & Onboarding Initialized");
         router.refresh();
       } else {
         setApplicant(prev => ({ ...prev, status: previousStatus }));
@@ -115,6 +128,24 @@ export default function ProfileViewerClient({ applicant: initialApplicant, initi
       }
     } catch {
       setApplicant(prev => ({ ...prev, status: previousStatus }));
+      toast.error("An unexpected error occurred");
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const handleFinalOnboard = async () => {
+    setIsUpdating(true);
+    try {
+      const res = await updateApplicationStatus(applicant.id, 'onboarded');
+      if (res.success) {
+        toast.success("Personnel Onboarding Finalized");
+        setApplicant(prev => ({ ...prev, status: 'onboarded' }));
+        router.refresh();
+      } else {
+        toast.error(res.error || "Finalization failed");
+      }
+    } catch {
       toast.error("An unexpected error occurred");
     } finally {
       setIsUpdating(false);
@@ -519,16 +550,47 @@ export default function ProfileViewerClient({ applicant: initialApplicant, initi
               </>
             )}
 
-            {userRole === 'hr_manager' && applicant.status !== 'hired' && (
+            {userRole === 'hr_manager' && (applicant.status === 'shortlisted' || applicant.status === 'hired') && (
               <>
-                <Button
-                  onClick={handleHire}
-                  disabled={isUpdating}
-                  className="h-16 px-12 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white text-lg font-bold shadow-2xl shadow-emerald-500/20 group"
-                >
-                  <Check className="w-6 h-6 mr-3 group-hover:scale-110 transition-transform" />
-                  Approve for Onboarding
-                </Button>
+                {applicant.status === 'shortlisted' ? (
+                  <Button
+                    onClick={handleHire}
+                    disabled={isUpdating}
+                    className="h-16 px-12 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white text-lg font-bold shadow-2xl shadow-emerald-500/20 group"
+                  >
+                    <Check className="w-6 h-6 mr-3 group-hover:scale-110 transition-transform" />
+                    Approve & Hire
+                  </Button>
+                ) : (
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        disabled={isUpdating}
+                        className="h-16 px-12 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white text-lg font-bold shadow-2xl shadow-indigo-500/20 group"
+                      >
+                        <UserCheck className="w-6 h-6 mr-3 group-hover:scale-110 transition-transform" />
+                        Finalize Onboarding
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent className="glass-card border-white/10">
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Finalize Personnel Onboarding?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This will officially authorize full platform access and send the professional credentials to <strong>{applicant.full_name}</strong>. This action marks the completion of the recruitment lifecycle.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel className="rounded-xl border-white/10">Cancel</AlertDialogCancel>
+                        <AlertDialogAction 
+                          onClick={handleFinalOnboard}
+                          className="bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl"
+                        >
+                          Confirm & Authorize
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                )}
                 <Button
                   onClick={() => handleStatusUpdate('rejected')}
                   disabled={isUpdating}

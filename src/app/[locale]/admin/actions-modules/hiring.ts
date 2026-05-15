@@ -334,7 +334,7 @@ export async function onboardIntern(applicationId: string) {
   if (checklistError) console.error("Checklist init error:", checklistError);
 
   // 4. Update Application Status
-  const updateRes = await updateApplicationStatus(applicationId, "onboarded");
+  const updateRes = await updateApplicationStatus(applicationId, "hired");
   await logSystemAction("INTERN_ONBOARDED", `Intern ${application.full_name} onboarded and profile initialized`, 'success', verifiedUser.id);
 
   return {
