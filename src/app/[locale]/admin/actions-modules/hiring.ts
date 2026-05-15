@@ -17,6 +17,7 @@ async function sendCandidateEmail(email: string, name: string, status: string, m
     rejected: "Update regarding your application with MSME360",
     hired: "Congratulations! You have been selected for MSME360",
     interview_scheduled: "Interview Scheduled: Meeting with MSME360",
+    hr_interview_scheduled: "HR Interview Scheduled: Final Round with MSME360",
     application_received: "Application Received: Thank you for applying to MSME360",
     contacted: "Update regarding your MSME360 application",
     completed: "Congratulations on completing your MSME360 Internship!",
@@ -59,10 +60,18 @@ async function sendCandidateEmail(email: string, name: string, status: string, m
         break;
       case 'interview_scheduled':
         title = "Interview Scheduled";
-        const date = metadata?.date || 'To be confirmed';
-        const time = metadata?.time || 'To be confirmed';
-        description = `Your interview with MSME360 has been scheduled for <strong>${date}</strong> at <strong>${time}</strong> (IST). We look forward to speaking with you!`;
+        const d = metadata?.date || 'To be confirmed';
+        const t = metadata?.time || 'To be confirmed';
+        description = `Your interview with MSME360 has been scheduled for <strong>${d}</strong> at <strong>${t}</strong> (IST). We look forward to speaking with you!`;
         buttonText = "Join Meeting";
+        buttonLink = (metadata?.meet_link as string) || websiteUrl;
+        break;
+      case 'hr_interview_scheduled':
+        title = "HR Interview Scheduled";
+        const hrDate = metadata?.date || 'To be confirmed';
+        const hrTime = metadata?.time || 'To be confirmed';
+        description = `Congratulations! You have moved to the final stage. Your HR Interview with MSME360 has been scheduled for <strong>${hrDate}</strong> at <strong>${hrTime}</strong> (IST). This is the final round of our recruitment process.`;
+        buttonText = "Join HR Interview";
         buttonLink = (metadata?.meet_link as string) || websiteUrl;
         break;
       case 'shortlisted':
@@ -371,6 +380,15 @@ export async function scheduleInterview(applicationId: string, date: string, tim
   const currentMetadata = (application.metadata as Record<string, unknown>) || {};
   const history = Array.isArray(currentMetadata.history) ? currentMetadata.history : [];
 
+  // Fetch reviewer name and role for UI and logic
+  const { data: reviewerProfile } = await supabase
+    .from("profiles")
+    .select("full_name, role")
+    .eq("id", verifiedUser.id)
+    .single();
+
+  const isHR = reviewerProfile?.role === 'hr_manager';
+
   const historyItem = {
     type: 'INTERVIEW',
     round: history.filter((h: Record<string, unknown>) => h.type === 'INTERVIEW').length + 1,
@@ -379,8 +397,24 @@ export async function scheduleInterview(applicationId: string, date: string, tim
     time: time,
     meet_link: meetLink,
     is_google_meet: !!googleTokens,
-    label: 'Interview Scheduled'
+    label: isHR ? 'HR Interview Scheduled' : 'Interview Scheduled',
+    is_hr_round: isHR
   };
+
+  const metadataUpdate: Record<string, unknown> = {
+    ...currentMetadata,
+    history: [...history, historyItem]
+  };
+
+  if (isHR) {
+    metadataUpdate.hr_interview_date = date;
+    metadataUpdate.hr_interview_time = time;
+    metadataUpdate.hr_meeting_link = meetLink;
+  } else {
+    metadataUpdate.interview_date = date;
+    metadataUpdate.interview_time = time;
+    metadataUpdate.meeting_link = meetLink;
+  }
 
   const { error } = await supabase
     .from("intern_applications")
@@ -388,26 +422,13 @@ export async function scheduleInterview(applicationId: string, date: string, tim
       status: 'under_review',
       reviewed_by: verifiedUser.id,
       reviewed_at: new Date().toISOString(),
-      metadata: {
-        ...currentMetadata,
-        interview_date: date,
-        interview_time: time,
-        meeting_link: meetLink,
-        history: [...history, historyItem]
-      }
+      metadata: metadataUpdate
     })
     .eq("id", applicationId);
 
   if (error) return { success: false, error: error.message };
 
-  // Fetch reviewer name for UI
-  const { data: reviewerProfile } = await supabase
-    .from("profiles")
-    .select("full_name")
-    .eq("id", verifiedUser.id)
-    .single();
-
-  await sendCandidateEmail(application.email, application.full_name, 'interview_scheduled', {
+  await sendCandidateEmail(application.email, application.full_name, isHR ? 'hr_interview_scheduled' : 'interview_scheduled', {
     date: date,
     time: time,
     meet_link: meetLink

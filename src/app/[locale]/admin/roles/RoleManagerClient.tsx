@@ -438,6 +438,29 @@ export function RoleManagerClient({ initialProfiles }: RoleManagerClientProps) {
     setProfiles(prev => prev.map(p => p.id === updated.id ? updated : p));
   };
 
+  const handleRoleUpdate = (profile: Profile, newRole: string) => {
+    if (profile.role === newRole) return;
+    
+    const roleData = STARTUP_ROLES[newRole];
+    const newDepartment = roleData?.department || profile.department || "";
+
+    startTransition(async () => {
+      const result = await updateUserProfile(profile.id, {
+        role: newRole,
+        full_name: profile.full_name || "",
+        department: newDepartment,
+        is_verified: profile.is_verified || false
+      });
+      
+      if (result.success) {
+        toast.success(`Access tier and department updated for ${profile.full_name || profile.email}`);
+        setProfiles(prev => prev.map(p => p.id === profile.id ? { ...p, role: newRole, department: newDepartment } : p));
+      } else {
+        toast.error(result.error || "Update failed");
+      }
+    });
+  };
+
   const handleInvited = (profile: Profile) => {
     setProfiles(prev => [profile, ...prev]);
   };
@@ -563,10 +586,23 @@ export function RoleManagerClient({ initialProfiles }: RoleManagerClientProps) {
                             </div>
                           </div>
                         </TableCell>
-                        <TableCell className="py-3.5 px-4">
-                          <Badge variant="secondary" className={`font-black text-[9px] uppercase tracking-tighter py-0.5 px-2 rounded-md border ${levelColor}`}>
-                            {currentRole.label}
-                          </Badge>
+                        <TableCell className="py-2.5 px-4">
+                          <Select 
+                            value={p.role} 
+                            onValueChange={(val) => handleRoleUpdate(p, val)}
+                            disabled={isPending}
+                          >
+                            <SelectTrigger className={`h-7 w-fit min-w-[120px] bg-white/5 border-white/10 text-[9px] font-black uppercase tracking-tighter rounded-md px-2 focus:ring-primary/20 ${levelColor}`}>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent className="bg-slate-900 border-white/10 max-h-64 overflow-y-auto">
+                              {Object.values(STARTUP_ROLES).map(r => (
+                                <SelectItem key={r.id} value={r.id} className="text-[10px] font-bold uppercase py-2">
+                                  {r.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                         </TableCell>
                         <TableCell className="py-3.5 px-4">
                           <span className="text-[10px] font-bold text-white/50 italic uppercase tracking-widest">

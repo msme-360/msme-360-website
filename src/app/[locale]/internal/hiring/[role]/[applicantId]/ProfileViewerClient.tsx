@@ -253,7 +253,12 @@ export default function ProfileViewerClient({ applicant: initialApplicant, initi
                     onClick={() => setShowScheduleDialog(true)}
                   >
                     <Video className="w-4 h-4" />
-                    {(applicant.metadata as Record<string, unknown>)?.interview_date ? "Reschedule Meet" : "Schedule Meet"}
+                    {(() => {
+                      const metadata = (applicant.metadata as Record<string, unknown>) || {};
+                      const isHR = userRole === 'hr_manager';
+                      const hasInterview = isHR ? !!metadata.hr_interview_date : !!metadata.interview_date;
+                      return hasInterview ? "Reschedule Meet" : "Schedule Meet";
+                    })()}
                   </Button>
                 )}
               </div>

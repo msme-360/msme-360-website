@@ -79,7 +79,13 @@ const ActionsCell = ({
                 className="text-xs text-primary font-bold gap-2 focus:bg-primary/10"
                 onClick={() => setShowScheduleDialog(true)}
               >
-                <Video className="w-3.5 h-3.5" /> {(app.metadata as Record<string, unknown>)?.interview_date ? "Reschedule Meet" : "Schedule Meet"}
+                <Video className="w-3.5 h-3.5" /> 
+                {(() => {
+                  const metadata = (app.metadata as Record<string, unknown>) || {};
+                  const isHR = userRole === 'hr_manager';
+                  const hasInterview = isHR ? !!metadata.hr_interview_date : !!metadata.interview_date;
+                  return hasInterview ? "Reschedule Meet" : "Schedule Meet";
+                })()}
               </DropdownMenuItem>
               <DropdownMenuSeparator className="bg-white/5" />
             </>
@@ -368,12 +374,22 @@ export const getHiringColumns = (
     minSize: 120,
     cell: ({ row }) => {
       const metadata = (row.original.metadata as Record<string, unknown>) || {};
-      if (!metadata.interview_date) return <span className="text-[10px] text-white/20 uppercase font-bold tracking-tighter">Not Scheduled</span>;
+      const date = (metadata.hr_interview_date || metadata.interview_date) as string;
+      const time = (metadata.hr_interview_time || metadata.interview_time) as string;
+      
+      if (!date) return <span className="text-[10px] text-white/20 uppercase font-bold tracking-tighter">Not Scheduled</span>;
       
       return (
         <div className="flex flex-col gap-0.5">
-          <span className="text-xs font-bold text-primary">{format(new Date(metadata.interview_date as string), "MMM d")}</span>
-          <span className="text-[10px] text-muted-foreground">{metadata.interview_time as string}</span>
+          <div className="flex items-center gap-1">
+            <span className={`text-xs font-bold ${!!metadata.hr_interview_date ? 'text-purple-400' : 'text-primary'}`}>
+              {format(new Date(date), "MMM d")}
+            </span>
+            {!!metadata.hr_interview_date && (
+              <Badge variant="outline" className="text-[7px] h-3 px-1 bg-purple-500/10 text-purple-400 border-purple-500/20 font-black">HR</Badge>
+            )}
+          </div>
+          <span className="text-[10px] text-muted-foreground">{time}</span>
         </div>
       );
     }
