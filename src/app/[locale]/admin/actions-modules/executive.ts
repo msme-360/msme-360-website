@@ -115,35 +115,73 @@ export async function getTeamPerformanceStats() {
 
   if (!profiles) return [];
 
-  // 2. Fetch all tasks and attendance logs
+  // 2. Fetch all tasks, attendance logs, and formal metrics
   const [
     { data: tasks },
-    { data: attendance }
+    { data: attendance },
+    { data: metrics },
+    { data: applications }
   ] = await Promise.all([
     supabase.from('associate_tasks').select('user_id, status'),
-    supabase.from('attendance_logs').select('user_id, check_in, check_out')
+    supabase.from('attendance_logs').select('user_id, check_in, check_out'),
+    supabase.from('performance_metrics').select('user_id, productivity_score, quality_score, leadership_score').order('created_at', { ascending: false }),
+    supabase.from('intern_applications').select('reviewed_by, status, reviewed_at')
   ]);
 
   // 3. Aggregate Performance
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
   return profiles.map(profile => {
     const userTasks = tasks?.filter(t => t.user_id === profile.id) || [];
+    const userReviews = applications?.filter(a => a.reviewed_by === profile.id) || [];
     const userAttendance = attendance?.filter(a => a.user_id === profile.id) || [];
+    const userMetric = metrics?.find(m => m.user_id === profile.id);
 
-    const completed = userTasks.filter(t => t.status === 'completed').length;
-    const completionRate = userTasks.length > 0 ? Math.round((completed / userTasks.length) * 100) : 100;
-
-    // Reliability: Based on presence consistency (Mocking some variance for now based on attendance count)
-    const attendanceScore = Math.min(100, Math.max(70, 70 + (userAttendance.length * 5)));
+    const completedTasks = userTasks.filter(t => t.status === 'completed').length;
     
+    // Total activity includes missions + application reviews
+    const totalActivity = userTasks.length + userReviews.length;
+    const completedActivity = completedTasks + userReviews.length;
+
+    const completionRate = totalActivity > 0 ? Math.round((completedActivity / totalActivity) * 100) : 0;
+
+    // Reliability: Based on presence consistency in the last 30 days (compared to 22 business days)
+    const recentLogs = userAttendance.filter(a => new Date(a.check_in) >= thirtyDaysAgo);
+    
+    // Fallback: If no logs but active in recruitment, they are considered active/reliable
+    let attendanceScore = Math.min(100, Math.round((recentLogs.length / 22) * 100));
+    if (attendanceScore === 0 && userReviews.length > 0) {
+      attendanceScore = Math.min(100, 70 + (userReviews.length * 5)); // Baseline 70 + 5 per review
+    }
+    
+    // Culture Fit: Use formal metrics if available, otherwise fallback to heuristics
+    let cultureFit: 'Exceptional' | 'Standard' | 'Developing' = 'Standard';
+    if (userMetric) {
+      const avg = (userMetric.productivity_score + userMetric.quality_score + userMetric.leadership_score) / 3;
+      if (avg >= 85) cultureFit = 'Exceptional';
+      else if (avg >= 60) cultureFit = 'Standard';
+      else cultureFit = 'Developing';
+    } else {
+      if (completionRate >= 95 && attendanceScore >= 90) cultureFit = 'Exceptional';
+      else if (completionRate < 70 || attendanceScore < 70) cultureFit = 'Developing';
+    }
+    
+    // Determine Last Audit date based on latest activity
+    const latestReview = userReviews.sort((a, b) => 
+      new Date(b.reviewed_at || 0).getTime() - new Date(a.reviewed_at || 0).getTime()
+    )[0];
+
     return {
       id: profile.id,
       name: profile.full_name || "Unknown Agent",
       role: profile.role || "Associate",
       avatar_url: profile.avatar_url,
-      reliability: attendanceScore,
-      completion_rate: completionRate,
-      culture_fit: completionRate > 90 ? 'Exceptional' : completionRate > 70 ? 'Standard' : 'Developing',
-      last_review: new Date().toISOString()
+      // Priority: Formal Metrics > Live Logs
+      reliability: userMetric ? userMetric.quality_score : attendanceScore,
+      completion_rate: userMetric ? userMetric.productivity_score : completionRate,
+      culture_fit: cultureFit,
+      last_review: latestReview?.reviewed_at || new Date().toISOString()
     };
   });
 }

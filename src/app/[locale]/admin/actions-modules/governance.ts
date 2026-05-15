@@ -4,6 +4,7 @@ import { createServiceClient, getUser } from "@/services/supabase/supabase-serve
 import { revalidatePath, revalidateTag } from "next/cache";
 import { logSystemAction } from "./shared";
 import { BoardResolution, SystemHealth } from "@/types/governance";
+import { Meeting } from "@/types/meeting";
 
 /**
  * GOVERNANCE & STRATEGIC ACTIONS
@@ -268,9 +269,11 @@ export async function runPolicyAudit() {
   return { success: true, anomaliesDetected: (overdueTasks?.length || 0) + (stagnantApps?.length || 0) };
 }
 
-export async function getMeetingData() {
+export async function getRecruitmentMeetings(reviewerId?: string) {
   const supabase = await createServiceClient();
-  const { data: applicants } = await supabase
+  
+  // Fetch Hiring Interviews (from intern_applications metadata)
+  let query = supabase
     .from("intern_applications")
     .select(`
       id, full_name, role, status, metadata,
@@ -278,48 +281,85 @@ export async function getMeetingData() {
     `)
     .not("metadata", "is", null);
 
-  const meetings = (applicants || []).flatMap(app => {
-    const meta = (app.metadata as Record<string, any>) || {};
-    const reviewerName = (app as any).reviewer?.full_name || "System";
+  if (reviewerId) {
+    query = query.eq('reviewed_by', reviewerId);
+  }
+
+  const { data: applicants } = await query;
+
+  const meetings: Meeting[] = (applicants || []).flatMap(app => {
+    const meta = (app.metadata as Record<string, unknown>) || {};
+    // Reviewer might come back as an array from PostgREST joins
+    const reviewerData = (app as unknown as { reviewer?: { full_name: string } | { full_name: string }[] }).reviewer;
+    const reviewerName = Array.isArray(reviewerData) 
+      ? reviewerData[0]?.full_name 
+      : reviewerData?.full_name || "System";
     const list = [];
     
     if (meta.interview_date && meta.interview_time) {
       list.push({
         id: `${app.id}_interview`,
-        userId: app.id,
-        userName: app.full_name,
-        role: app.role,
-        reviewerName,
-        type: 'Technical Interview',
-        date: meta.interview_date,
-        time: meta.interview_time,
-        link: meta.meeting_link,
-        status: app.status
+        title: `Technical Interview: ${app.full_name}`,
+        mentor_name: reviewerName,
+        scheduled_at: new Date(`${meta.interview_date as string}T${meta.interview_time as string}`).toISOString(),
+        link: meta.meeting_link as string,
+        status: (meta.interview_status as string) || 'confirmed',
+        type: 'Technical Interview'
       });
     }
     
     if (meta.hr_interview_date && meta.hr_interview_time) {
       list.push({
         id: `${app.id}_hr_interview`,
-        userId: app.id,
-        userName: app.full_name,
-        role: app.role,
-        reviewerName,
-        type: 'HR Interview',
-        date: meta.hr_interview_date,
-        time: meta.hr_interview_time,
-        link: meta.hr_meeting_link,
-        status: app.status
+        title: `HR Interview: ${app.full_name}`,
+        mentor_name: reviewerName,
+        scheduled_at: new Date(`${meta.hr_interview_date as string}T${meta.hr_interview_time as string}`).toISOString(),
+        link: meta.hr_meeting_link as string,
+        status: (meta.hr_interview_status as string) || 'confirmed',
+        type: 'HR Interview'
       });
     }
     
     return list;
   });
 
-  // Sort by date and time descending (latest first)
-  return meetings.sort((a, b) => {
-    const dateA = new Date(`${a.date}T${a.time}`);
-    const dateB = new Date(`${b.date}T${b.time}`);
-    return dateB.getTime() - dateA.getTime();
+  return meetings.sort((a, b) => 
+    new Date(a.scheduled_at).getTime() - new Date(b.scheduled_at).getTime()
+  );
+}
+
+export async function getInternalMeetings(userId?: string, role?: string) {
+  const supabase = await createServiceClient();
+  
+  // Fetch Internal Syncs (from mentorship_bookings)
+  let query = supabase
+    .from("mentorship_bookings")
+    .select(`
+      id, mentee_id, mentor_name, expertise, scheduled_at, status,
+      mentee:profiles!mentee_id(full_name, role)
+    `);
+
+  // Privacy Guard: Non-governance roles only see their own meetings
+  if (userId && role && !['super_admin', 'managing_partner', 'hr_manager', 'board_member'].includes(role)) {
+    query = query.eq('mentee_id', userId);
+  }
+
+  const { data: internalSyncs } = await query;
+
+  const internalList = (internalSyncs || []).map(sync => {
+    const [title, link] = (sync.expertise || "").split(" || ");
+    return {
+      id: sync.id,
+      title: `${title || sync.expertise} Sync: ${Array.isArray(sync.mentee) ? sync.mentee[0]?.full_name : (sync.mentee as { full_name: string } | null)?.full_name || 'Associate'}`,
+      mentor_name: sync.mentor_name,
+      scheduled_at: sync.scheduled_at,
+      link: link || (sync as { metadata?: { meeting_link?: string } }).metadata?.meeting_link || '#',
+      status: sync.status,
+      type: 'Internal Sync'
+    };
   });
+
+  return internalList.sort((a, b) => 
+    new Date(a.scheduled_at).getTime() - new Date(b.scheduled_at).getTime()
+  );
 }

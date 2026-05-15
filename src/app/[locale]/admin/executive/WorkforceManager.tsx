@@ -28,12 +28,25 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { useState } from "react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Loader2 } from "lucide-react";
 
 export function WorkforceManager({ profiles }: { profiles: Profile[] }) {
   const [promotingUser, setPromotingUser] = useState<Profile | null>(null);
   const [targetRole, setTargetRole] = useState<string>("");
   const [targetLevel, setTargetLevel] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [exitTarget, setExitTarget] = useState<Profile | null>(null);
+  const [isExiting, setIsExiting] = useState(false);
 
   const handlePromote = async () => {
     if (!promotingUser || !targetRole || !targetLevel) return;
@@ -50,6 +63,19 @@ export function WorkforceManager({ profiles }: { profiles: Profile[] }) {
       toast.error("Promotion Failed", { description: res.error });
     }
     setIsSubmitting(false);
+  };
+
+  const handleExit = async () => {
+    if (!exitTarget) return;
+    setIsExiting(true);
+    const res = await executeStrategicExit(exitTarget.id);
+    if (res.success) {
+      toast.success("Strategic Exit Executed");
+    } else {
+      toast.error("Action Failed", { description: res.error });
+    }
+    setIsExiting(false);
+    setExitTarget(null);
   };
 
   return (
@@ -129,17 +155,7 @@ export function WorkforceManager({ profiles }: { profiles: Profile[] }) {
                         <DropdownMenuSeparator className="bg-white/5" />
                         <DropdownMenuItem 
                           className="text-destructive focus:text-destructive focus:bg-destructive/10"
-                          onClick={async () => {
-                            if (confirm(`Are you sure you want to execute a Strategic Exit for ${emp.full_name}? This action is irreversible.`)) {
-                              const res = await executeStrategicExit(emp.id);
-                              if (res.success) {
-                                toast.success("Strategic Exit Executed");
-                                // The page will revalidate and refresh data
-                              } else {
-                                toast.error("Action Failed", { description: res.error });
-                              }
-                            }
-                          }}
+                          onClick={() => setExitTarget(emp)}
                         >
                           <UserMinus className="w-4 h-4 mr-2" /> Remove
                         </DropdownMenuItem>
@@ -208,6 +224,29 @@ export function WorkforceManager({ profiles }: { profiles: Profile[] }) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={!!exitTarget} onOpenChange={(o) => !o && setExitTarget(null)}>
+        <AlertDialogContent className="glass-card border-white/10">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Execute Strategic Exit Protocol?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently terminate the organizational relationship with {exitTarget?.full_name}. 
+              This protocol is irreversible and will revoke all access instantly.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="bg-white/5 border-white/10 hover:bg-white/10">Abort</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleExit}
+              className="bg-rose-600 hover:bg-rose-700 text-white"
+              disabled={isExiting}
+            >
+              {isExiting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+              Confirm Exit Protocol
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

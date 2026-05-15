@@ -1,20 +1,21 @@
 "use client";
 
 import { useState } from "react";
-import { 
-  Dialog, DialogContent, DialogHeader, 
-  DialogTitle, DialogDescription, DialogFooter 
+import {
+  Dialog, DialogContent, DialogHeader,
+  DialogTitle, DialogDescription, DialogFooter
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { 
-  Select, SelectContent, SelectItem, 
-  SelectTrigger, SelectValue 
+import {
+  Select, SelectContent, SelectItem,
+  SelectTrigger, SelectValue
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Award, Zap, Star, Heart, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { commendUser } from "../../actions";
+import { Label } from "@/components/ui/label";
 
 interface CommendationDialogProps {
   isOpen: boolean;
@@ -78,10 +79,10 @@ export function CommendationDialog({
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="glass-card border-white/10 sm:max-w-[425px] overflow-hidden">
-        <div className="absolute top-0 right-0 p-8 opacity-5 -mr-8 -mt-8">
-           <Award className="w-32 h-32 text-primary" />
+        <div className="absolute top-0 right-0 p-8 opacity-5 -mr-8 -mt-8 pointer-events-none select-none">
+          <Award className="w-32 h-32 text-primary" />
         </div>
-        
+
         <DialogHeader className="relative z-10">
           <DialogTitle className="text-2xl font-bold flex items-center gap-2">
             Award Tactical Merit
@@ -93,11 +94,11 @@ export function CommendationDialog({
 
         <div className="grid gap-6 py-4 relative z-10">
           <div className="grid gap-2">
-            <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-1">
+            <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-1">
               Merit Category
-            </label>
-            <Select 
-              value={category} 
+            </Label>
+            <Select
+              value={category}
               onValueChange={(v: 'Tactical' | 'Innovation' | 'Culture' | 'Reliability') => setCategory(v)}
             >
               <SelectTrigger className="glass-card bg-white/[0.03] border-white/10 h-11 focus:ring-primary/20">
@@ -116,10 +117,10 @@ export function CommendationDialog({
           </div>
 
           <div className="grid gap-2">
-            <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-1">
+            <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-1">
               Merit Points
-            </label>
-            <Input 
+            </Label>
+            <Input
               type="number"
               value={points}
               onChange={(e) => setPoints(e.target.value)}
@@ -128,11 +129,11 @@ export function CommendationDialog({
           </div>
 
           <div className="grid gap-2">
-            <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-1">
+            <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-1">
               Justification (The Reason)
-            </label>
-            <Textarea 
-              placeholder="Why does this associate deserve this merit?" 
+            </Label>
+            <Textarea
+              placeholder="Why does this associate deserve this merit?"
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               className="glass-card bg-white/[0.03] border-white/10 min-h-[120px] focus:ring-primary/20 resize-none leading-relaxed"
@@ -142,10 +143,10 @@ export function CommendationDialog({
 
         <DialogFooter className="relative z-10 sm:justify-between items-center border-t border-white/5 pt-6 mt-2">
           <div className="hidden sm:flex items-center gap-2 text-[10px] font-bold text-muted-foreground uppercase tracking-tighter">
-             <Zap className="w-3 h-3 text-primary animate-pulse" /> Protocol Verified
+            <Zap className="w-3 h-3 text-primary animate-pulse" /> Protocol Verified
           </div>
-          <Button 
-            onClick={handleSubmit} 
+          <Button
+            onClick={handleSubmit}
             disabled={isSubmitting}
             className="shadow-glow px-8 font-bold h-11 rounded-xl"
           >

@@ -56,12 +56,15 @@ async function HiringPortalContent({
   }
 
   const applicants = await getApplicants();
+  const { getRecruitmentMeetings } = await import("@/app/[locale]/admin/actions-modules/governance");
+  const meetings = await getRecruitmentMeetings();
   const subView = slug?.[1];
 
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
       <HiringPortalClient
         initialApplicants={applicants as unknown as Applicant[]}
+        initialMeetings={meetings}
         profile={profile}
         subView={subView}
         role={userRole}

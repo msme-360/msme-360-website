@@ -3,7 +3,7 @@ import {
   Wallet, Zap, Cpu, Lock, Network, Megaphone, PieChart, HardDrive,
   Target, Gauge, Briefcase, Building2, Clock, UserPlus, ClipboardCheck,
   type LucideIcon, History, UserCircle, LineChart, TrendingUp,
-  Activity
+  Activity, Calendar
 } from "lucide-react";
 import { STARTUP_ROLES } from "@/lib/constants/roles";
 
@@ -539,6 +539,13 @@ export function getSharedGroups(roleId: string, locale: string): NavGroup[] {
   }
 
   return [
+    {
+      label: "Collaboration",
+      visible: level >= 0 && level <= 5,
+      items: [
+        { title: "Meetings Desk", icon: Calendar, url: `/${locale}/internal/meetings` },
+      ]
+    },
     {
       label: "Profile & Identity",
       visible: true,

@@ -362,21 +362,20 @@ export async function scheduleInterview(applicationId: string, date: string, tim
   else if (repeat === 'weekly') recurrence = ['RRULE:FREQ=WEEKLY;COUNT=12'];
   else if (repeat === 'monthly') recurrence = ['RRULE:FREQ=MONTHLY;COUNT=6'];
 
+  let eventId: string | null = null;
   if (googleTokens) {
     try {
       oauth2Client.setCredentials(googleTokens);
-      const startTime = new Date(`${date}T${time}:00+05:30`);
-      const endTime = new Date(startTime.getTime() + 45 * 60000);
-
       const event = await createCalendarEvent(oauth2Client, {
         summary: `Interview: ${application.full_name}`,
         description: `Scheduled via MSME360 Hiring Portal`,
-        startTime: startTime.toISOString(),
-        endTime: endTime.toISOString(),
+        startTime: new Date(`${date}T${time}:00+05:30`).toISOString(),
+        endTime: new Date(new Date(`${date}T${time}:00+05:30`).getTime() + 45 * 60000).toISOString(),
         attendees: [application.email],
         recurrence
       });
       if (event.hangoutLink) meetLink = event.hangoutLink;
+      if (event.id) eventId = event.id;
     } catch (e) {
       console.error("Calendar integration failed", e);
     }
@@ -394,6 +393,18 @@ export async function scheduleInterview(applicationId: string, date: string, tim
 
   const isHR = reviewerProfile?.role === 'hr_manager';
 
+  // --- Reschedule Logic: Delete old calendar event if exists ---
+  const oldEventId = isHR ? currentMetadata.hr_event_id : currentMetadata.interview_event_id;
+  if (oldEventId && googleTokens) {
+    try {
+      const { deleteCalendarEvent } = await import("@/lib/google-calendar");
+      oauth2Client.setCredentials(googleTokens);
+      await deleteCalendarEvent(oauth2Client, oldEventId as string);
+    } catch (e) {
+      console.error("Failed to delete old calendar event during reschedule:", e);
+    }
+  }
+
   const historyItem = {
     type: 'INTERVIEW',
     round: history.filter((h: Record<string, unknown>) => h.type === 'INTERVIEW').length + 1,
@@ -401,6 +412,7 @@ export async function scheduleInterview(applicationId: string, date: string, tim
     date: date,
     time: time,
     meet_link: meetLink,
+    event_id: eventId,
     is_google_meet: !!googleTokens,
     label: isHR ? 'HR Interview Scheduled' : 'Interview Scheduled',
     is_hr_round: isHR
@@ -415,10 +427,12 @@ export async function scheduleInterview(applicationId: string, date: string, tim
     metadataUpdate.hr_interview_date = date;
     metadataUpdate.hr_interview_time = time;
     metadataUpdate.hr_meeting_link = meetLink;
+    metadataUpdate.hr_event_id = eventId;
   } else {
     metadataUpdate.interview_date = date;
     metadataUpdate.interview_time = time;
     metadataUpdate.meeting_link = meetLink;
+    metadataUpdate.interview_event_id = eventId;
   }
 
   const { error } = await supabase

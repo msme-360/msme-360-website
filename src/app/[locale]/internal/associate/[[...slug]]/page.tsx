@@ -6,7 +6,8 @@ import {
   getOnboardingChecklist, 
   getMentorDetails,
   getPromotionStatus,
-  getPerformanceData
+  getPerformanceData,
+  getScheduledSyncs
 } from "@/app/[locale]/internal/actions";
 import { AssociateClient } from "../AssociateClient";
 import { redirect } from "next/navigation";
@@ -65,13 +66,14 @@ async function AssociatePortalContent({
   }
 
   // 2. Fetch Data (Parallelized for Industry-Grade Performance)
-  const [tasks, attendance, checklist, promotion, metrics, performanceData] = await Promise.all([
+  const [tasks, attendance, checklist, promotion, metrics, performanceData, syncs] = await Promise.all([
     getTasks(user.id),
     getAttendanceLogs(user.id),
     getOnboardingChecklist(user.id),
     getPromotionStatus(user.id),
     getPlatformMetrics('associate'),
-    getPerformanceData(user.id)
+    getPerformanceData(user.id),
+    getScheduledSyncs(user.id)
   ]);
 
   const mentor = profile?.manager_id ? await getMentorDetails(profile.manager_id) : null;
@@ -87,6 +89,7 @@ async function AssociatePortalContent({
       view={(queryView || subView) as "roadmap" | "hub" | "attendance" | "planner" | undefined}
       metrics={metrics}
       performanceData={performanceData}
+      initialSyncs={syncs}
     />
   );
 }

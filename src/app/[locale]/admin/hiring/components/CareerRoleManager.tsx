@@ -13,6 +13,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 
 export default function CareerRoleManager() {
@@ -21,6 +31,8 @@ export default function CareerRoleManager() {
   const [isPending, startTransition] = useTransition();
   const [editOpen, setEditOpen] = useState(false);
   const [selectedRole, setSelectedRole] = useState<Partial<CareerRole> | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const fetchRoles = useCallback(async () => {
     const data = await getCareerRoles();
@@ -54,8 +66,7 @@ export default function CareerRoleManager() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this role?")) return;
-    
+    setIsDeleting(true);
     const res = await deleteCareerRole(id);
     if (res.success) {
       toast.success("Role deleted");
@@ -63,6 +74,8 @@ export default function CareerRoleManager() {
     } else {
       toast.error(res.error || "Failed to delete role");
     }
+    setIsDeleting(false);
+    setDeleteTarget(null);
   };
 
   return (
@@ -119,7 +132,7 @@ export default function CareerRoleManager() {
                       variant="ghost" 
                       size="icon" 
                       className="h-7 w-7 text-rose-500 hover:text-rose-400 hover:bg-rose-500/10"
-                      onClick={() => handleDelete(role.slug)} // Assuming slug is the ID or unique identifier
+                      onClick={() => setDeleteTarget(role.slug)} 
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </Button>
@@ -268,6 +281,29 @@ export default function CareerRoleManager() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      
+      {/* Delete Confirmation */}
+      <AlertDialog open={!!deleteTarget} onOpenChange={(o) => !o && setDeleteTarget(null)}>
+        <AlertDialogContent className="glass-card border-white/10">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Execute Role Termination?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently remove the role from the talent catalog. This protocol is irreversible.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="bg-white/5 border-white/10 hover:bg-white/10">Abort</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={() => deleteTarget && handleDelete(deleteTarget)}
+              className="bg-rose-600 hover:bg-rose-700 text-white"
+              disabled={isDeleting}
+            >
+              {isDeleting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+              Confirm Termination
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

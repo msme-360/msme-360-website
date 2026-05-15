@@ -1,8 +1,8 @@
 "use client";
 
-import { 
-  Dialog, DialogContent, DialogHeader, 
-  DialogTitle, DialogTrigger, DialogFooter 
+import {
+  Dialog, DialogContent, DialogHeader,
+  DialogTitle, DialogTrigger, DialogFooter
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { UserPlus, Search, Loader2 } from "lucide-react";
@@ -12,10 +12,11 @@ import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useRouter } from "next/navigation";
-import { 
-  Select, SelectContent, SelectItem, 
-  SelectTrigger, SelectValue 
+import {
+  Select, SelectContent, SelectItem,
+  SelectTrigger, SelectValue
 } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 
 interface AssignPersonnelDialogProps {
   managerId: string;
@@ -72,7 +73,7 @@ export default function AssignPersonnelDialog({ managerId, userRole }: AssignPer
     setAssigningId(null);
   };
 
-  const filtered = unassigned.filter(u => 
+  const filtered = unassigned.filter(u =>
     u.full_name?.toLowerCase().includes(search.toLowerCase()) ||
     u.email?.toLowerCase().includes(search.toLowerCase())
   );
@@ -99,7 +100,7 @@ export default function AssignPersonnelDialog({ managerId, userRole }: AssignPer
         <div className="py-6 space-y-4">
           {isHR && (
             <div className="space-y-2 p-3 rounded-xl bg-indigo-500/5 border border-indigo-500/10 mb-4">
-              <label className="text-[10px] font-black uppercase tracking-widest text-indigo-400">Target Assignment Lead</label>
+              <Label className="text-[10px] font-black uppercase tracking-widest text-indigo-400">Target Assignment Lead</Label>
               <Select value={selectedMentorId} onValueChange={setSelectedMentorId}>
                 <SelectTrigger className="bg-white/5 border-white/10 h-10">
                   <SelectValue placeholder="Select target lead..." />
@@ -120,8 +121,8 @@ export default function AssignPersonnelDialog({ managerId, userRole }: AssignPer
 
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input 
-              placeholder="Search by name or email..." 
+            <Input
+              placeholder="Search by name or email..."
               value={search}
               onChange={e => setSearch(e.target.value)}
               className="pl-10 bg-white/5 border-white/10 h-11"
@@ -151,8 +152,8 @@ export default function AssignPersonnelDialog({ managerId, userRole }: AssignPer
                       <p className="text-[10px] text-muted-foreground">{user.email}</p>
                     </div>
                   </div>
-                  <Button 
-                    size="sm" 
+                  <Button
+                    size="sm"
                     className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold h-8 rounded-lg text-[10px] uppercase tracking-wider"
                     onClick={() => handleAssign(user.id)}
                     disabled={assigningId === user.id}

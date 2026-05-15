@@ -83,8 +83,17 @@ const ActionsCell = ({
                 {(() => {
                   const metadata = (app.metadata as Record<string, unknown>) || {};
                   const isHR = userRole === 'hr_manager';
-                  const hasInterview = isHR ? !!metadata.hr_interview_date : !!metadata.interview_date;
-                  return hasInterview ? "Reschedule Meet" : "Schedule Meet";
+                  const interviewDate = isHR ? metadata.hr_interview_date as string : metadata.interview_date as string;
+                  const hasInterview = !!interviewDate;
+                  
+                  // If interview passed, change back to "Schedule Meet"
+                  if (hasInterview) {
+                    const isPassed = new Date(interviewDate) < new Date(new Date().setHours(0, 0, 0, 0));
+                    if (isPassed) return "Schedule Meet";
+                    return "Reschedule Meet";
+                  }
+                  
+                  return "Schedule Meet";
                 })()}
               </DropdownMenuItem>
               <DropdownMenuSeparator className="bg-white/5" />

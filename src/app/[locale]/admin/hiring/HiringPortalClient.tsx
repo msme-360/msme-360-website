@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { 
@@ -11,23 +11,26 @@ import {
 } from "@/app/[locale]/admin/actions";
 import { DashboardProfile } from "@/types/dashboard";
 import { Applicant } from "./components/HiringTypes";
+import { Meeting } from "@/types/meeting";
 import { AdminViewWrapper } from "@/components/layout/AdminViewWrapper";
 import FunnelStats from "./components/FunnelStats";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ApplicantTable from "./components/ApplicantTable";
 import CareerRoleManager from "./components/CareerRoleManager";
 import { useTranslations } from "next-intl";
-import { Briefcase, Users, Archive as ArchiveIcon, Calendar } from "lucide-react";
+import { Briefcase, Users, Archive as ArchiveIcon, Calendar, Video } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { UpcomingSyncs } from "@/app/[locale]/internal/team/components/UpcomingSyncs";
 
 interface HiringPortalClientProps {
   initialApplicants: Applicant[];
+  initialMeetings?: Meeting[];
   profile: DashboardProfile;
   subView?: string;
   role: string;
 }
 
-export function HiringPortalClient({ initialApplicants, subView, role, profile }: HiringPortalClientProps) {
+export function HiringPortalClient({ initialApplicants, initialMeetings = [], subView, role, profile }: HiringPortalClientProps) {
   const t = useTranslations("Hiring");
   const router = useRouter();
   const [applicants, setApplicants] = useState<Applicant[]>(initialApplicants);
@@ -36,6 +39,11 @@ export function HiringPortalClient({ initialApplicants, subView, role, profile }
   const [currentTab, setCurrentTab] = useState("active");
   const [onboardingTab] = useState("active");
   const [hasFetchedArchived, setHasFetchedArchived] = useState(false);
+
+  // Filters
+  const [filterReviewer, setFilterReviewer] = useState<string>("all");
+  const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [filterPosition, setFilterPosition] = useState<string>("all");
 
   const hasLinked = useRef(false);
 
@@ -193,10 +201,42 @@ export function HiringPortalClient({ initialApplicants, subView, role, profile }
     setLoadingId(null);
   };
 
+  const applyFilters = useCallback((data: Applicant[]) => {
+    return data.filter(a => {
+      const matchReviewer = filterReviewer === "all" || a.reviewer_name === filterReviewer;
+      const matchStatus = filterStatus === "all" || a.status === filterStatus;
+      const matchPosition = filterPosition === "all" || a.role === filterPosition;
+      return matchReviewer && matchStatus && matchPosition;
+    });
+  }, [filterReviewer, filterStatus, filterPosition]);
+
   const pipelineApplicants = 
   useMemo(() => 
-    applicants.filter(a => a.status !== 'hired' && a.status !== 'onboarded'),
+    applyFilters(applicants.filter(a => a.status !== 'hired' && a.status !== 'onboarded')),
+  [applicants, applyFilters]);
+
+  const filteredArchivedApplicants = 
+  useMemo(() => 
+    applyFilters(archivedApplicants),
+  [archivedApplicants, applyFilters]);
+
+  const uniqueReviewers = useMemo(() => 
+    Array.from(new Set(applicants.map(a => a.reviewer_name).filter((v): v is string => !!v))),
   [applicants]);
+
+  const uniqueStatuses = useMemo(() => 
+    Array.from(new Set(applicants.map(a => a.status).filter((v): v is Applicant['status'] => !!v))),
+  [applicants]);
+
+  const uniquePositions = useMemo(() => 
+    Array.from(new Set(applicants.map(a => a.role).filter((v): v is string => !!v))),
+  [applicants]);
+
+  const clearFilters = () => {
+    setFilterReviewer("all");
+    setFilterStatus("all");
+    setFilterPosition("all");
+  };
 
   const funnelData = useMemo(() => ({
     applicantsCount: applicants.length,
@@ -289,6 +329,13 @@ export function HiringPortalClient({ initialApplicants, subView, role, profile }
                     Active Pipeline
                   </TabsTrigger>
                   <TabsTrigger 
+                    value="syncs" 
+                    className="gap-2 text-xs font-bold uppercase tracking-widest px-6 data-[state=active]:bg-primary/20 data-[state=active]:text-primary transition-all"
+                  >
+                    <Video className="w-3.5 h-3.5" />
+                    Scheduled Meets
+                  </TabsTrigger>
+                  <TabsTrigger 
                     value="roles" 
                     className="gap-2 text-xs font-bold uppercase tracking-widest px-6 data-[state=active]:bg-indigo-500/20 data-[state=active]:text-indigo-400 transition-all"
                   >
@@ -319,7 +366,23 @@ export function HiringPortalClient({ initialApplicants, subView, role, profile }
               isArchiveView={false}
               loading={loadingId === 'fetching-active'}
               isGoogleConnected={!!isGoogleConnected}
+              filterReviewer={filterReviewer}
+              setFilterReviewer={setFilterReviewer}
+              filterStatus={filterStatus}
+              setFilterStatus={setFilterStatus}
+              filterPosition={filterPosition}
+              setFilterPosition={setFilterPosition}
+              uniqueReviewers={uniqueReviewers}
+              uniqueStatuses={uniqueStatuses}
+              uniquePositions={uniquePositions}
+              clearFilters={clearFilters}
             />
+          </TabsContent>
+
+          <TabsContent value="syncs" className="mt-0 outline-none w-full min-w-0">
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 p-1">
+              <UpcomingSyncs syncs={initialMeetings} title="Tactical Recruitment Syncs" />
+            </div>
           </TabsContent>
 
           <TabsContent value="roles" className="mt-0 outline-none animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -328,7 +391,7 @@ export function HiringPortalClient({ initialApplicants, subView, role, profile }
 
           <TabsContent value="archived" className="mt-0 outline-none w-full min-w-0">
             <ApplicantTable
-              applicants={archivedApplicants}
+              applicants={filteredArchivedApplicants}
               loadingId={loadingId}
               onStatusUpdate={handleStatusUpdate}
               onHire={handleHire}
@@ -338,6 +401,16 @@ export function HiringPortalClient({ initialApplicants, subView, role, profile }
               isArchiveView={true}
               loading={loadingId === 'fetching-archived'}
               isGoogleConnected={!!isGoogleConnected}
+              filterReviewer={filterReviewer}
+              setFilterReviewer={setFilterReviewer}
+              filterStatus={filterStatus}
+              setFilterStatus={setFilterStatus}
+              filterPosition={filterPosition}
+              setFilterPosition={setFilterPosition}
+              uniqueReviewers={uniqueReviewers}
+              uniqueStatuses={uniqueStatuses}
+              uniquePositions={uniquePositions}
+              clearFilters={clearFilters}
             />
           </TabsContent>
         </Tabs>

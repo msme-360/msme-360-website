@@ -25,6 +25,7 @@ import { PolicyHub } from "./components/PolicyHub";
 import { Reflection } from "./TeamReflectionClient";
 import { LeaveRequest } from "./TeamLeaveClient";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Meeting } from "@/types/meeting";
 
 export type TeamMember = Database['public']['Tables']['profiles']['Row'];
 
@@ -61,6 +62,7 @@ interface TeamClientProps {
   initialPendingTasks?: ReviewTask[];
   initialReflections?: Reflection[];
   initialLeaveRequests?: LeaveRequest[];
+  initialSyncs?: Meeting[];
   subView?: string;
   mentorId?: string;
   userRole?: string;
@@ -74,6 +76,7 @@ export function TeamClient({
   initialPendingTasks = [], 
   initialReflections = [],
   initialLeaveRequests = [],
+  initialSyncs = [],
   subView, 
   mentorId, 
   userRole = "team_lead", 
@@ -88,8 +91,12 @@ export function TeamClient({
     return <AttendanceLogClient initialAttendance={initialAttendance as AttendanceLog[]} />;
   }
 
-  if (subView === 'performance') {
-    return <PerformanceClient initialData={initialPerformance} mentorId={mentorId || ""} />;
+  if (subView === 'performance' || subView === 'syncs') {
+    return <PerformanceClient 
+      initialData={initialPerformance} 
+      initialSyncs={initialSyncs}
+      mentorId={mentorId || ""} 
+    />;
   }
 
   if (subView === 'reviews') {

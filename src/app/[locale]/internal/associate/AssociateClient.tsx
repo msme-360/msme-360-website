@@ -53,6 +53,8 @@ import { LeaveRequestDialog } from "./components/LeaveRequestDialog";
 import { ClipboardCheck, Plane, Calendar as CalendarIcon } from "lucide-react";
 import { Commendation } from "./components/AssociateTypes";
 import { InternalScheduleDialog } from "../components/InternalScheduleDialog";
+import { UpcomingSyncs } from "../team/components/UpcomingSyncs";
+import { Meeting } from "@/types/meeting";
 
 // Dynamic imports for role-specific feature panels
 const InternOnboardingFlow = dynamic(() => import("@/components/roles/level-5-associates/intern/OnboardingFlow"), {
@@ -92,6 +94,7 @@ interface AssociateClientProps {
     taskStats?: { completion_rate: number };
     [key: string]: unknown;
   };
+  initialSyncs?: Meeting[];
 }
 
 export function AssociateClient({ 
@@ -102,7 +105,8 @@ export function AssociateClient({
   mentor, 
   promotion, 
   view,
-  performanceData
+  performanceData,
+  initialSyncs = []
 }: AssociateClientProps) {
   const t = useTranslations("Associate");
   const router = useRouter();
@@ -261,6 +265,12 @@ export function AssociateClient({
               {profile.role === 'trainee' && <TraineeLaunchpad metrics={dynamicMetrics} />}
             </Suspense>
           </>
+        )}
+
+        {(!view || view === 'hub') && initialSyncs.length > 0 && (
+          <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+            <UpcomingSyncs syncs={initialSyncs} title="Your Upcoming Strategic Syncs" />
+          </div>
         )}
 
         {view === 'attendance' && (

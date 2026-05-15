@@ -178,6 +178,7 @@ export default function CreateMissionDialog({
                 <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input 
                   type="date"
+                  min={format(new Date(), "yyyy-MM-dd")}
                   value={newTask.due_date}
                   onChange={e => setNewTask(prev => ({ ...prev, due_date: e.target.value }))}
                   className="bg-white/5 border-white/10 h-11 pl-10 focus:ring-primary/20"

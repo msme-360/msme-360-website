@@ -800,6 +800,7 @@ export async function scheduleInternalMeeting(data: {
   else if (data.repeat === 'weekly') recurrence = ['RRULE:FREQ=WEEKLY;COUNT=12'];
   else if (data.repeat === 'monthly') recurrence = ['RRULE:FREQ=MONTHLY;COUNT=6'];
 
+  let eventId: string | null = null;
   if (googleTokens) {
     try {
       oauth2Client.setCredentials(googleTokens);
@@ -815,6 +816,7 @@ export async function scheduleInternalMeeting(data: {
         recurrence
       });
       if (event.hangoutLink) meetLink = event.hangoutLink;
+      if (event.id) eventId = event.id;
     } catch (e) {
       console.error("Calendar integration failed", e);
     }
@@ -826,7 +828,7 @@ export async function scheduleInternalMeeting(data: {
     .insert({
       mentee_id: data.targetUserId,
       mentor_name: user?.user_metadata?.full_name || "System",
-      expertise: data.title,
+      expertise: `${data.title} || ${meetLink} || ${eventId || ''}`,
       scheduled_at: `${data.date}T${data.time}:00Z`,
       status: 'confirmed'
     });
@@ -850,6 +852,161 @@ export async function getGoogleConnectionUrl(...args: Parameters<typeof googleAu
 export async function linkGoogleAccount(...args: Parameters<typeof googleAuth.linkGoogleAccount>) {
   return googleAuth.linkGoogleAccount(...args);
 }
+
+export async function getScheduledSyncs(userId?: string) {
+  const verifiedUser = await getUser();
+  if (!verifiedUser) return [];
+
+  const supabase = await createServiceClient();
+  let query = supabase
+    .from('mentorship_bookings')
+    .select('*')
+    .order('scheduled_at', { ascending: true });
+
+  if (userId) {
+    query = query.eq('mentee_id', userId);
+  } else if (verifiedUser.role !== 'admin' && verifiedUser.role !== 'ceo') {
+    // For mentors, they might not have their ID in the table yet if we only store mentor_name
+    // But for now, let's just return all for management, or filter by mentee for associates
+    if (verifiedUser.role === 'associate' || verifiedUser.role === 'intern') {
+      query = query.eq('mentee_id', verifiedUser.id);
+    }
+  }
+
+  const { data } = await query;
+  
+  return (data || []).map(m => {
+    const [title, link] = m.expertise.split(' || ');
+    return {
+      ...m,
+      title: title || m.expertise,
+      link: link || '#'
+    };
+  });
+}
 export async function disconnectGoogleAccount(...args: Parameters<typeof googleAuth.disconnectGoogleAccount>) {
   return googleAuth.disconnectGoogleAccount(...args);
+}
+export async function deleteMeeting(meetingId: string, type: string) {
+  const verifiedUser = await getUser();
+  if (!verifiedUser) return { success: false, error: "Unauthorized" };
+
+  const supabase = await createServiceClient();
+
+  let eventIdToDelete: string | null = null;
+
+  if (type === 'Internal Sync') {
+    const { data: meeting } = await supabase.from('mentorship_bookings').select('expertise').eq('id', meetingId).single();
+    if (meeting) {
+      const parts = (meeting.expertise || "").split(" || ");
+      if (parts.length > 2) eventIdToDelete = parts[2];
+    }
+    const { error } = await supabase.from('mentorship_bookings').delete().eq('id', meetingId);
+    if (error) return { success: false, error: error.message };
+  } else {
+    // For interviews, the meetingId is prefixed with {applicantId}_
+    const applicantId = meetingId.split('_')[0];
+    const { data: app } = await supabase.from('intern_applications').select('metadata').eq('id', applicantId).single();
+    if (app) {
+      const meta = { ...(app.metadata as Record<string, unknown>) };
+      if (type === 'Technical Interview') {
+        eventIdToDelete = meta.interview_event_id as string | null;
+        delete meta.interview_date;
+        delete meta.interview_time;
+        delete meta.meeting_link;
+        delete meta.interview_status;
+        delete meta.interview_event_id;
+      } else if (type === 'HR Interview') {
+        eventIdToDelete = meta.hr_event_id as string | null;
+        delete meta.hr_interview_date;
+        delete meta.hr_interview_time;
+        delete meta.hr_meeting_link;
+        delete meta.hr_interview_status;
+        delete meta.hr_event_id;
+      }
+      const { error } = await supabase.from('intern_applications').update({ metadata: meta }).eq('id', applicantId);
+      if (error) return { success: false, error: error.message };
+    }
+  }
+
+  // 2. Delete from Google Calendar if eventId exists and user has tokens
+  if (eventIdToDelete) {
+    const { data: { user: fullUser } } = await supabase.auth.admin.getUserById(verifiedUser.id);
+    const googleTokens = fullUser?.user_metadata?.google_tokens;
+    if (googleTokens) {
+      try {
+        const { getOAuth2Client, deleteCalendarEvent } = await import("@/lib/google-calendar");
+        const oauth2Client = getOAuth2Client();
+        oauth2Client.setCredentials(googleTokens);
+        await deleteCalendarEvent(oauth2Client, eventIdToDelete);
+      } catch (e) {
+        console.error("Failed to delete calendar event:", e);
+      }
+    }
+  }
+
+  revalidatePath('/[locale]/internal/team', 'page');
+  revalidatePath('/[locale]/admin/hiring', 'page');
+  revalidatePath('/[locale]/internal/meetings', 'page');
+  return { success: true };
+}
+
+export async function updateMeetingStatus(meetingId: string, type: string, status: string) {
+  const verifiedUser = await getUser();
+  if (!verifiedUser) return { success: false, error: "Unauthorized" };
+
+  const supabase = await createServiceClient();
+
+  if (type === 'Internal Sync') {
+    const { error } = await supabase.from('mentorship_bookings').update({ status }).eq('id', meetingId);
+    if (error) return { success: false, error: error.message };
+  } else {
+    const applicantId = meetingId.split('_')[0];
+    const { data: app } = await supabase.from('intern_applications').select('metadata').eq('id', applicantId).single();
+    if (app) {
+      const meta = { ...(app.metadata as Record<string, unknown>) };
+      if (type === 'Technical Interview') meta.interview_status = status;
+      else if (type === 'HR Interview') meta.hr_interview_status = status;
+      
+      const { error } = await supabase.from('intern_applications').update({ metadata: meta }).eq('id', applicantId);
+      if (error) return { success: false, error: error.message };
+    }
+  }
+
+  revalidatePath('/[locale]/internal/team', 'page');
+  revalidatePath('/[locale]/admin/hiring', 'page');
+  return { success: true };
+}
+
+export async function rescheduleMeeting(meetingId: string, type: string, date: string, time: string) {
+  const verifiedUser = await getUser();
+  if (!verifiedUser) return { success: false, error: "Unauthorized" };
+
+  const supabase = await createServiceClient();
+
+  if (type === 'Internal Sync') {
+    // 1. Fetch old meeting to preserve details
+    const { data: oldMeeting } = await supabase.from('mentorship_bookings').select('*').eq('id', meetingId).single();
+    if (!oldMeeting) return { success: false, error: "Original meeting not found" };
+
+    // 2. Delete old meeting (this now also deletes from calendar)
+    await deleteMeeting(meetingId, 'Internal Sync');
+
+    // 3. Create new meeting (the "create new" part)
+    const [title] = oldMeeting.expertise.split(' || ');
+    return scheduleInternalMeeting({
+      targetUserId: oldMeeting.mentee_id,
+      title: title || oldMeeting.expertise,
+      description: `Rescheduled meeting.`,
+      date,
+      time,
+      repeat: 'none' 
+    });
+  } else {
+    // For recruitment interviews, use the dedicated scheduleInterview action
+    // This handles Google Meet link regeneration and history logging properly
+    const applicantId = meetingId.split('_')[0];
+    const { scheduleInterview } = await import("../admin/actions-modules/hiring");
+    return scheduleInterview(applicantId, date, time, 'none');
+  }
 }

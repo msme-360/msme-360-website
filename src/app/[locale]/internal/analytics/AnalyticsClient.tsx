@@ -23,12 +23,13 @@ import {
 } from "recharts";
 import { AdminViewWrapper } from "@/components/layout/AdminViewWrapper";
 import { Input } from "@/components/ui/input";
-import { 
-   Select, SelectContent, SelectItem, 
-   SelectTrigger, SelectValue 
+import {
+   Select, SelectContent, SelectItem,
+   SelectTrigger, SelectValue
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
 
 interface Task {
    id: string;
@@ -37,8 +38,8 @@ interface Task {
    priority: string;
    created_at: string;
    assigned_to_profile?: {
-     role: string;
-     department?: string;
+      role: string;
+      department?: string;
    };
 }
 
@@ -59,35 +60,35 @@ export function AnalyticsClient({ tasks, role }: AnalyticsClientProps) {
 
    // --- Advanced Filtering Logic ---
    const filteredTasks = useMemo(() => {
-     return tasks.filter(t => {
-       const matchesSearch = t.title.toLowerCase().includes(filterSearch.toLowerCase());
-       const matchesPriority = filterPriority === "all" || t.priority === filterPriority;
-       const matchesStatus = filterStatus === "all" || t.status === filterStatus;
-       return matchesSearch && matchesPriority && matchesStatus;
-     });
+      return tasks.filter(t => {
+         const matchesSearch = t.title.toLowerCase().includes(filterSearch.toLowerCase());
+         const matchesPriority = filterPriority === "all" || t.priority === filterPriority;
+         const matchesStatus = filterStatus === "all" || t.status === filterStatus;
+         return matchesSearch && matchesPriority && matchesStatus;
+      });
    }, [tasks, filterSearch, filterPriority, filterStatus]);
 
    // --- Real-time Metric Aggregation ---
    const metrics = useMemo(() => {
-     const total = filteredTasks.length;
-     const completed = filteredTasks.filter(t => t.status === 'completed').length;
-     const blocked = filteredTasks.filter(t => t.status === 'blocked').length;
-     const completionRate = total ? Math.round((completed / total) * 100) : 0;
-     const avgLeadTime = 1.2; // This would ideally be calculated from task creation vs completion dates
+      const total = filteredTasks.length;
+      const completed = filteredTasks.filter(t => t.status === 'completed').length;
+      const blocked = filteredTasks.filter(t => t.status === 'blocked').length;
+      const completionRate = total ? Math.round((completed / total) * 100) : 0;
+      const avgLeadTime = 1.2; // This would ideally be calculated from task creation vs completion dates
 
-     return { total, completed, blocked, completionRate, avgLeadTime };
+      return { total, completed, blocked, completionRate, avgLeadTime };
    }, [filteredTasks]);
 
    // Aggregate by priority for filtered set
    const priorityPieData = useMemo(() => {
-     const counts = filteredTasks.reduce((acc: Record<string, number>, task: Task) => {
-        acc[task.priority] = (acc[task.priority] || 0) + 1;
-        return acc;
-     }, {});
-     return Object.entries(counts).map(([name, value]) => ({
-        name: name.toUpperCase(),
-        value: value as number,
-     }));
+      const counts = filteredTasks.reduce((acc: Record<string, number>, task: Task) => {
+         acc[task.priority] = (acc[task.priority] || 0) + 1;
+         return acc;
+      }, {});
+      return Object.entries(counts).map(([name, value]) => ({
+         name: name.toUpperCase(),
+         value: value as number,
+      }));
    }, [filteredTasks]);
 
    // Task Completion Trends (Mocked but could be derived from actual dates in filteredTasks)
@@ -109,24 +110,24 @@ export function AnalyticsClient({ tasks, role }: AnalyticsClientProps) {
          authorityLevel="L1 Executive Access"
       >
          <div className="space-y-8 pb-20 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            
+
             {/* Tactical Filter Bar */}
             <div className="glass-card p-6 rounded-3xl border-white/5 flex flex-col md:flex-row gap-4 items-end">
                <div className="flex-1 space-y-2 w-full">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-indigo-400 flex items-center gap-2">
+                  <Label className="text-[10px] font-black uppercase tracking-widest text-indigo-400 flex items-center gap-2">
                      <Search className="w-3 h-3" /> Mission Search
-                  </label>
-                  <Input 
-                    placeholder="Filter by mission objective..." 
-                    className="bg-white/5 border-white/10 h-11"
-                    value={filterSearch}
-                    onChange={(e) => setFilterSearch(e.target.value)}
+                  </Label>
+                  <Input
+                     placeholder="Filter by mission objective..."
+                     className="bg-white/5 border-white/10 h-11"
+                     value={filterSearch}
+                     onChange={(e) => setFilterSearch(e.target.value)}
                   />
                </div>
                <div className="w-full md:w-48 space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-indigo-400 flex items-center gap-2">
+                  <Label className="text-[10px] font-black uppercase tracking-widest text-indigo-400 flex items-center gap-2">
                      <Target className="w-3 h-3" /> Priority
-                  </label>
+                  </Label>
                   <Select value={filterPriority} onValueChange={setFilterPriority}>
                      <SelectTrigger className="bg-white/5 border-white/10 h-11">
                         <SelectValue placeholder="All Priorities" />
@@ -141,9 +142,9 @@ export function AnalyticsClient({ tasks, role }: AnalyticsClientProps) {
                   </Select>
                </div>
                <div className="w-full md:w-48 space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-indigo-400 flex items-center gap-2">
+                  <Label className="text-[10px] font-black uppercase tracking-widest text-indigo-400 flex items-center gap-2">
                      <Filter className="w-3 h-3" /> Status
-                  </label>
+                  </Label>
                   <Select value={filterStatus} onValueChange={setFilterStatus}>
                      <SelectTrigger className="bg-white/5 border-white/10 h-11">
                         <SelectValue placeholder="All Status" />
@@ -157,16 +158,16 @@ export function AnalyticsClient({ tasks, role }: AnalyticsClientProps) {
                      </SelectContent>
                   </Select>
                </div>
-               <Button 
-                 variant="ghost" 
-                 className="h-11 px-6 text-[10px] font-black uppercase tracking-widest hover:bg-white/5"
-                 onClick={() => {
-                   setFilterSearch("");
-                   setFilterPriority("all");
-                   setFilterStatus("all");
-                 }}
+               <Button
+                  variant="ghost"
+                  className="h-11 px-6 text-[10px] font-black uppercase tracking-widest hover:bg-white/5"
+                  onClick={() => {
+                     setFilterSearch("");
+                     setFilterPriority("all");
+                     setFilterStatus("all");
+                  }}
                >
-                 Reset
+                  Reset
                </Button>
             </div>
 
@@ -248,9 +249,9 @@ export function AnalyticsClient({ tasks, role }: AnalyticsClientProps) {
                                  paddingAngle={8}
                                  dataKey="value"
                               >
-                                {priorityPieData.map((entry, index) => (
-                                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                                ))}
+                                 {priorityPieData.map((entry, index) => (
+                                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                 ))}
                               </Pie>
                               <Tooltip
                                  contentStyle={{ backgroundColor: '#0A0A0B', border: '1px solid #ffffff10', borderRadius: '16px' }}
@@ -267,18 +268,18 @@ export function AnalyticsClient({ tasks, role }: AnalyticsClientProps) {
                                     <span className="opacity-50 uppercase">{d.name}</span>
                                  </span>
                                  <div className="flex items-center gap-3">
-                                   <span className="text-white">{d.value}</span>
-                                   <Badge variant="outline" className="text-[8px] border-white/5 bg-white/5">{Math.round((d.value/metrics.total)*100)}%</Badge>
+                                    <span className="text-white">{d.value}</span>
+                                    <Badge variant="outline" className="text-[8px] border-white/5 bg-white/5">{Math.round((d.value / metrics.total) * 100)}%</Badge>
                                  </div>
                               </div>
                            ))}
                         </div>
                         <div className="p-4 rounded-2xl bg-white/5 border border-white/5">
                            <p className="text-[9px] font-black uppercase text-amber-400 mb-1 tracking-widest flex items-center gap-1">
-                             <AlertTriangle className="w-3 h-3" /> Attention Required
+                              <AlertTriangle className="w-3 h-3" /> Attention Required
                            </p>
                            <p className="text-[10px] text-indigo-100/50 leading-relaxed">
-                             {metrics.blocked > 0 ? `${metrics.blocked} missions are currently stagnant due to blockers. Recommend immediate L3 intervention.` : "All sectors operating within nominal parameters."}
+                              {metrics.blocked > 0 ? `${metrics.blocked} missions are currently stagnant due to blockers. Recommend immediate L3 intervention.` : "All sectors operating within nominal parameters."}
                            </p>
                         </div>
                      </div>

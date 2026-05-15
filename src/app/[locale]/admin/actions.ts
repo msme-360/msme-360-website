@@ -105,8 +105,11 @@ export async function overrideSystemAction(...args: Parameters<typeof governance
 export async function runPolicyAudit(...args: Parameters<typeof governance.runPolicyAudit>) {
   return governance.runPolicyAudit(...args);
 }
-export async function getMeetingData(...args: Parameters<typeof governance.getMeetingData>) {
-  return governance.getMeetingData(...args);
+export async function getRecruitmentMeetings(...args: Parameters<typeof governance.getRecruitmentMeetings>) {
+  return governance.getRecruitmentMeetings(...args);
+}
+export async function getInternalMeetings(...args: Parameters<typeof governance.getInternalMeetings>) {
+  return governance.getInternalMeetings(...args);
 }
 
 // --- AUDIT ACTIONS ---

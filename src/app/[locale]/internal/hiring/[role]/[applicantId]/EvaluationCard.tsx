@@ -9,6 +9,7 @@ import { Slider } from "@/components/ui/slider";
 import { Plus, UserCheck, ShieldAlert, Star, Loader2, Trash2 } from "lucide-react";
 import { saveApplicationMetric, deleteApplicationMetric } from "@/app/[locale]/admin/actions";
 import { toast } from "sonner";
+import { Label } from "@/components/ui/label";
 
 interface EvaluationCardProps {
   title: string;
@@ -23,19 +24,19 @@ interface EvaluationCardProps {
 }
 
 // Sub-component for individual metric to manage its own debouncing
-function EvaluationItem({ 
-  name, 
-  initialMetric, 
-  canEdit, 
-  applicantStatus, 
+function EvaluationItem({
+  name,
+  initialMetric,
+  canEdit,
+  applicantStatus,
   onSave,
   onDelete,
   savingId,
   isCustom
-}: { 
-  name: string, 
-  initialMetric?: Metric, 
-  canEdit: boolean, 
+}: {
+  name: string,
+  initialMetric?: Metric,
+  canEdit: boolean,
   applicantStatus: string,
   onSave: (name: string, score: number, comment: string) => Promise<void>,
   onDelete: (name: string) => Promise<void>,
@@ -99,7 +100,7 @@ function EvaluationItem({
         <div className="flex items-center gap-2">
           <div className="flex flex-col">
             <div className="flex items-center gap-2">
-              <label className="text-sm font-bold text-white/80">{name}</label>
+              <Label className="text-sm font-bold text-white/80">{name}</Label>
               {isCustom && (
                 <span className="text-[9px] px-1.5 py-0.5 rounded bg-primary/10 text-primary border border-primary/20 font-black uppercase tracking-widest">Custom</span>
               )}
@@ -112,17 +113,17 @@ function EvaluationItem({
             <div className="flex items-center gap-1 animate-in fade-in zoom-in-95 duration-200">
               {showConfirmDelete ? (
                 <div className="flex items-center gap-2 bg-rose-500/10 p-1 rounded-lg border border-rose-500/20">
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     onClick={() => setShowConfirmDelete(false)}
                     className="h-6 px-2 text-[10px] font-bold uppercase text-muted-foreground hover:text-white"
                   >
                     Cancel
                   </Button>
-                  <Button 
-                    variant="destructive" 
-                    size="sm" 
+                  <Button
+                    variant="destructive"
+                    size="sm"
                     onClick={handleDeleteConfirmed}
                     className="h-6 px-2 text-[10px] font-bold uppercase bg-rose-500 hover:bg-rose-600"
                   >
@@ -130,9 +131,9 @@ function EvaluationItem({
                   </Button>
                 </div>
               ) : (
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
+                <Button
+                  variant="ghost"
+                  size="icon"
                   onClick={() => setShowConfirmDelete(true)}
                   className="h-7 w-7 text-muted-foreground hover:text-rose-500 hover:bg-rose-500/10 rounded-lg transition-colors"
                 >
@@ -167,7 +168,7 @@ function EvaluationItem({
         </div>
       </div>
       {canEdit ? (
-        <Input 
+        <Input
           placeholder="Add optional notes..."
           disabled={['rejected', 'hired'].includes(applicantStatus)}
           value={comment}
@@ -185,22 +186,22 @@ function EvaluationItem({
   );
 }
 
-export function EvaluationCard({ 
-  title, 
-  role, 
-  canEdit, 
-  metrics, 
-  applicantId, 
+export function EvaluationCard({
+  title,
+  role,
+  canEdit,
+  metrics,
+  applicantId,
   userId,
   applicantStatus,
-  onUpdate, 
+  onUpdate,
   onDelete
 }: EvaluationCardProps) {
   const [isAdding, setIsAdding] = useState(false);
   const [newMetricName, setNewMetricName] = useState("");
   const [savingId, setSavingId] = useState<string | null>(null);
 
-  const defaultMetrics = role === 'recruiter' 
+  const defaultMetrics = role === 'recruiter'
     ? ["Communication", "Basic Skills", "Cultural Alignment"]
     : ["Strategic Value", "Leadership Potential", "Final Decision"];
 
@@ -287,8 +288,8 @@ export function EvaluationCard({
           <div className="pt-4">
             {isAdding ? (
               <div className="flex gap-2 animate-in fade-in slide-in-from-top-2 duration-300">
-                <Input 
-                  placeholder="Metric name (e.g. Logic)" 
+                <Input
+                  placeholder="Metric name (e.g. Logic)"
                   value={newMetricName}
                   onChange={(e) => setNewMetricName(e.target.value)}
                   className="h-10 bg-white/5 border-white/10 rounded-xl"
@@ -299,13 +300,13 @@ export function EvaluationCard({
                 </Button>
               </div>
             ) : (
-              <Button 
-                variant="ghost" 
+              <Button
+                variant="ghost"
                 onClick={() => setIsAdding(true)}
                 disabled={['rejected', 'hired'].includes(applicantStatus)}
                 className="w-full h-12 border-2 border-dashed border-white/5 hover:border-primary/30 rounded-2xl text-muted-foreground hover:text-primary transition-all group"
               >
-                <Plus className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" /> 
+                <Plus className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" />
                 Add Custom Metric
               </Button>
             )}

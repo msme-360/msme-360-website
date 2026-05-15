@@ -62,7 +62,6 @@ export default function ProfileViewerClient({ applicant: initialApplicant, initi
   const [isUpdating, setIsUpdating] = useState(false);
   const [showScheduleDialog, setShowScheduleDialog] = useState(false);
   const router = useRouter();
-  const linkedinLink = applicant.links?.find(l => l.label.toLowerCase().includes('linkedin'))?.url;
 
   const handleStatusUpdate = async (status: string) => {
     const previousStatus = applicant.status;
@@ -260,8 +259,16 @@ export default function ProfileViewerClient({ applicant: initialApplicant, initi
                       {(() => {
                         const metadata = (applicant.metadata as Record<string, unknown>) || {};
                         const isHR = userRole === 'hr_manager';
-                        const hasInterview = isHR ? !!metadata.hr_interview_date : !!metadata.interview_date;
-                        return hasInterview ? "Reschedule Meet" : "Schedule Meet";
+                        const interviewDate = isHR ? metadata.hr_interview_date as string : metadata.interview_date as string;
+                        const hasInterview = !!interviewDate;
+
+                        if (hasInterview) {
+                          const isPassed = new Date(interviewDate) < new Date(new Date().setHours(0, 0, 0, 0));
+                          if (isPassed) return "Schedule Meet";
+                          return "Reschedule Meet";
+                        }
+                        
+                        return "Schedule Meet";
                       })()}
                     </Button>
                   )}

@@ -12,6 +12,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useTranslations } from "next-intl";
+import { Label } from "@/components/ui/label";
 
 interface CommunityPostDialogProps {
   isOpen: boolean;
@@ -53,12 +54,12 @@ export default function CommunityPostDialog({
             <Badge variant="outline" className="text-[10px] font-bold uppercase tracking-widest opacity-60 px-0 border-0">Pick a Category</Badge>
             <div className="flex flex-wrap gap-2">
               {['Growth', 'Sales', 'Product', 'Compliance', 'AI'].map(cat => (
-                <label key={cat} className="relative cursor-pointer group">
+                <Label key={cat} className="relative cursor-pointer group">
                   <input type="radio" name="category" value={cat} className="peer sr-only" required />
                   <div className="px-4 py-2 rounded-xl border border-border/50 text-xs font-bold peer-checked:bg-primary peer-checked:text-white peer-checked:border-primary transition-all group-hover:border-primary/30">
                     {cat}
                   </div>
-                </label>
+                </Label>
               ))}
             </div>
           </div>

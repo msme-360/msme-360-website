@@ -5,7 +5,8 @@ import {
   getTasksForVerification, 
   getManagedTeam,
   getTeamReflections,
-  getTeamLeaveRequests
+  getTeamLeaveRequests,
+  getScheduledSyncs
 } from "@/app/[locale]/internal/actions";
 import { getTeamPerformanceStats } from "@/app/[locale]/admin/actions";
 
@@ -14,6 +15,7 @@ import { TeamClient, ReviewTask, TeamPerformance, TeamMember } from "../TeamClie
 import { Reflection } from "../TeamReflectionClient";
 import { LeaveRequest } from "../TeamLeaveClient";
 import { hasPermission } from "@/lib/constants/roles";
+import { Meeting } from "@/types/meeting";
 import { RestrictedAccess } from "@/components/auth/RestrictedAccess";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
@@ -90,6 +92,11 @@ async function TeamPortalContent({
     leaveRequests = await getTeamLeaveRequests(user.id);
   }
 
+  let scheduledSyncs: Meeting[] = [];
+  if (subView === 'performance' || subView === 'syncs') {
+    scheduledSyncs = await getScheduledSyncs();
+  }
+
 
   const teamMembers = await getManagedTeam(user.id);
 
@@ -101,6 +108,7 @@ async function TeamPortalContent({
       initialPerformance={performance}
       initialReflections={reflections}
       initialLeaveRequests={leaveRequests}
+      initialSyncs={scheduledSyncs}
       subView={subView}
       mentorId={user.id}
       userRole={userRole}

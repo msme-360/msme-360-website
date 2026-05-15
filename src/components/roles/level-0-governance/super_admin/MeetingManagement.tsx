@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,23 +13,11 @@ import {
   Search,
   ExternalLink,
   RefreshCw,
-  AlertCircle
+  AlertCircle,
+  Trash2
 } from "lucide-react";
-import { getMeetingData } from "@/app/[locale]/admin/actions";
-import { toast } from "sonner";
+import { Meeting } from "@/types/meeting";
 
-interface Meeting {
-  id: string;
-  userId: string;
-  userName: string;
-  role: string;
-  reviewerName: string;
-  type: string;
-  date: string;
-  time: string;
-  link: string;
-  status: string;
-}
 
 export default function MeetingManagement() {
   const [meetings, setMeetings] = useState<Meeting[]>([]);
@@ -38,7 +26,8 @@ export default function MeetingManagement() {
 
   const fetchMeetings = () => {
     startTransition(async () => {
-      const data = await getMeetingData();
+      const { getRecruitmentMeetings } = await import("@/app/[locale]/admin/actions");
+      const data = await getRecruitmentMeetings();
       setMeetings(data as Meeting[]);
     });
   };
@@ -48,8 +37,8 @@ export default function MeetingManagement() {
   }, []);
 
   const filteredMeetings = meetings.filter(m =>
-    m.userName.toLowerCase().includes(search.toLowerCase()) ||
-    m.role.toLowerCase().includes(search.toLowerCase())
+    (m.userName || "").toLowerCase().includes(search.toLowerCase()) ||
+    (m.role || "").toLowerCase().includes(search.toLowerCase())
   );
 
   const now = new Date();
@@ -57,7 +46,7 @@ export default function MeetingManagement() {
 
   const activeMeetings = filteredMeetings.filter(m => {
     if (m.date !== todayStr) return false;
-    const [h, min] = m.time.split(':').map(Number);
+    const [h, min] = (m.time || "00:00").split(':').map(Number);
     const mTime = new Date();
     mTime.setHours(h, min, 0, 0);
     const diff = Math.abs(now.getTime() - mTime.getTime()) / (1000 * 60);
@@ -137,9 +126,9 @@ export default function MeetingManagement() {
             {pastMeetings.slice(0, 5).map(m => (
               <div key={m.id} className="p-4 rounded-2xl bg-white/[0.02] border border-white/5 flex flex-col gap-1 opacity-60 grayscale hover:grayscale-0 hover:opacity-100 transition-all">
                 <div className="flex items-center justify-between">
-                  <p className="text-sm font-bold truncate">{m.userName}</p>
+                  <p className="text-sm font-bold truncate">{m.userName || "Associate"}</p>
                   <Badge variant="outline" className="text-[8px] py-0 h-4 border-white/5 bg-white/5 text-muted-foreground">
-                    By {m.reviewerName}
+                    By {m.reviewerName || "System"}
                   </Badge>
                 </div>
                 <div className="flex items-center justify-between text-[10px] text-muted-foreground">
@@ -161,8 +150,8 @@ function MeetingCard({ meeting, isActive }: { meeting: Meeting, isActive?: boole
       <CardContent className="p-6 space-y-4">
         <div className="flex items-start justify-between">
           <div className="space-y-1">
-            <p className="text-lg font-bold tracking-tight">{meeting.userName}</p>
-            <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">{meeting.role}</p>
+            <p className="text-lg font-bold tracking-tight">{meeting.userName || "Associate"}</p>
+            <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">{meeting.role || "N/A"}</p>
           </div>
           <Badge className={isActive ? 'bg-rose-500/20 text-rose-400' : 'bg-indigo-500/20 text-indigo-400'}>
             {isActive ? 'In Progress' : 'Scheduled'}
@@ -172,7 +161,7 @@ function MeetingCard({ meeting, isActive }: { meeting: Meeting, isActive?: boole
         <div className="space-y-2">
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <Users className="w-3 h-3" />
-            <span className="truncate">Reviewer: {meeting.reviewerName}</span>
+            <span className="truncate">Reviewer: {meeting.reviewerName || "System"}</span>
           </div>
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <Video className="w-3 h-3" />
@@ -180,7 +169,7 @@ function MeetingCard({ meeting, isActive }: { meeting: Meeting, isActive?: boole
           </div>
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <Clock className="w-3 h-3" />
-            <span>{meeting.time} (IST)</span>
+            <span>{meeting.time || "N/A"} (IST)</span>
           </div>
         </div>
 
@@ -207,25 +196,42 @@ function MeetingListItem({ meeting }: { meeting: Meeting }) {
           <Calendar className="w-5 h-5" />
         </div>
         <div className="min-w-0">
-          <p className="font-bold truncate">{meeting.userName}</p>
+          <p className="font-bold truncate">{meeting.userName || "Associate"}</p>
           <div className="flex items-center gap-2">
-            <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest truncate">{meeting.role} • {meeting.type}</p>
+            <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest truncate">{meeting.role || "N/A"} • {meeting.type}</p>
             <Badge variant="outline" className="text-[8px] py-0 h-4 border-white/5 bg-white/5 text-muted-foreground">
-              By {meeting.reviewerName}
+              By {meeting.reviewerName || "System"}
             </Badge>
           </div>
         </div>
       </div>
       <div className="flex items-center gap-6 shrink-0">
         <div className="text-right hidden md:block">
-          <p className="text-sm font-bold">{meeting.date}</p>
-          <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">{meeting.time} IST</p>
+          <p className="text-sm font-bold">{meeting.date || "N/A"}</p>
+          <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">{meeting.time || "N/A"} IST</p>
         </div>
-        <Button size="icon" variant="ghost" className="rounded-full hover:bg-indigo-500/20 hover:text-indigo-400" asChild>
-          <a href={meeting.link} target="_blank" rel="noopener noreferrer">
-            <Video className="w-4 h-4" />
-          </a>
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button size="icon" variant="ghost" className="rounded-full hover:bg-indigo-500/20 hover:text-indigo-400" asChild>
+            <a href={meeting.link} target="_blank" rel="noopener noreferrer">
+              <Video className="w-4 h-4" />
+            </a>
+          </Button>
+          <Button 
+            size="icon" 
+            variant="ghost" 
+            className="rounded-full hover:bg-rose-500/20 hover:text-rose-400"
+            onClick={async () => {
+              if (confirm("Are you sure you want to terminate this meeting protocol?")) {
+                const { deleteMeeting } = await import("@/app/[locale]/internal/actions");
+                const res = await deleteMeeting(meeting.id, meeting.type);
+                if (res.success) window.location.reload();
+                else alert(res.error);
+              }
+            }}
+          >
+            <Trash2 className="w-4 h-4" />
+          </Button>
+        </div>
       </div>
     </div>
   );
