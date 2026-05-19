@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
   DialogDescription, DialogFooter
@@ -77,7 +77,7 @@ const TIME_SLOTS = Array.from({ length: 24 * 2 }, (_, i) => {
   return h >= 9 && h <= 21 && t <= "21:00"; // 9 AM to 9 PM IST
 });
 
-const getInitialDateTime = () => {
+const getInitialDateTime = useCallback(() => {
   const now = new Date();
   const currentTimeStr = `${now.getHours().toString().padStart(2, "0")}:${now.getMinutes().toString().padStart(2, "0")}`;
   const todaySlots = TIME_SLOTS.filter(slot => slot > currentTimeStr);
@@ -89,7 +89,7 @@ const getInitialDateTime = () => {
     tomorrow.setDate(tomorrow.getDate() + 1);
     return { date: tomorrow, time: TIME_SLOTS[0] };
   }
-};
+}, [TIME_SLOTS]);
 
   const [date, setDate] = useState<Date>();
   const [time, setTime] = useState<string>("10:00");
@@ -108,7 +108,7 @@ const getInitialDateTime = () => {
       }, 0);
       return () => clearTimeout(timer);
     }
-  }, [isOpen, date]); 
+  }, [isOpen, date, getInitialDateTime]); 
 
   const getFilteredTimeSlots = () => {
     if (!date) return TIME_SLOTS;

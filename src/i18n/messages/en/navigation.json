@@ -135,6 +135,7 @@
       "Network Health": "Network Health",
       "Security Audit": "Security Audit",
       "Meeting Desk": "Meeting Desk",
+      "All Org Meetings": "All Org Meetings",
       "Partner Dashboard": "Partner Dashboard",
       "Strategic P&L": "Strategic P&L",
       "Equity Cap Table": "Equity Cap Table",
@@ -255,7 +256,8 @@
       "CEO Strategy": "CEO Strategy",
       "R&D Strategy": "R&D Strategy",
       "Collaboration": "Collaboration",
-      "Meetings Desk": "Meetings Desk"
+      "Meetings Desk": "Meetings Desk",
+      "My 1-on-1 Syncs": "My 1-on-1 Syncs"
     },
     "breadcrumbs": {
       "admin": "Main Hub",

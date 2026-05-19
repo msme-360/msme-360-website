@@ -135,6 +135,7 @@
       "Network Health": "नेटवर्क स्वास्थ्य",
       "Security Audit": "सुरक्षा ऑडिट",
       "Meeting Desk": "मीटिंग डेस्क",
+      "All Org Meetings": "सभी संगठन बैठकें",
       "Partner Dashboard": "पार्टनर डैशबोर्ड",
       "Strategic P&L": "रणनीतिक P&L",
       "Equity Cap Table": "इक्विटी कैप टेबल",
@@ -251,7 +252,8 @@
       "Onboarding Registry": "ऑनबोर्डिंग रजिस्ट्री",
       "Policy Hub": "नीति हब",
       "Collaboration": "सहयोग",
-      "Meetings Desk": "मीटिंग डेस्क"
+      "Meetings Desk": "मीटिंग डेस्क",
+      "My 1-on-1 Syncs": "मेरे व्यक्तिगत 1-ऑन-1 सिंक"
     },
     "breadcrumbs": {
       "admin": "मुख्य हब",

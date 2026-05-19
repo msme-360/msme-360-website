@@ -52,7 +52,7 @@ export const ROLE_NAV_CONFIG: Record<string, (locale: string) => NavGroup[]> = {
         { title: "Global RBAC", icon: Lock, url: `/${l}/admin/roles` },
         { title: "Network Health", icon: Zap, url: `/${l}/admin/tech/super_admin` },
         { title: "Security Audit", icon: History, url: `/${l}/admin/audit/super_admin` },
-        { title: "Meeting Desk", icon: Users, url: `/${l}/admin/governance/super_admin/meetings` },
+        { title: "All Org Meetings", icon: Users, url: `/${l}/admin/governance/super_admin/meetings` },
       ]
     }
   ],
@@ -543,7 +543,7 @@ export function getSharedGroups(roleId: string, locale: string): NavGroup[] {
       label: "Collaboration",
       visible: level >= 0 && level <= 5,
       items: [
-        { title: "Meetings Desk", icon: Calendar, url: `/${locale}/internal/meetings` },
+        { title: "My 1-on-1 Syncs", icon: Calendar, url: `/${locale}/internal/meetings` },
       ]
     },
     {

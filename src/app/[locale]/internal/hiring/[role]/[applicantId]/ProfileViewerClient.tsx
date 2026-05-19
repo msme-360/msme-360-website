@@ -40,6 +40,12 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 
 const ScheduleMeetDialog = dynamic(() => 
@@ -239,14 +245,30 @@ export default function ProfileViewerClient({ applicant: initialApplicant, initi
                 </div>
               </div>
                 <div className="flex flex-wrap items-center gap-2">
-                  <Button variant="outline" className="h-10 rounded-xl border-white/5 bg-white/[0.02] hover:bg-white/[0.05] text-xs font-bold" asChild>
-                    <Link href={`mailto:${applicant.email}`}><Mail className="w-3.5 h-3.5 mr-2" /> Email</Link>
-                  </Button>
-                  {applicant.phone && (
-                    <Button variant="outline" className="h-10 rounded-xl border-white/5 bg-white/[0.02] hover:bg-white/[0.05] text-xs font-bold" asChild>
-                      <Link href={`tel:${applicant.phone}`}><Phone className="w-3.5 h-3.5 mr-2" /> Phone</Link>
-                    </Button>
-                  )}
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button variant="outline" className="h-10 rounded-xl border-white/5 bg-white/[0.02] hover:bg-white/[0.05] text-xs font-bold" asChild>
+                          <Link href={`mailto:${applicant.email}`}><Mail className="w-3.5 h-3.5 mr-2" /> Email</Link>
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent className="glass-card border-white/10 text-xs text-white">
+                        {applicant.email}
+                      </TooltipContent>
+                    </Tooltip>
+                    {applicant.phone && (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button variant="outline" className="h-10 rounded-xl border-white/5 bg-white/[0.02] hover:bg-white/[0.05] text-xs font-bold" asChild>
+                            <Link href={`tel:${applicant.phone}`}><Phone className="w-3.5 h-3.5 mr-2" /> Phone</Link>
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent className="glass-card border-white/10 text-xs text-white">
+                          {applicant.phone}
+                        </TooltipContent>
+                      </Tooltip>
+                    )}
+                  </TooltipProvider>
                   <div className="w-px h-6 bg-white/5 mx-2 hidden md:block" />
                   {!applicant.is_archived && 
                    applicant.status !== 'hired' && 

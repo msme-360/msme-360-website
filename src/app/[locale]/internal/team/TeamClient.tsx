@@ -1,8 +1,8 @@
 "use client";
 
 import {
-  Search, Mail, Linkedin, Award, Zap, Star, Coffee, Heart, Calendar as CalendarIcon,
-  Target
+  Search, Mail, Linkedin, Award, Zap, Star, Coffee,
+  Heart, Calendar as CalendarIcon, Target, Phone
 } from "lucide-react";
 import { InternalScheduleDialog } from "../components/InternalScheduleDialog";
 import { Card, CardContent } from "@/components/ui/card";
@@ -26,6 +26,7 @@ import { Reflection } from "./TeamReflectionClient";
 import { LeaveRequest } from "./TeamLeaveClient";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Meeting } from "@/types/meeting";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 export type TeamMember = Database['public']['Tables']['profiles']['Row'];
 
@@ -234,22 +235,69 @@ export function TeamClient({
                       </p>
                       
                       <div className="flex items-center justify-center gap-3 pt-2">
-                        <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-primary/10 hover:text-primary">
-                          <Mail className="w-4 h-4" />
-                        </Button>
-                        <CreateMissionDialog 
-                          mentorId={mentorId || ""} 
-                          targetUserId={member.id} 
-                          targetUserName={name}
-                          trigger={
-                            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-primary/10 hover:text-primary">
-                              <Target className="w-4 h-4" />
-                            </Button>
-                          }
-                        />
-                        <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-primary/10 hover:text-primary">
-                          <Linkedin className="w-4 h-4" />
-                        </Button>
+                        <TooltipProvider>
+                          {member.email && (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-primary/10 hover:text-primary" asChild>
+                                  <a href={`mailto:${member.email}`}>
+                                    <Mail className="w-4 h-4" />
+                                  </a>
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent className="glass-card border-white/10 text-xs text-white">
+                                {member.email}
+                              </TooltipContent>
+                            </Tooltip>
+                          )}
+                          {member.phone && (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-primary/10 hover:text-primary" asChild>
+                                  <a href={`tel:${member.phone}`}>
+                                    <Phone className="w-4 h-4" />
+                                  </a>
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent className="glass-card border-white/10 text-xs text-white">
+                                {member.phone}
+                              </TooltipContent>
+                            </Tooltip>
+                          )}
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div>
+                                <CreateMissionDialog 
+                                  mentorId={mentorId || ""} 
+                                  targetUserId={member.id} 
+                                  targetUserName={name}
+                                  trigger={
+                                    <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-primary/10 hover:text-primary">
+                                      <Target className="w-4 h-4" />
+                                    </Button>
+                                  }
+                                />
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent className="glass-card border-white/10 text-xs text-white">
+                              Assign Mission
+                            </TooltipContent>
+                          </Tooltip>
+                          {member.linkedin_url && (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-primary/10 hover:text-primary" asChild>
+                                  <a href={member.linkedin_url} target="_blank" rel="noopener noreferrer">
+                                    <Linkedin className="w-4 h-4" />
+                                  </a>
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent className="glass-card border-white/10 text-xs text-white">
+                                LinkedIn Profile
+                              </TooltipContent>
+                            </Tooltip>
+                          )}
+                        </TooltipProvider>
                       </div>
                    </div>
                 </CardContent>
