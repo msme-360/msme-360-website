@@ -138,7 +138,7 @@ export function TeamClient({
         badgeLabel="CULTURE DEPTH"
         authorityLevel="L2 Manager"
       >
-        <div className="flex flex-col items-center justify-center py-24 border-2 border-dashed border-white/5 rounded-3xl bg-white/[0.01] animate-in fade-in zoom-in duration-500">
+        <div className="flex flex-col items-center justify-center py-24 border-2 border-dashed border-white/5 rounded-3xl bg-white/1 animate-in fade-in zoom-in duration-500">
           <div className="p-5 bg-white/5 rounded-full mb-6 relative">
             <div className="absolute inset-0 bg-primary/20 blur-xl rounded-full" />
             <div className="w-10 h-10 border-2 border-primary border-t-transparent rounded-full animate-spin" />
@@ -160,6 +160,13 @@ export function TeamClient({
       authorityLevel={userRole === 'hr_manager' ? "L4 Human Resources" : "Personnel View"}
       actions={
         <div className="flex items-center gap-3">
+          <div className="relative group w-full md:w-64">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+            <Input 
+              placeholder={t("search")} 
+              className="pl-9 h-9 text-xs glass-card bg-background/50 border-white/10 rounded-xl focus:ring-primary/20 transition-all" 
+            />
+          </div>
           <AssignPersonnelDialog managerId={mentorId || ""} userRole={userRole} />
           <CreateMissionDialog 
             mentorId={mentorId || ""} 
@@ -179,17 +186,6 @@ export function TeamClient({
     >
 
       <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-20">
-        <div className="flex items-center justify-center gap-4 max-w-xl mx-auto mb-10">
-          <div className="relative flex-1 group">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
-            <Input 
-              placeholder={t("search")} 
-              className="pl-10 h-11 glass-card bg-background/50 border-white/10 rounded-xl focus:ring-primary/20 transition-all" 
-            />
-          </div>
-          <Button className="h-11 px-8 shadow-glow font-bold rounded-xl">{t("discover")}</Button>
-        </div>
-
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {displayTeam.map((member) => {
             const name = member.full_name || "Team Member";
@@ -301,39 +297,9 @@ export function TeamClient({
                       </div>
                    </div>
                 </CardContent>
-                <div className="px-6 py-3 bg-muted/30 border-t border-border/50 flex items-center justify-around">
-                   <div className="flex items-center flex-col gap-0.5">
-                      <Award className="w-4 h-4 text-primary" />
-                      <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-tighter">Leader</span>
-                   </div>
-                   <div className="flex items-center flex-col gap-0.5">
-                      <Zap className="w-4 h-4 text-accent" />
-                      <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-tighter">Rapid</span>
-                   </div>
-                   <div className={`flex items-center flex-col gap-0.5`}>
-                      <Star className="w-4 h-4 text-orange-500" />
-                      <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-tighter">Expert</span>
-                   </div>
-                </div>
               </Card>
             );
           })}
-        </div>
-
-        <div className="glass-card p-10 border-primary/20 relative overflow-hidden mt-10">
-          <div className="absolute top-0 right-0 p-4 opacity-5">
-             <Heart className="w-32 h-32 text-primary" />
-          </div>
-          <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
-            <div className="space-y-2">
-               <h2 className="text-3xl font-display font-bold">{t("cta")}</h2>
-               <p className="text-muted-foreground">{t("ctaSub")}</p>
-            </div>
-            <Button size="lg" className="shadow-lg hover:shadow-primary/50 transition-all font-bold group">
-              {t("ctaButton")}
-              <Zap className="ml-2 w-4 h-4 group-hover:scale-125 transition-transform" />
-            </Button>
-          </div>
         </div>
 
         <div className="flex items-center justify-center gap-8 py-4 opacity-50 grayscale hover:grayscale-0 transition-all cursor-default mt-10">
@@ -348,6 +314,7 @@ export function TeamClient({
         onOpenChange={setIsScheduleOpen}
         isGoogleConnected={isGoogleConnected}
         currentUserRole={userRole}
+        teamMembers={displayTeam.map(m => ({ id: m.id, full_name: m.full_name, role: m.role, avatar_url: m.avatar_url }))}
       />
     </AdminViewWrapper>
   );

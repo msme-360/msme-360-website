@@ -35,8 +35,7 @@ export async function logAttendance(userId: string, type: 'in' | 'out') {
       .from('attendance_logs')
       .insert({ 
         user_id: userId, 
-        check_in: new Date().toISOString(),
-        metadata: { client_validated: true, source: 'Internal Portal' }
+        check_in: new Date().toISOString()
       })
       .select()
       .single();

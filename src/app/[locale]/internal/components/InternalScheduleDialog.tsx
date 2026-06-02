@@ -28,13 +28,15 @@ interface InternalScheduleDialogProps {
   onOpenChange: (open: boolean) => void;
   isGoogleConnected?: boolean;
   currentUserRole: string;
+  teamMembers?: Array<{ id: string; full_name?: string | null; role?: string | null; avatar_url?: string | null }>;
 }
 
 export function InternalScheduleDialog({
   isOpen,
   onOpenChange,
   isGoogleConnected = false,
-  currentUserRole
+  currentUserRole,
+  teamMembers
 }: InternalScheduleDialogProps) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -47,6 +49,11 @@ export function InternalScheduleDialog({
   const [isLoadingUsers, setIsLoadingUsers] = useState(false);
 
   const loadUsers = useCallback(async () => {
+    if (teamMembers && teamMembers.length > 0) {
+      setAvailableUsers(teamMembers);
+      return;
+    }
+
     setIsLoadingUsers(true);
     try {
       let users = [];
@@ -61,7 +68,7 @@ export function InternalScheduleDialog({
     } finally {
       setIsLoadingUsers(false);
     }
-  }, [currentUserRole]);
+  }, [currentUserRole, teamMembers]);
 
   useEffect(() => {
     if (isOpen) {
@@ -176,8 +183,8 @@ export function InternalScheduleDialog({
         }, 300);
       }
     }}>
-      <DialogContent className="sm:max-w-[500px] glass-card border-white/10 p-0 overflow-hidden shadow-2xl">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-indigo-500/10 pointer-events-none" />
+      <DialogContent className="sm:max-w-125 glass-card border-white/10 p-0 overflow-hidden shadow-2xl">
+        <div className="absolute inset-0 bg-linear-to-br from-primary/10 via-transparent to-indigo-500/10 pointer-events-none" />
 
         <DialogHeader className="p-8 pb-4">
           <div className="flex items-center gap-3 mb-2">
@@ -362,7 +369,7 @@ export function InternalScheduleDialog({
                   placeholder="Sync agenda..."
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  className="bg-white/5 border-white/10 rounded-xl min-h-[80px]"
+                  className="bg-white/5 border-white/10 rounded-xl min-h-20"
                 />
               </div>
             </div>
