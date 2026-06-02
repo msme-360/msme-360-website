@@ -20,6 +20,7 @@ import { TeamReflectionClient } from "./TeamReflectionClient";
 import { TeamLeaveClient } from "./TeamLeaveClient";
 import CreateMissionDialog from "./components/CreateMissionDialog";
 import AssignPersonnelDialog from "./components/AssignPersonnelDialog";
+import { TerminatePersonnelDialog } from "./components/TerminatePersonnelDialog";
 import { OnboardingRegistry } from "./components/OnboardingRegistry";
 import { PolicyHub } from "./components/PolicyHub";
 import { Reflection } from "./TeamReflectionClient";
@@ -203,9 +204,10 @@ export function TeamClient({
           {displayTeam.map((member) => {
             const name = member.full_name || "Team Member";
             const role = member.role || "Executive";
-            const dept = "Operations";
+            const dept = member.department || "Operations";
             
             const isActive = initialAttendance.some(a => a.user_id === member.id && !a.check_out);
+            const canTerminate = ['hr_manager', 'super_admin', 'board_member', 'managing_partner', 'ceo', 'cto', 'cfo', 'coo', 'cmo', 'chro', 'cio'].includes(userRole) || userRole.startsWith('director_') || userRole.startsWith('vp_');
             
             return (
               <Card key={member.id} className={`glass-card hover:scale-[1.02] transition-all duration-300 group overflow-hidden border-border/50 ${isActive ? 'ring-1 ring-emerald-500/50' : ''}`}>
@@ -303,6 +305,22 @@ export function TeamClient({
                               </TooltipTrigger>
                               <TooltipContent className="glass-card border-white/10 text-xs hover:text-white">
                                 LinkedIn Profile
+                              </TooltipContent>
+                            </Tooltip>
+                          )}
+                          
+                          {canTerminate && (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <div>
+                                  <TerminatePersonnelDialog 
+                                    targetUserId={member.id}
+                                    targetUserName={name}
+                                  />
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent className="glass-card border-red-500/20 text-xs text-red-400">
+                                Terminate Personnel
                               </TooltipContent>
                             </Tooltip>
                           )}

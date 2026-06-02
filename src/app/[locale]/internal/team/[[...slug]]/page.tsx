@@ -98,7 +98,7 @@ async function TeamPortalContent({
   }
 
 
-  const teamMembers = await getManagedTeam(user.id);
+  const teamMembers = await getManagedTeam(user.id, userRole);
 
   return (
     <TeamClient 
@@ -129,7 +129,7 @@ function TeamPortalSkeleton() {
         <Skeleton className="h-32 w-full" />
         <Skeleton className="h-32 w-full" />
       </div>
-      <Skeleton className="h-[500px] w-full mt-8" />
+      <Skeleton className="h-125 w-full mt-8" />
     </div>
   );
 }

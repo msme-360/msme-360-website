@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { getTeamPerformanceStats as getStats } from "../admin/actions-modules/executive";
 import { oauth2Client, createCalendarEvent } from "@/lib/google-calendar";
 import { getUser } from "@/services/supabase/supabase-server";
+import { sendEmail } from "@/lib/email";
 
 export const getTeamPerformanceStats = getStats;
 
@@ -575,8 +576,20 @@ export async function getPerformanceTrends(userId: string) {
   return trendData.reverse();
 }
 
-export async function getManagedTeam(managerId: string) {
+export async function getManagedTeam(managerId: string, userRole?: string) {
   const supabase = await createServiceClient();
+  
+  if (userRole === 'hr_manager' || userRole === 'super_admin') {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('role', 'intern')
+      .order('full_name', { ascending: true });
+      
+    if (error) return [];
+    return data || [];
+  }
+
   const { data, error } = await supabase
     .from('profiles')
     .select('*')
@@ -1053,4 +1066,132 @@ export async function rescheduleMeeting(meetingId: string, type: string, date: s
     const { scheduleInterview } = await import("../admin/actions-modules/hiring");
     return scheduleInterview(applicantId, date, time, 'none');
   }
+}
+
+export async function terminatePersonnel(targetUserId: string, reason: string) {
+  const verifiedUser = await getUser();
+  if (!verifiedUser) return { success: false, error: "Unauthorized" };
+
+  const supabase = await createServiceClient();
+
+  // 1. Check Authority Level
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', verifiedUser.id)
+    .single();
+
+  if (!profile) {
+    return { success: false, error: "Failed to verify authority." };
+  }
+  
+  const { STARTUP_ROLES } = await import('@/lib/constants/roles');
+  const roleDef = STARTUP_ROLES[profile.role] || STARTUP_ROLES.user;
+  
+  if (roleDef.level > 3) {
+    return { success: false, error: "Insufficient authority to terminate personnel." };
+  }
+
+  // 2. Get Target Details
+  const { data: targetUser } = await supabase
+    .from('profiles')
+    .select('email, full_name, role')
+    .eq('id', targetUserId)
+    .single();
+
+  if (!targetUser) {
+    return { success: false, error: "Target personnel not found." };
+  }
+
+  // 3. Perform Soft Termination
+  const { error: updateError } = await supabase
+    .from('profiles')
+    .update({ 
+      is_verified: false, 
+      role: 'terminated',
+      department: 'Terminated',
+      designation: 'Terminated'
+    })
+    .eq('id', targetUserId);
+
+  if (updateError) {
+    return { success: false, error: updateError.message };
+  }
+
+  // Also try to update intern_applications if they were an intern
+  await supabase
+    .from('intern_applications')
+    .update({ status: 'rejected' })
+    .eq('email', targetUser.email);
+
+  // 4. Log the action
+  await supabase.from('system_logs').insert({
+    action: 'PERSONNEL_TERMINATION',
+    target: targetUser.full_name,
+    user_id: verifiedUser.id,
+    status: 'success'
+  });
+
+  // 5. Send Email
+  if (targetUser.email) {
+    const logoUrl = "https://dvawendqtpulzildqyqw.supabase.co/storage/v1/object/sign/Logo/icon-512.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV81NTA4ZGQ3NS1hNWM2LTQ2Y2UtYTQ5OC1lZjMzMmM4YzI0NDIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJMb2dvL2ljb24tNTEyLnBuZyIsImlhdCI6MTc3NzYxNDE3MCwiZXhwIjoxODA5MTUwMTcwfQ.jzlv1Da1ObeCD3mZHEleQFL77eZKItbXWTjLITEqu0o";
+    const websiteUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://msme360.vercel.app";
+
+    const baseStyle = "font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f8fafc; margin: 0; padding: 0;";
+    const containerStyle = "max-width: 600px; margin: 40px auto; background: #ffffff; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);";
+    const headerStyle = "padding: 40px 20px; text-align: center; background: linear-gradient(135deg, #ffffff 0%, #fef2f2 100%); border-bottom: 1px solid #fee2e2;";
+    const contentStyle = "padding: 40px; text-align: left;";
+    const footerStyle = "padding: 30px; text-align: center; font-size: 12px; color: #64748b; background: #f8fafc;";
+    const btnStyle = "display: inline-block; padding: 14px 32px; background-color: #dc2626; color: #ffffff !important; text-decoration: none; border-radius: 8px; font-weight: 600; margin-top: 24px; transition: all 0.2s; text-align: center;";
+    const h1Style = "color: #b91c1c; font-size: 24px; margin-bottom: 16px; margin-top: 0; text-align: center;";
+    const pStyle = "color: #475569; line-height: 1.6; font-size: 16px; margin-bottom: 16px;";
+    const logoStyle = "height: 64px; margin-bottom: 20px;";
+
+    const emailHtml = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contract Termination Notice</title>
+</head>
+<body style="${baseStyle}">
+  <div style="${containerStyle}">
+    <div style="${headerStyle}">
+      <img src="${logoUrl}" alt="MSME360 Logo" style="${logoStyle}">
+    </div>
+    <div style="${contentStyle}">
+      <h1 style="${h1Style}">Contract Termination Notice</h1>
+      <p style="${pStyle}">Dear <strong>${targetUser.full_name}</strong>,</p>
+      <p style="${pStyle}">This email serves as formal notice that your association with MSME 360 has been terminated, effective immediately.</p>
+      
+      <p style="${pStyle}"><strong>Reason for Termination:</strong></p>
+      <div style="background: #fef2f2; border-left: 4px solid #ef4444; padding: 16px; margin: 16px 0; border-radius: 0 8px 8px 0;">
+        <p style="margin: 0; color: #991b1b; font-style: italic; font-size: 15px;">${reason}</p>
+      </div>
+      
+      <p style="${pStyle}">Your access to all internal platforms and resources has been revoked. If you have any pending queries regarding your final settlement or offboarding process, please reach out to Human Resources.</p>
+      
+      <div style="text-align: center;">
+        <a href="mailto:contact.msme360@gmail.com" style="${btnStyle}">Contact HR Department</a>
+      </div>
+    </div>
+    <div style="${footerStyle}">
+      <p style="margin: 0;">&copy; 2026 MSME360. All rights reserved.</p>
+      <p style="margin: 8px 0 0 0;">This is an automated administrative notification from <a href="${websiteUrl}" style="color: #2563eb; text-decoration: none;">MSME360</a>.</p>
+    </div>
+  </div>
+</body>
+</html>
+    `;
+
+    await sendEmail({
+      to: targetUser.email,
+      subject: "MSME 360: Contract Termination Notice",
+      html: emailHtml
+    });
+  }
+
+  revalidatePath('/[locale]/internal/team', 'page');
+  return { success: true };
 }

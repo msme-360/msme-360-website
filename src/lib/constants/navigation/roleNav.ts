@@ -281,6 +281,7 @@ export const ROLE_NAV_CONFIG: Record<string, (locale: string) => NavGroup[]> = {
       visible: true,
       items: [
         { title: "Personnel Hub", icon: Users, url: `/${l}/internal/manager/hr_manager` },
+        { title: "Personnel Registry", icon: Users, url: `/${l}/internal/team/hr_manager/directory` },
         { title: "Recruit Pipeline", icon: UserPlus, url: `/${l}/internal/hiring/hr_manager` },
         { title: "Mission Reviews", icon: ClipboardCheck, url: `/${l}/internal/team/hr_manager/reviews` },
         { title: "Team Attendance", icon: Clock, url: `/${l}/internal/team/hr_manager/attendance` },
