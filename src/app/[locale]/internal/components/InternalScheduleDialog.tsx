@@ -289,6 +289,14 @@ export function InternalScheduleDialog({
                     <SelectValue placeholder={isLoadingUsers ? "Loading users..." : "Select person"} />
                   </SelectTrigger>
                   <SelectContent className="glass-card border-white/10">
+                    <SelectItem value="all">
+                      <div className="flex items-center gap-2">
+                        <Avatar className="w-5 h-5">
+                          <AvatarFallback>ALL</AvatarFallback>
+                        </Avatar>
+                        <span className="text-xs">All Team Members</span>
+                      </div>
+                    </SelectItem>
                     {availableUsers.map(user => (
                       <SelectItem key={user.id} value={user.id}>
                         <div className="flex items-center gap-2">

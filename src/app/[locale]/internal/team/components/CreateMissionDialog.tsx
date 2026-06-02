@@ -88,7 +88,7 @@ export default function CreateMissionDialog({
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="glass-card border-white/10 text-white sm:max-w-[500px]">
+      <DialogContent className="glass-card border-white/10 text-white sm:max-w-125">
         <DialogHeader>
           <div className="flex items-center gap-3 mb-2">
             <div className="p-2 bg-primary/10 rounded-lg">
@@ -124,6 +124,11 @@ export default function CreateMissionDialog({
                   </div>
                 </SelectTrigger>
                 <SelectContent className="bg-[#0A0A0B] border-white/10 text-white">
+                  <SelectItem value="all">
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-primary">All Team Members</span>
+                    </div>
+                  </SelectItem>
                   {teamMembers.map(member => (
                     <SelectItem key={member.id} value={member.id}>
                       {member.full_name}
@@ -150,7 +155,7 @@ export default function CreateMissionDialog({
               value={newTask.description}
               onChange={e => setNewTask(prev => ({ ...prev, description: e.target.value }))}
               placeholder="Provide specific instructions, technical requirements, or context for this mission..."
-              className="bg-white/5 border-white/10 min-h-[120px] focus:ring-primary/20 resize-none"
+              className="bg-white/5 border-white/10 min-h-30 focus:ring-primary/20 resize-none"
             />
           </div>
 

@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useTranslations } from "next-intl";
 import { Database } from "@/types/supabase";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { AdminViewWrapper } from "@/components/layout/AdminViewWrapper";
 import { AttendanceLogClient, AttendanceLog } from "@/app/[locale]/admin/attendance/AttendanceLogClient";
 import { PerformanceClient } from "./PerformanceClient";
@@ -27,6 +27,7 @@ import { LeaveRequest } from "./TeamLeaveClient";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Meeting } from "@/types/meeting";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import Link from "next/link";
 
 export type TeamMember = Database['public']['Tables']['profiles']['Row'];
 
@@ -86,7 +87,17 @@ export function TeamClient({
 
   const t = useTranslations("Admin.team");
   const [isScheduleOpen, setIsScheduleOpen] = useState(false);
-  const displayTeam = initialTeam;
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const displayTeam = useMemo(() => {
+    if (!searchTerm) return initialTeam;
+    const lowerSearch = searchTerm.toLowerCase();
+    return initialTeam.filter(m => 
+      m.full_name?.toLowerCase().includes(lowerSearch) ||
+      m.role?.toLowerCase().includes(lowerSearch) ||
+      m.email?.toLowerCase().includes(lowerSearch)
+    );
+  }, [initialTeam, searchTerm]);
 
   if (subView === 'attendance') {
     return <AttendanceLogClient initialAttendance={initialAttendance as AttendanceLog[]} />;
@@ -164,6 +175,8 @@ export function TeamClient({
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
             <Input 
               placeholder={t("search")} 
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-9 h-9 text-xs glass-card bg-background/50 border-white/10 rounded-xl focus:ring-primary/20 transition-all" 
             />
           </div>
@@ -236,12 +249,12 @@ export function TeamClient({
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-primary/10 hover:text-primary" asChild>
-                                  <a href={`mailto:${member.email}`}>
+                                  <Link href={`mailto:${member.email}`}>
                                     <Mail className="w-4 h-4" />
-                                  </a>
+                                  </Link>
                                 </Button>
                               </TooltipTrigger>
-                              <TooltipContent className="glass-card border-white/10 text-xs text-white">
+                              <TooltipContent className="glass-card border-white/10 text-xs hover:text-white">
                                 {member.email}
                               </TooltipContent>
                             </Tooltip>
@@ -250,12 +263,12 @@ export function TeamClient({
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-primary/10 hover:text-primary" asChild>
-                                  <a href={`tel:${member.phone}`}>
+                                  <Link href={`tel:${member.phone}`}>
                                     <Phone className="w-4 h-4" />
-                                  </a>
+                                  </Link>
                                 </Button>
                               </TooltipTrigger>
-                              <TooltipContent className="glass-card border-white/10 text-xs text-white">
+                              <TooltipContent className="glass-card border-white/10 text-xs hover:text-white">
                                 {member.phone}
                               </TooltipContent>
                             </Tooltip>
@@ -275,7 +288,7 @@ export function TeamClient({
                                 />
                               </div>
                             </TooltipTrigger>
-                            <TooltipContent className="glass-card border-white/10 text-xs text-white">
+                            <TooltipContent className="glass-card border-white/10 text-xs hover:text-white">
                               Assign Mission
                             </TooltipContent>
                           </Tooltip>
@@ -288,7 +301,7 @@ export function TeamClient({
                                   </a>
                                 </Button>
                               </TooltipTrigger>
-                              <TooltipContent className="glass-card border-white/10 text-xs text-white">
+                              <TooltipContent className="glass-card border-white/10 text-xs hover:text-white">
                                 LinkedIn Profile
                               </TooltipContent>
                             </Tooltip>

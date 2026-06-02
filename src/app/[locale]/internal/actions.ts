@@ -33,8 +33,8 @@ export async function logAttendance(userId: string, type: 'in' | 'out') {
 
     const { data, error } = await supabase
       .from('attendance_logs')
-      .insert({ 
-        user_id: userId, 
+      .insert({
+        user_id: userId,
         check_in: new Date().toISOString()
       })
       .select()
@@ -60,7 +60,7 @@ export async function logAttendance(userId: string, type: 'in' | 'out') {
 
     const { data, error } = await supabase
       .from('attendance_logs')
-      .update({ 
+      .update({
         check_out: new Date().toISOString()
       })
       .eq('id', activeLog.id)
@@ -100,18 +100,48 @@ export async function createTask(data: {
   due_date?: string;
 }) {
   const supabase = await createServiceClient();
-  const { data: task, error } = await supabase.from('tasks').insert(data).select().single();
+  
+  let targetUserIds = [data.assigned_to];
+  
+  if (data.assigned_to === 'all') {
+    const { data: team } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('manager_id', data.assigned_by);
+      
+    if (team && team.length > 0) {
+      targetUserIds = team.map(t => t.id);
+    } else {
+      return { success: false, error: "No team members found to assign the mission." };
+    }
+  }
+
+  const tasksToInsert = targetUserIds.map(userId => ({
+    title: data.title,
+    description: data.description,
+    assigned_to: userId,
+    assigned_by: data.assigned_by,
+    priority: data.priority,
+    status: data.status,
+    due_date: data.due_date
+  }));
+
+  const { data: createdTasks, error } = await supabase.from('tasks').insert(tasksToInsert).select();
 
   if (error) return { success: false, error: error.message };
 
-  // Log creation
-  await supabase.from('task_logs').insert({
+  // Log creation for each
+  const logsToInsert = (createdTasks || []).map(task => ({
     task_id: task.id,
     actor_id: data.assigned_by,
     action: 'created',
     new_status: data.status || 'pending',
     payload: { title: data.title }
-  });
+  }));
+  
+  if (logsToInsert.length > 0) {
+    await supabase.from('task_logs').insert(logsToInsert);
+  }
 
   revalidatePath('/[locale]/internal/manager', 'page');
   return { success: true };
@@ -135,7 +165,7 @@ export async function getTasks(userId?: string) {
 
 export async function updateTaskStatus(taskId: string, status: string, actorId?: string) {
   const supabase = await createServiceClient();
-  
+
   // Get previous status for logging
   const { data: prev } = await supabase.from('tasks').select('status').eq('id', taskId).single();
 
@@ -178,14 +208,14 @@ export async function getTasksForVerification(mentorId: string) {
 
 export async function handlePoWReview(taskId: string, decision: 'verified' | 'rejected', feedback: string, mentorId: string) {
   const supabase = await createServiceClient();
-  
+
   // 1. Update task status and verification fields
   // 'Done' if verified, 'In Progress' if rejected (to allow re-submission)
   const status = decision === 'verified' ? 'Done' : 'In Progress';
-  
+
   const { error: taskError } = await supabase
     .from('tasks')
-    .update({ 
+    .update({
       status,
       verification_status: decision,
       mentor_feedback: feedback,
@@ -247,7 +277,7 @@ export async function getCommendations(userId: string) {
 export async function updateTaskPoW(taskId: string, proofOfWork: string) {
   const supabase = await createServiceClient();
   const updateData: { proof_of_work: string; status?: 'pending' | 'in_progress' | 'completed' | 'blocked' | 'pending_verification' } = { proof_of_work: proofOfWork };
-  
+
   // If PoW is provided, transition to pending verification instead of auto-completion
   if (proofOfWork && proofOfWork.trim().length > 0) {
     updateData.status = 'pending_verification';
@@ -269,9 +299,9 @@ export async function updateTaskBlocker(taskId: string, blockerReason: string) {
   const supabase = await createServiceClient();
   const { error } = await supabase
     .from('tasks')
-    .update({ 
+    .update({
       status: 'blocked',
-      blocker_reason: blockerReason 
+      blocker_reason: blockerReason
     })
     .eq('id', taskId);
 
@@ -286,9 +316,9 @@ export async function resolveTaskBlocker(taskId: string, resolutionNote: string)
   const supabase = await createServiceClient();
   const { error } = await supabase
     .from('tasks')
-    .update({ 
+    .update({
       status: 'in_progress',
-      resolution_note: resolutionNote 
+      resolution_note: resolutionNote
     })
     .eq('id', taskId);
 
@@ -408,22 +438,22 @@ export async function getOnboardingChecklist(userId: string) {
     .order('created_at', { ascending: true });
 
   if (error) return [];
-  
+
   // Map database structure to UI OnboardingItem interface
   return (data || []).map(item => {
     const [rawCategory, ...rest] = item.task_name.split(': ');
     const itemText = rest.length > 0 ? rest.join(': ') : item.task_name;
-    
+
     // Map prefix to specific category enum for UI grouping
     let category: 'ACCOUNT' | 'LEGAL' | 'TECHNICAL' | 'INFRASTRUCTURE' | 'general' = 'general';
     const prefix = rawCategory.toUpperCase();
-    
+
     if (prefix === 'ACCOUNT') category = 'ACCOUNT';
     else if (prefix === 'LEGAL') category = 'LEGAL';
     else if (prefix === 'DEPT') category = 'TECHNICAL';
     else if (prefix === 'TECHNICAL') category = 'TECHNICAL';
     else if (prefix === 'INFRASTRUCTURE') category = 'INFRASTRUCTURE';
-    
+
     return {
       id: item.id,
       item_text: itemText,
@@ -453,8 +483,8 @@ export async function getPerformanceData(userId: string) {
   const supabase = await createServiceClient();
 
   const [
-    { data: metrics }, 
-    { data: tasks }, 
+    { data: metrics },
+    { data: tasks },
     { data: attendance },
     { data: commendations }
   ] = await Promise.all([
@@ -463,7 +493,7 @@ export async function getPerformanceData(userId: string) {
     supabase.from('attendance_logs').select('check_in').eq('user_id', userId),
     supabase.from('commendations').select('*, mentor:profiles(full_name)').eq('user_id', userId).order('created_at', { ascending: false })
   ]);
-  
+
   const totalTasks = tasks?.length || 0;
   const completedTasks = tasks?.filter(t => t.status === 'completed').length || 0;
   const inProgressTasks = tasks?.filter(t => t.status === 'in_progress').length || 0;
@@ -673,13 +703,13 @@ export async function requestLeave(data: {
 
 export async function getTeamReflections(managerId: string) {
   const supabase = await createServiceClient();
-  
+
   // 1. Get managed user IDs
   const { data: team } = await supabase
     .from('profiles')
     .select('id')
     .eq('manager_id', managerId);
-    
+
   if (!team || team.length === 0) return [];
   const teamIds = team.map(m => m.id);
 
@@ -699,13 +729,13 @@ export async function getTeamReflections(managerId: string) {
 
 export async function getTeamLeaveRequests(managerId: string) {
   const supabase = await createServiceClient();
-  
+
   // 1. Get managed user IDs
   const { data: team } = await supabase
     .from('profiles')
     .select('id')
     .eq('manager_id', managerId);
-    
+
   if (!team || team.length === 0) return [];
   const teamIds = team.map(m => m.id);
 
@@ -730,7 +760,7 @@ export async function updateLeaveStatus(requestId: string, status: 'approved' | 
   const supabase = await createServiceClient();
   const { error } = await supabase
     .from('leave_requests')
-    .update({ 
+    .update({
       status,
       reviewed_by: verifiedUser.id,
       reviewed_at: new Date().toISOString()
@@ -752,7 +782,7 @@ export async function getInternProfiles() {
     .from("profiles")
     .select("id, full_name, role, department, avatar_url")
     .eq("role", "intern");
-  
+
   return data || [];
 }
 
@@ -762,7 +792,7 @@ export async function getMentorProfiles() {
     .from("profiles")
     .select("id, full_name, role, department, avatar_url")
     .in("role", ["team_lead", "manager", "super_admin", "supervisor"]);
-  
+
   return data || [];
 }
 
@@ -778,15 +808,30 @@ export async function scheduleInternalMeeting(data: {
   if (!verifiedUser) return { success: false, error: "Unauthorized" };
 
   const supabase = await createServiceClient();
-  
-  // 1. Get target user email
-  const { data: targetUser } = await supabase
-    .from("profiles")
-    .select("email, full_name")
-    .eq("id", data.targetUserId)
-    .single();
-  
-  if (!targetUser) return { success: false, error: "Target user not found" };
+
+  let attendees: string[] = [];
+  let targetUserName = "All Team Members";
+
+  if (data.targetUserId === "all") {
+    const { data: interns } = await supabase
+      .from("profiles")
+      .select("email")
+      .eq("manager_id", verifiedUser.id);
+    if (interns) {
+      attendees = interns.map(i => i.email).filter(Boolean) as string[];
+    }
+  } else {
+    // 1. Get target user email
+    const { data: targetUser } = await supabase
+      .from("profiles")
+      .select("email, full_name")
+      .eq("id", data.targetUserId)
+      .single();
+
+    if (!targetUser) return { success: false, error: "Target user not found" };
+    if (targetUser.email) attendees.push(targetUser.email);
+    targetUserName = targetUser.full_name || "Unknown";
+  }
 
   // 2. Get current user google tokens
   const { data: { user } } = await supabase.auth.admin.getUserById(verifiedUser.id);
@@ -800,18 +845,18 @@ export async function scheduleInternalMeeting(data: {
   else if (data.repeat === 'monthly') recurrence = ['RRULE:FREQ=MONTHLY;COUNT=6'];
 
   let eventId: string | null = null;
-  if (googleTokens) {
+  if (googleTokens && attendees.length > 0) {
     try {
       oauth2Client.setCredentials(googleTokens);
       const startTime = new Date(`${data.date}T${data.time}:00+05:30`);
       const endTime = new Date(startTime.getTime() + 30 * 60000); // Default 30 mins
-      
+
       const event = await createCalendarEvent(oauth2Client, {
         summary: data.title,
         description: data.description || `Internal Sync via MSME360 Portal`,
         startTime: startTime.toISOString(),
         endTime: endTime.toISOString(),
-        attendees: [targetUser.email || ""],
+        attendees: attendees,
         recurrence
       });
       if (event.hangoutLink) meetLink = event.hangoutLink;
@@ -825,10 +870,10 @@ export async function scheduleInternalMeeting(data: {
   const { error } = await supabase
     .from('mentorship_bookings')
     .insert({
-      mentee_id: data.targetUserId,
+      mentee_id: data.targetUserId === "all" ? null : data.targetUserId,
       mentor_name: user?.user_metadata?.full_name || "System",
       expertise: `${data.title} || ${meetLink} || ${eventId || ''}`,
-      scheduled_at: `${data.date}T${data.time}:00Z`,
+      scheduled_at: new Date(`${data.date}T${data.time}:00+05:30`).toISOString(),
       status: 'confirmed'
     });
 
@@ -837,10 +882,10 @@ export async function scheduleInternalMeeting(data: {
   revalidatePath('/[locale]/internal/team', 'page');
   revalidatePath('/[locale]/internal/associate', 'page');
 
-  return { 
-    success: true, 
-    meetLink, 
-    isRealGoogleMeet: !!googleTokens 
+  return {
+    success: true,
+    meetLink,
+    isRealGoogleMeet: !!googleTokens
   };
 }
 import * as googleAuth from "../admin/actions-modules/google-auth";
@@ -873,7 +918,7 @@ export async function getScheduledSyncs(userId?: string) {
   }
 
   const { data } = await query;
-  
+
   return (data || []).map(m => {
     const [title, link] = m.expertise.split(' || ');
     return {
@@ -966,7 +1011,7 @@ export async function updateMeetingStatus(meetingId: string, type: string, statu
       const meta = { ...(app.metadata as Record<string, unknown>) };
       if (type === 'Technical Interview') meta.interview_status = status;
       else if (type === 'HR Interview') meta.hr_interview_status = status;
-      
+
       const { error } = await supabase.from('intern_applications').update({ metadata: meta }).eq('id', applicantId);
       if (error) return { success: false, error: error.message };
     }
@@ -999,7 +1044,7 @@ export async function rescheduleMeeting(meetingId: string, type: string, date: s
       description: `Rescheduled meeting.`,
       date,
       time,
-      repeat: 'none' 
+      repeat: 'none'
     });
   } else {
     // For recruitment interviews, use the dedicated scheduleInterview action
