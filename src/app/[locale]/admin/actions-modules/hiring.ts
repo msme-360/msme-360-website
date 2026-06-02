@@ -633,7 +633,7 @@ export async function updateOnboardingDetails(applicationId: string, details: { 
   const supabase = await createServiceClient();
   const { data: applicant } = await supabase
     .from("intern_applications")
-    .select("metadata")
+    .select("metadata, status, email")
     .eq("id", applicationId)
     .single();
 
@@ -651,7 +651,33 @@ export async function updateOnboardingDetails(applicationId: string, details: { 
     .eq("id", applicationId);
 
   if (error) return { success: false, error: error.message };
+
+  // If the applicant is already hired/onboarded, sync the mentor change to their profile
+  if (applicant?.status === 'hired' || applicant?.status === 'onboarded') {
+    if (applicant.email) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('email', applicant.email)
+        .maybeSingle();
+        
+      if (profile) {
+        await supabase
+          .from('profiles')
+          .update({ manager_id: details.mentor_id })
+          .eq('id', profile.id);
+      }
+    }
+  }
+
   revalidatePath("/[locale]/admin/hiring", "page");
+  revalidatePath("/[locale]/internal/associate", "page");
+  revalidatePath("/[locale]/internal/associate", "layout");
+  revalidatePath("/[locale]/internal/team", "page");
+  revalidatePath("/[locale]/internal/team", "layout");
+  revalidatePath("/[locale]/internal/manager", "page");
+  revalidatePath("/[locale]/internal/manager", "layout");
+  
   return { success: true };
 }
 

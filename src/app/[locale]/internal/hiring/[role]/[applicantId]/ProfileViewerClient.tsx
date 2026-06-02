@@ -252,7 +252,7 @@ export default function ProfileViewerClient({ applicant: initialApplicant, initi
                           <Link href={`mailto:${applicant.email}`}><Mail className="w-3.5 h-3.5 mr-2" /> Email</Link>
                         </Button>
                       </TooltipTrigger>
-                      <TooltipContent className="glass-card border-white/10 text-xs text-white">
+                      <TooltipContent className="glass-card border-white/10 text-xs hover:text-white">
                         {applicant.email}
                       </TooltipContent>
                     </Tooltip>
@@ -263,7 +263,7 @@ export default function ProfileViewerClient({ applicant: initialApplicant, initi
                             <Link href={`tel:${applicant.phone}`}><Phone className="w-3.5 h-3.5 mr-2" /> Phone</Link>
                           </Button>
                         </TooltipTrigger>
-                        <TooltipContent className="glass-card border-white/10 text-xs text-white">
+                        <TooltipContent className="glass-card border-white/10 text-xs hover:text-white">
                           {applicant.phone}
                         </TooltipContent>
                       </Tooltip>
