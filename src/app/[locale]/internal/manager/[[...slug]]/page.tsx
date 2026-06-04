@@ -65,13 +65,15 @@ async function ManagerPortalContent({
 
   if (roleData.level === 3.5) {
     const { getManagedProfiles } = await import("@/app/[locale]/dashboard/queries");
-    const { getTasksForVerification, getTeamReflections, getTeamLeaveRequests } = await import("@/app/[locale]/internal/actions");
+    const { getTasksForVerification, getTeamReflections, getTeamLeaveRequests, getScheduledSyncs, getTeamProjectPulse } = await import("@/app/[locale]/internal/actions");
     
-    const [profiles, pendingTasks, reflections, leaveRequests] = await Promise.all([
+    const [profiles, pendingTasks, reflections, leaveRequests, syncs, projectPulse] = await Promise.all([
       getManagedProfiles(user.id),
       getTasksForVerification(user.id),
       getTeamReflections(user.id),
-      getTeamLeaveRequests(user.id)
+      getTeamLeaveRequests(user.id),
+      getScheduledSyncs(),
+      getTeamProjectPulse(user.id)
     ]);
 
     managedProfiles = profiles as unknown as TeamMember[];
@@ -81,9 +83,7 @@ async function ManagerPortalContent({
       { id: 'm3', label: 'Unit Reflections', value: reflections.length.toString(), change: 'Sentiment', status: 'Optimal' },
       { id: 'm4', label: 'Leave Requests', value: leaveRequests.length.toString(), change: 'Pending', status: leaveRequests.length > 0 ? 'Action Required' : 'Optimal' }
     ];
-  }
 
-  if (roleData.level === 3.5) {
     return (
       <SupervisoryGroup
         role={userRole}
@@ -91,6 +91,8 @@ async function ManagerPortalContent({
         metrics={displayMetrics}
         managedProfiles={managedProfiles}
         mentorId={user.id}
+        syncs={syncs}
+        projectPulse={projectPulse}
       />
     );
   }

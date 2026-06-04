@@ -20,6 +20,14 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import CreateMissionDialog from "@/app/[locale]/internal/team/components/CreateMissionDialog";
+import type { Meeting } from "@/types/meeting";
+
+export interface ProjectPulseItem {
+  name: string;
+  status: string;
+  progress: number;
+  color: string;
+}
 
 export interface TeamMember {
   id: string;
@@ -34,26 +42,28 @@ export interface TeamMember {
 export default function MentorshipOversight({ 
   metrics = [],
   managedProfiles = [],
-  mentorId = ""
+  mentorId = "",
+  syncs = [],
+  projectPulse = []
 }: { 
   metrics?: DashboardMetric[];
   managedProfiles?: TeamMember[];
   mentorId?: string;
+  syncs?: Meeting[];
+  projectPulse?: ProjectPulseItem[];
 }) {
   const params = useParams();
   const locale = params.locale as string;
 
-  // Mock data for project pulse if real data isn't available
-  const projects = [
-    { name: "Team Mission Velocity", status: "Active", progress: 75, color: "bg-blue-500" },
-    { name: "Quality Assurance", status: "Review", progress: 92, color: "bg-emerald-500" },
-    { name: "Unit Synchronization", status: "Active", progress: 45, color: "bg-amber-500" }
+  // Real data for project pulse
+  const projects = projectPulse.length > 0 ? projectPulse : [
+    { name: "Team Missions", status: "No Data", progress: 0, color: "bg-blue-500" },
   ];
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
       {/* 1. Global Metrics Pulse */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
         {metrics.length > 0 ? (
           metrics.slice(0, 4).map((m) => (
             <Card key={m.label} className="glass-card border-white/5 hover:border-primary/20 transition-all overflow-hidden relative group">
@@ -92,7 +102,7 @@ export default function MentorshipOversight({
             </Link>
           </CardHeader>
           <CardContent className="p-0">
-            <ScrollArea className="h-[400px]">
+            <ScrollArea className="h-[600px]">
               <div className="divide-y divide-white/5">
                 {managedProfiles.length > 0 ? (
                   managedProfiles.map((member) => (
@@ -175,20 +185,31 @@ export default function MentorshipOversight({
               />
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {managedProfiles.length > 0 ? (
-                  <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/5 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-emerald-500/10 rounded-lg">
-                        <Clock className="w-4 h-4 text-emerald-400" />
+              <div className="space-y-4 pt-6">
+                {syncs && syncs.length > 0 ? (
+                  syncs.map((sync, i) => {
+                    const isPast = new Date(sync.scheduled_at) < new Date();
+                    return (
+                      <div key={i} className="p-4 rounded-2xl bg-white/[0.03] border border-white/5 flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className={`p-2 rounded-lg ${isPast ? 'bg-white/5' : 'bg-emerald-500/10'}`}>
+                            <Clock className={`w-4 h-4 ${isPast ? 'text-muted-foreground' : 'text-emerald-400'}`} />
+                          </div>
+                          <div>
+                            <p className={`text-sm font-bold ${isPast ? 'text-muted-foreground' : ''}`}>{sync.title}</p>
+                            <p className="text-[10px] text-muted-foreground uppercase font-black">
+                              {new Date(sync.scheduled_at).toLocaleDateString()} {new Date(sync.scheduled_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </p>
+                          </div>
+                        </div>
+                        {isPast ? (
+                          <Badge className="bg-white/10 text-white font-bold">Completed</Badge>
+                        ) : (
+                          <Badge className="bg-primary text-primary-foreground font-bold">Upcoming</Badge>
+                        )}
                       </div>
-                      <div>
-                        <p className="text-sm font-bold">Weekly Performance Review</p>
-                        <p className="text-[10px] text-muted-foreground uppercase font-black">All Units Sync</p>
-                      </div>
-                    </div>
-                    <Badge className="bg-primary text-primary-foreground font-bold">In 2h</Badge>
-                  </div>
+                    );
+                  })
                 ) : (
                   <p className="text-[10px] text-center text-muted-foreground uppercase tracking-widest py-8">No scheduled sessions</p>
                 )}

@@ -1,7 +1,6 @@
 "use client";
 
 import { ReactNode } from "react";
-import { Badge } from "@/components/ui/badge";
 
 interface AdminViewWrapperProps {
   children: ReactNode;
@@ -17,8 +16,6 @@ export function AdminViewWrapper({
   children,
   title,
   subtitle,
-  badgeLabel,
-  authorityLevel,
   actions,
   className = ""
 }: AdminViewWrapperProps) {

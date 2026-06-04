@@ -18,7 +18,7 @@ interface CommandCenterProps {
 }
 
 
-export function CommandCenter({ roleLevel, roleId }: CommandCenterProps) {
+export function CommandCenter({ roleLevel }: CommandCenterProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState("");
   const router = useRouter();
@@ -49,8 +49,8 @@ export function CommandCenter({ roleLevel, roleId }: CommandCenterProps) {
     { id: '6', title: 'Team Reflections', subtitle: 'Sentiment Analysis', icon: Activity, url: `/${locale}/internal/team/reflections`, category: 'Personnel', minLevel: 0, maxLevel: 3.5 },
     { id: '7', title: 'Leave Management', subtitle: 'Availability Hub', icon: Zap, url: `/${locale}/internal/team/leaves`, category: 'Operational', minLevel: 0, maxLevel: 3.5 },
     { id: '8', title: 'Mission Reviews', subtitle: 'PoW Verification', icon: Zap, url: `/${locale}/internal/team/reviews`, category: 'Operational', minLevel: 0, maxLevel: 3.5 },
-    { id: '9', title: 'Onboarding Registry', subtitle: 'Protocol Activation', icon: Activity, url: `/${locale}/internal/team/onboarding`, category: 'Personnel', minLevel: 0, maxLevel: 3.5 },
-    { id: '10', title: 'Policy Hub', subtitle: 'Operational Handbooks', icon: Shield, url: `/${locale}/internal/team/policies`, category: 'Governance', minLevel: 0, maxLevel: 3.5 },
+    { id: '9', title: 'Onboarding Registry', subtitle: 'Protocol Activation', icon: Activity, url: `/${locale}/internal/hiring/hr_manager/onboarding`, category: 'Personnel', minLevel: 0, maxLevel: 3 },
+    { id: '10', title: 'Policy Hub', subtitle: 'Operational Handbooks', icon: Shield, url: `/${locale}/internal/policy/hr_manager`, category: 'Governance', minLevel: 0, maxLevel: 3 },
     
     // GENERAL / UNIVERSAL
     { id: '5', title: 'Security Ops', subtitle: 'Threat Mitigation', icon: Shield, url: `/${locale}/admin/audit?tab=security`, category: 'Infrastructure', minLevel: 0, maxLevel: 2 },

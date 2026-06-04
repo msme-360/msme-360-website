@@ -250,7 +250,7 @@ export function PerformanceClient({
           </div>
 
           <TabsContent value="analytics" className="m-0 border-none p-0 outline-none">
-            <div className="glass-card border-white/10 rounded-3xl overflow-hidden shadow-2xl">
+            <div className="glass-card border-white/10 rounded-3xl overflow-hidden shadow-2xl p-4">
               <DataTable columns={columns} data={data} />
             </div>
           </TabsContent>

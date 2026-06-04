@@ -1,7 +1,7 @@
 "use client";
 
 import {
-  Search, Mail, Linkedin, Award, Zap, Star, Coffee,
+  Search, Mail, Linkedin, Zap, Coffee,
   Heart, Calendar as CalendarIcon, Target, Phone
 } from "lucide-react";
 import { InternalScheduleDialog } from "../components/InternalScheduleDialog";
@@ -47,11 +47,13 @@ export interface ReviewTask {
   id: string;
   title: string;
   description: string;
+  status: string;
   priority: string;
   proof_of_work: string;
   assigned_to: string;
   updated_at: string;
   created_at: string;
+  due_date: string | null;
   assigned_to_profile?: {
     full_name: string;
     role: string;
@@ -63,6 +65,7 @@ interface TeamClientProps {
   initialAttendance?: AttendanceLog[];
   initialPerformance?: TeamPerformance[];
   initialPendingTasks?: ReviewTask[];
+  initialActiveTasks?: ReviewTask[];
   initialReflections?: Reflection[];
   initialLeaveRequests?: LeaveRequest[];
   initialSyncs?: Meeting[];
@@ -77,6 +80,7 @@ export function TeamClient({
   initialAttendance = [], 
   initialPerformance = [], 
   initialPendingTasks = [], 
+  initialActiveTasks = [],
   initialReflections = [],
   initialLeaveRequests = [],
   initialSyncs = [],
@@ -113,7 +117,7 @@ export function TeamClient({
   }
 
   if (subView === 'reviews') {
-    return <MissionReviewClient initialTasks={initialPendingTasks} mentorId={mentorId || ""} />;
+    return <MissionReviewClient initialTasks={initialPendingTasks} initialActiveTasks={initialActiveTasks} mentorId={mentorId || ""} teamMembers={initialTeam.map(m => ({ id: m.id, full_name: m.full_name }))} />;
   }
 
   if (subView === 'reflections') {

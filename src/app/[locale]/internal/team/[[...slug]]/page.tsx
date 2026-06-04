@@ -3,6 +3,7 @@ import { getProfile as getProfileDirect } from "@/app/[locale]/dashboard/queries
 import { 
   getAttendanceLogs, 
   getTasksForVerification, 
+  getActiveAssignedMissions,
   getManagedTeam,
   getTeamReflections,
   getTeamLeaveRequests,
@@ -73,8 +74,10 @@ async function TeamPortalContent({
   }
 
   let pendingTasks: ReviewTask[] = [];
+  let activeTasks: ReviewTask[] = [];
   if (subView === 'reviews') {
     pendingTasks = await getTasksForVerification(user.id) as unknown as ReviewTask[];
+    activeTasks = await getActiveAssignedMissions(user.id) as unknown as ReviewTask[];
   }
 
   let performance: TeamPerformance[] = [];
@@ -105,6 +108,7 @@ async function TeamPortalContent({
       initialTeam={teamMembers as unknown as TeamMember[]}
       initialAttendance={attendance}
       initialPendingTasks={pendingTasks}
+      initialActiveTasks={activeTasks}
       initialPerformance={performance}
       initialReflections={reflections}
       initialLeaveRequests={leaveRequests}

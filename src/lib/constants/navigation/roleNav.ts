@@ -343,7 +343,7 @@ export const ROLE_NAV_CONFIG: Record<string, (locale: string) => NavGroup[]> = {
         { title: "Personnel Registry", icon: Users, url: `/${l}/internal/team/team_lead/directory` },
         { title: "Team Reflections", icon: Activity, url: `/${l}/internal/team/team_lead/reflections` },
         { title: "Leave Management", icon: Clock, url: `/${l}/internal/team/team_lead/leaves` },
-        { title: "Daily Sync", icon: Clock, url: `/${l}/internal/manager/team_lead/sync` },
+        { title: "Performance & Syncs", icon: Zap, url: `/${l}/internal/team/team_lead/performance` },
       ]
     }
   ],

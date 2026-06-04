@@ -19,11 +19,12 @@ import { format, startOfDay } from "date-fns";
 import { Calendar as CalendarIcon, Clock, Video, Loader2, CheckCircle2, Repeat, Check, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { scheduleInternalMeeting, getInternProfiles, getMentorProfiles, getInternTeamProfiles } from "../actions";
+import { scheduleInternalMeeting, getInternProfiles, getInternTeamProfiles } from "../actions";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 
 interface InternalScheduleDialogProps {
   isOpen: boolean;
@@ -49,7 +50,7 @@ export function InternalScheduleDialog({
   const [isSuccess, setIsSuccess] = useState(false);
   const [meetLink, setMeetLink] = useState<string>("");
   const [availableUsers, setAvailableUsers] = useState<Array<{ id: string; full_name?: string | null; role?: string | null; avatar_url?: string | null; }>>([]);
-  const [isLoadingUsers, setIsLoadingUsers] = useState(false);
+  const [, setIsLoadingUsers] = useState(false);
 
   const loadUsers = useCallback(async () => {
     if (teamMembers && teamMembers.length > 0) {
@@ -313,9 +314,7 @@ export function InternalScheduleDialog({
                       </div>
                       {targetUserIds.includes("all") && <Check className="w-4 h-4 text-emerald-400" />}
                     </div>
-                    
-                    <div className="h-px bg-white/10 my-2" />
-                    
+
                     {availableUsers.map(user => {
                       const isSelected = targetUserIds.includes(user.id);
                       return (

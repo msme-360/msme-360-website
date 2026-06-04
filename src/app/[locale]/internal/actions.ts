@@ -207,6 +207,20 @@ export async function getTasksForVerification(mentorId: string) {
   return data || [];
 }
 
+export async function getActiveAssignedMissions(mentorId: string) {
+  const supabase = await createServiceClient();
+  const { data, error } = await supabase
+    .from('tasks')
+    .select('*, assigned_to_profile:profiles!tasks_assigned_to_fkey(full_name, avatar_url, role)')
+    .eq('assigned_by', mentorId)
+    .neq('status', 'pending_verification')
+    .neq('status', 'Done')
+    .order('created_at', { ascending: false });
+
+  if (error) return [];
+  return data || [];
+}
+
 export async function handlePoWReview(taskId: string, decision: 'verified' | 'rejected', feedback: string, mentorId: string) {
   const supabase = await createServiceClient();
 
@@ -871,7 +885,6 @@ export async function scheduleInternalMeeting(data: {
   const supabase = await createServiceClient();
 
   let attendees: string[] = [];
-  let targetUserName = "Team Members";
 
   if (data.targetUserIds.includes("all")) {
     const { data: interns } = await supabase
@@ -891,7 +904,6 @@ export async function scheduleInternalMeeting(data: {
     if (!targets || targets.length === 0) return { success: false, error: "Target users not found" };
     
     attendees = targets.map(t => t.email).filter(Boolean) as string[];
-    targetUserName = targets.length === 1 ? (targets[0].full_name || "Unknown") : `${targets.length} Members`;
   }
 
   // 2. Get current user google tokens
@@ -1250,4 +1262,58 @@ export async function terminatePersonnel(targetUserId: string, reason: string) {
 
   revalidatePath('/[locale]/internal/team', 'page');
   return { success: true };
+}
+
+export async function getTeamProjectPulse(mentorId: string) {
+  const supabase = await createServiceClient();
+
+  // 1. Get mentees
+  const { data: mentees } = await supabase
+    .from("profiles")
+    .select("id")
+    .eq("manager_id", mentorId);
+
+  if (!mentees || mentees.length === 0) return [];
+
+  const menteeIds = mentees.map(m => m.id);
+
+  // 2. Get checklists for mentees
+  const { data: checklists } = await supabase
+    .from("intern_onboarding_checklists")
+    .select("*")
+    .in("user_id", menteeIds);
+
+  if (!checklists || checklists.length === 0) return [];
+
+  // 3. Aggregate into categories
+  const categories: Record<string, { total: number, completed: number }> = {};
+  
+  checklists.forEach(task => {
+    let category = task.category;
+    if (!category || category === "null") {
+       if (task.task_name.toLowerCase().includes('onboarding')) category = 'Onboarding Phase';
+       else if (task.task_name.toLowerCase().includes('quality')) category = 'Quality Assurance';
+       else category = 'Core Missions';
+    }
+    
+    if (!categories[category]) categories[category] = { total: 0, completed: 0 };
+    categories[category].total += 1;
+    if (task.is_completed) {
+      categories[category].completed += 1;
+    }
+  });
+
+  const colors = ["bg-blue-500", "bg-emerald-500", "bg-amber-500", "bg-purple-500"];
+  
+  const result = Object.entries(categories).map(([name, stats], index) => {
+    const progress = Math.round((stats.completed / stats.total) * 100);
+    return {
+      name,
+      status: progress === 100 ? "Completed" : progress > 0 ? "Active" : "Pending",
+      progress,
+      color: colors[index % colors.length]
+    };
+  });
+
+  return result;
 }
