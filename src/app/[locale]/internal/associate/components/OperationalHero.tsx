@@ -70,7 +70,7 @@ export default function OperationalHero({
 
   return (
     <section className="relative p-8 md:p-10 rounded-[2.5rem] bg-indigo-950/40 border border-indigo-500/20 overflow-hidden shadow-2xl backdrop-blur-sm">
-      <div className="absolute top-0 right-0 w-full h-full bg-[url('/grid.svg')] opacity-5 pointer-events-none" />
+      <div className="absolute top-0 right-0 w-full h-full bg-[url('/images/grid.svg')] opacity-5 pointer-events-none" />
       <div className="absolute -top-32 -right-32 w-96 h-96 bg-indigo-500/10 blur-[100px] rounded-full" />
 
       <div className="relative z-10 flex flex-col md:flex-row items-center gap-10">
@@ -119,10 +119,10 @@ export default function OperationalHero({
           </div>
 
           {/* Action Row */}
-          <div className="flex flex-wrap items-center justify-center md:justify-start gap-6 pt-2">
-            <div className="flex items-center gap-3">
+          <div className="flex flex-col md:flex-row items-center justify-center md:justify-start gap-6 pt-2 w-full">
+            <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
               {hasFinishedDay ? (
-                <div className="flex items-center gap-2 text-emerald-400 font-bold bg-emerald-500/10 px-6 py-3 rounded-2xl border border-emerald-500/20">
+                <div className="flex items-center justify-center gap-2 text-emerald-400 font-bold bg-emerald-500/10 px-6 py-3 rounded-2xl border border-emerald-500/20 w-full sm:w-auto">
                   <CheckCircle2 className="w-5 h-5" />
                   {tHero("protocolCompleted")}
                 </div>
@@ -130,7 +130,7 @@ export default function OperationalHero({
                 <Button
                   onClick={() => handleAttendance('out')}
                   disabled={loading}
-                  className="bg-red-500 hover:bg-red-600 text-white px-8 h-12 rounded-2xl font-black uppercase tracking-widest shadow-lg shadow-red-500/20 transition-all hover:scale-105 active:scale-95"
+                  className="bg-red-500 hover:bg-red-600 text-white px-8 h-12 rounded-2xl font-black uppercase tracking-widest shadow-lg shadow-red-500/20 transition-all hover:scale-105 active:scale-95 w-full sm:w-auto"
                 >
                   {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : tHero("initiateCheckout")}
                 </Button>
@@ -138,7 +138,7 @@ export default function OperationalHero({
                 <Button
                   onClick={() => handleAttendance('in')}
                   disabled={loading}
-                  className="bg-indigo-500 hover:bg-indigo-600 text-white px-8 h-12 rounded-2xl font-black uppercase tracking-widest shadow-glow transition-all hover:scale-105 active:scale-95"
+                  className="bg-indigo-500 hover:bg-indigo-600 text-white px-8 h-12 rounded-2xl font-black uppercase tracking-widest shadow-glow transition-all hover:scale-105 active:scale-95 w-full sm:w-auto"
                 >
                   {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : tHero("deployToSite")}
                 </Button>

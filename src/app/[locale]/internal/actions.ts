@@ -466,12 +466,49 @@ export async function getOnboardingChecklist(userId: string) {
 
 export async function updateChecklistItem(itemId: string, isCompleted: boolean) {
   const supabase = await createServiceClient();
-  const { error } = await supabase
+  const { data: item, error: updateError } = await supabase
     .from('intern_onboarding_checklists')
     .update({ is_completed: isCompleted })
-    .eq('id', itemId);
+    .eq('id', itemId)
+    .select('user_id, task_name')
+    .single();
 
-  if (error) return { success: false, error: error.message };
+  if (updateError) return { success: false, error: updateError.message };
+
+  if (item?.user_id) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('email')
+      .eq('id', item.user_id)
+      .single();
+
+    if (profile?.email) {
+      const { data: applicant } = await supabase
+        .from('intern_applications')
+        .select('id, metadata')
+        .eq('email', profile.email)
+        .single();
+        
+      if (applicant) {
+        const metadata = (applicant.metadata as Record<string, unknown>) || {};
+        const checklist = (metadata.onboarding_checklist as Record<string, boolean>) || {};
+        
+        await supabase
+          .from('intern_applications')
+          .update({
+            metadata: {
+              ...metadata,
+              onboarding_checklist: {
+                ...checklist,
+                [item.task_name]: isCompleted
+              }
+            }
+          })
+          .eq('id', applicant.id);
+      }
+    }
+  }
+
   revalidatePath('/[locale]/internal/associate', 'page');
   return { success: true };
 }
@@ -809,13 +846,24 @@ export async function getMentorProfiles() {
   return data || [];
 }
 
+export async function getInternTeamProfiles() {
+  const supabase = await createServiceClient();
+  const { data } = await supabase
+    .from("profiles")
+    .select("id, full_name, role, department, avatar_url")
+    .in("role", ["intern", "team_lead", "manager"]);
+
+  return data || [];
+}
+
 export async function scheduleInternalMeeting(data: {
-  targetUserId: string,
+  targetUserIds: string[],
   title: string,
   description: string,
   date: string,
   time: string,
-  repeat: 'none' | 'daily' | 'weekly' | 'monthly'
+  repeat: 'none' | 'daily' | 'weekly' | 'monthly' | 'custom',
+  customDays?: string[]
 }) {
   const verifiedUser = await getUser();
   if (!verifiedUser) return { success: false, error: "Unauthorized" };
@@ -823,9 +871,9 @@ export async function scheduleInternalMeeting(data: {
   const supabase = await createServiceClient();
 
   let attendees: string[] = [];
-  let targetUserName = "All Team Members";
+  let targetUserName = "Team Members";
 
-  if (data.targetUserId === "all") {
+  if (data.targetUserIds.includes("all")) {
     const { data: interns } = await supabase
       .from("profiles")
       .select("email")
@@ -834,16 +882,16 @@ export async function scheduleInternalMeeting(data: {
       attendees = interns.map(i => i.email).filter(Boolean) as string[];
     }
   } else {
-    // 1. Get target user email
-    const { data: targetUser } = await supabase
+    // 1. Get target users emails
+    const { data: targets } = await supabase
       .from("profiles")
       .select("email, full_name")
-      .eq("id", data.targetUserId)
-      .single();
+      .in("id", data.targetUserIds);
 
-    if (!targetUser) return { success: false, error: "Target user not found" };
-    if (targetUser.email) attendees.push(targetUser.email);
-    targetUserName = targetUser.full_name || "Unknown";
+    if (!targets || targets.length === 0) return { success: false, error: "Target users not found" };
+    
+    attendees = targets.map(t => t.email).filter(Boolean) as string[];
+    targetUserName = targets.length === 1 ? (targets[0].full_name || "Unknown") : `${targets.length} Members`;
   }
 
   // 2. Get current user google tokens
@@ -856,6 +904,9 @@ export async function scheduleInternalMeeting(data: {
   if (data.repeat === 'daily') recurrence = ['RRULE:FREQ=DAILY;COUNT=30'];
   else if (data.repeat === 'weekly') recurrence = ['RRULE:FREQ=WEEKLY;COUNT=12'];
   else if (data.repeat === 'monthly') recurrence = ['RRULE:FREQ=MONTHLY;COUNT=6'];
+  else if (data.repeat === 'custom' && data.customDays && data.customDays.length > 0) {
+    recurrence = [`RRULE:FREQ=WEEKLY;BYDAY=${data.customDays.join(',')};COUNT=20`];
+  }
 
   let eventId: string | null = null;
   if (googleTokens && attendees.length > 0) {
@@ -883,7 +934,7 @@ export async function scheduleInternalMeeting(data: {
   const { error } = await supabase
     .from('mentorship_bookings')
     .insert({
-      mentee_id: data.targetUserId === "all" ? null : data.targetUserId,
+      mentee_id: data.targetUserIds.length === 1 && !data.targetUserIds.includes("all") ? data.targetUserIds[0] : null,
       mentor_name: user?.user_metadata?.full_name || "System",
       expertise: `${data.title} || ${meetLink} || ${eventId || ''}`,
       scheduled_at: new Date(`${data.date}T${data.time}:00+05:30`).toISOString(),
@@ -926,7 +977,12 @@ export async function getScheduledSyncs(userId?: string) {
     // For mentors, they might not have their ID in the table yet if we only store mentor_name
     // But for now, let's just return all for management, or filter by mentee for associates
     if (verifiedUser.role === 'associate' || verifiedUser.role === 'intern') {
-      query = query.eq('mentee_id', verifiedUser.id);
+      const fullName = verifiedUser.user_metadata?.full_name;
+      if (fullName) {
+        query = query.or(`mentee_id.eq.${verifiedUser.id},mentor_name.eq."${fullName}",mentee_id.is.null`);
+      } else {
+        query = query.or(`mentee_id.eq.${verifiedUser.id},mentee_id.is.null`);
+      }
     }
   }
 
@@ -1052,7 +1108,7 @@ export async function rescheduleMeeting(meetingId: string, type: string, date: s
     // 3. Create new meeting (the "create new" part)
     const [title] = oldMeeting.expertise.split(' || ');
     return scheduleInternalMeeting({
-      targetUserId: oldMeeting.mentee_id,
+      targetUserIds: oldMeeting.mentee_id ? [oldMeeting.mentee_id] : ["all"],
       title: title || oldMeeting.expertise,
       description: `Rescheduled meeting.`,
       date,

@@ -36,6 +36,7 @@ async function MeetingsContent({
     <MeetingsClient 
       initialMeetings={meetings} 
       userRole={userRole} 
+      isGoogleConnected={!!profile?.metadata?.google_tokens}
     />
   );
 }

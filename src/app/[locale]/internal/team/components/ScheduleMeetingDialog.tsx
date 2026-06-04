@@ -100,7 +100,7 @@ export function ScheduleMeetingDialog({
     setIsSubmitting(true);
     try {
       const res = await scheduleInternalMeeting({
-        targetUserId: userId,
+        targetUserIds: [userId],
         title,
         description,
         date: format(date, "yyyy-MM-dd"),

@@ -1,10 +1,9 @@
-﻿"use client";
+"use client";
 
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from "react";
 import { fetchProgress, updateProgress as updateProgressAction } from "@/app/[locale]/dashboard/actions";
 import { logger } from "@/lib/logger";
 import { useAuth } from "@/components/providers/AuthProvider";
-import { supabase } from "@/services/supabase/supabase";
 
 type ProgressState = {
   udyam: boolean;
@@ -77,35 +76,6 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
       hasHydrated.current = true;
     }
   }, [authLoading, hydrate]);
-
-  // Real-time Sync Support
-  useEffect(() => {
-    if (!user) return;
-
-    const channel = supabase
-      .channel(`public:user_progress:user_id=eq.${user.id}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'user_progress',
-          filter: `user_id=eq.${user.id}`,
-        },
-        (payload) => {
-          logger.info("Real-time progress sync triggered", "ProgressProvider", payload);
-          const { step_id, completed } = payload.new as { step_id: string; completed: boolean };
-          if (step_id in progress) {
-            setProgress(prev => ({ ...prev, [step_id]: completed }));
-          }
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [user, progress]);
 
   const updateProgress = async (step: keyof ProgressState, completed: boolean) => {
     if (!user) return;

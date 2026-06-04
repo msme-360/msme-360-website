@@ -6,6 +6,7 @@ import { CareerRole } from "@/lib/roles";
 import { logSystemAction } from "./shared";
 import { oauth2Client, createCalendarEvent } from "@/lib/google-calendar";
 import { sendEmail } from "@/lib/email";
+import { ONBOARDING_TEMPLATES, getRecommendedTemplate } from "@/lib/constants/onboardingTemplates";
 
 /**
  * HIRING & RECRUITMENT ACTIONS
@@ -310,21 +311,14 @@ export async function onboardIntern(applicationId: string) {
   if (profileError) console.error("Profile sync error:", profileError);
 
   // 3. Initialize Onboarding Checklist
-  const DEFAULT_ONBOARDING_TASKS = [
-    "ACCOUNT: Set up MSME 360 professional profile",
-    "ACCOUNT: Enable Multi-Factor Authentication (MFA)",
-    "LEGAL: Review and sign Non-Disclosure Agreement (NDA)",
-    "LEGAL: Complete Data Privacy Training module",
-    "DEPT: Review Departmental Operational Protocols",
-    "TECHNICAL: Access internal Git repositories and tools",
-    "INFRASTRUCTURE: Configure VPN and secure access nodes",
-    "TECHNICAL: Complete Initial Technical Skills Assessment"
-  ];
+  const templateId = (application.metadata as Record<string, unknown>)?.template_id as string || getRecommendedTemplate(application.role || '');
+  const selectedTemplate = ONBOARDING_TEMPLATES.find(t => t.id === templateId) || ONBOARDING_TEMPLATES[0];
+  const metadataChecklist = (application.metadata as Record<string, unknown>)?.onboarding_checklist as Record<string, boolean> || {};
 
-  const checklistItems = DEFAULT_ONBOARDING_TASKS.map(task => ({
+  const checklistItems = selectedTemplate.tasks.map(task => ({
     user_id: userId,
-    task_name: task,
-    is_completed: false
+    task_name: task.name,
+    is_completed: metadataChecklist[task.name] || false
   }));
 
   const { error: checklistError } = await supabase
@@ -609,7 +603,7 @@ export async function updateOnboardingProgress(applicationId: string, checklist:
   const supabase = await createServiceClient();
   const { data: applicant } = await supabase
     .from("intern_applications")
-    .select("metadata")
+    .select("email, metadata")
     .eq("id", applicationId)
     .single();
 
@@ -626,6 +620,27 @@ export async function updateOnboardingProgress(applicationId: string, checklist:
     .eq("id", applicationId);
 
   if (error) return { success: false, error: error.message };
+
+  // Sync to intern_onboarding_checklists if the user is hired
+  if (applicant?.email) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('email', applicant.email)
+      .maybeSingle();
+      
+    if (profile) {
+      // Need to update each checked item in the checklist table
+      for (const [taskName, isCompleted] of Object.entries(checklist)) {
+        await supabase
+          .from('intern_onboarding_checklists')
+          .update({ is_completed: isCompleted })
+          .eq('user_id', profile.id)
+          .eq('task_name', taskName);
+      }
+    }
+  }
+
   return { success: true };
 }
 
@@ -638,6 +653,7 @@ export async function updateOnboardingDetails(applicationId: string, details: { 
     .single();
 
   const currentMetadata = (applicant?.metadata as Record<string, unknown>) || {};
+  const oldTemplateId = currentMetadata.template_id as string;
 
   const { error } = await supabase
     .from("intern_applications")
@@ -652,7 +668,7 @@ export async function updateOnboardingDetails(applicationId: string, details: { 
 
   if (error) return { success: false, error: error.message };
 
-  // If the applicant is already hired/onboarded, sync the mentor change to their profile
+  // If the applicant is already hired/onboarded, sync the mentor change and template change to their profile
   if (applicant?.status === 'hired' || applicant?.status === 'onboarded') {
     if (applicant.email) {
       const { data: profile } = await supabase
@@ -666,6 +682,24 @@ export async function updateOnboardingDetails(applicationId: string, details: { 
           .from('profiles')
           .update({ manager_id: details.mentor_id })
           .eq('id', profile.id);
+
+        // If template changed, reset the checklist
+        if (oldTemplateId !== details.template_id) {
+          const selectedTemplate = ONBOARDING_TEMPLATES.find(t => t.id === details.template_id) || ONBOARDING_TEMPLATES[0];
+          const metadataChecklist = currentMetadata.onboarding_checklist as Record<string, boolean> || {};
+
+          // Delete old checklist
+          await supabase.from('intern_onboarding_checklists').delete().eq('user_id', profile.id);
+
+          // Insert new checklist
+          const checklistItems = selectedTemplate.tasks.map(task => ({
+            user_id: profile.id,
+            task_name: task.name,
+            is_completed: metadataChecklist[task.name] || false
+          }));
+
+          await supabase.from('intern_onboarding_checklists').insert(checklistItems);
+        }
       }
     }
   }

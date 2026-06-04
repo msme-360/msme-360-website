@@ -63,7 +63,7 @@ export default function TacticalHub({
                 className="p-5 hover:bg-white/[0.02] transition-all group relative cursor-pointer"
               >
 
-                <div className="flex justify-between items-start mb-2 relative z-10 pointer-events-none">
+                <div className="flex flex-wrap justify-between items-start gap-2 mb-2 relative z-10 pointer-events-none">
                   <div className="flex items-center gap-2">
                     <span className="text-[9px] font-black uppercase tracking-widest text-indigo-400">
                       {t("priority.label", { value: t(`priority.${task.priority?.toLowerCase()}`) })}
@@ -93,7 +93,7 @@ export default function TacticalHub({
                       if (task.status === 'pending_verification') return;
                       onTaskStatus(task.id, task.status === 'completed' ? 'pending' : 'completed');
                     }}
-                    className={`w-5 h-5 mt-0.5 rounded-full border transition-all ${
+                    className={`shrink-0 w-5 h-5 mt-0.5 rounded-full border transition-all ${
                       task.status === 'completed' ? 'bg-emerald-500 border-emerald-500 text-white' : 
                       task.status === 'pending_verification' ? 'border-amber-500 text-amber-500 cursor-wait' :
                       'border-white/20 hover:border-emerald-500/50'

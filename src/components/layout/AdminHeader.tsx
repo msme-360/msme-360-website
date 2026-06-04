@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Bell } from "lucide-react";
 import { AdminBreadcrumbs } from "./AdminBreadcrumbs";
 import { CommandCenter } from "@/components/governance/CommandCenter";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 import LocaleSwitcher from "./LocaleSwitcher";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DashboardProfile } from "@/types/dashboard";
@@ -29,6 +30,9 @@ export function AdminHeader({
   return (
     <header className="flex h-16 shrink-0 items-center border-b border-border/50 backdrop-blur-xl bg-background/40 sticky top-0 z-20 px-6 justify-between gap-4">
       <div className="flex items-center gap-6 min-w-0">
+        <div className="lg:hidden">
+          <SidebarTrigger className="-ml-2 h-8 w-8 text-foreground/70 hover:text-foreground" />
+        </div>
         <div className="hidden lg:flex items-center gap-2 border-r border-border/50 pr-6 shrink-0">
           <div className="w-2 h-6 bg-primary rounded-full shadow-glow-sm" />
           <span className="text-[11px] font-black uppercase tracking-[0.3em] text-foreground/80">MSME 360</span>

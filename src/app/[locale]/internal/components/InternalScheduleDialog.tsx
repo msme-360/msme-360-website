@@ -16,8 +16,10 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { format, startOfDay } from "date-fns";
-import { Calendar as CalendarIcon, Clock, Video, Loader2, CheckCircle2, Repeat } from "lucide-react";
-import { scheduleInternalMeeting, getInternProfiles, getMentorProfiles } from "../actions";
+import { Calendar as CalendarIcon, Clock, Video, Loader2, CheckCircle2, Repeat, Check, Users } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { scheduleInternalMeeting, getInternProfiles, getMentorProfiles, getInternTeamProfiles } from "../actions";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -40,8 +42,9 @@ export function InternalScheduleDialog({
 }: InternalScheduleDialogProps) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [targetUserId, setTargetUserId] = useState<string>("");
-  const [repeat, setRepeat] = useState<'none' | 'daily' | 'weekly' | 'monthly'>('none');
+  const [targetUserIds, setTargetUserIds] = useState<string[]>([]);
+  const [repeat, setRepeat] = useState<'none' | 'daily' | 'weekly' | 'monthly' | 'custom'>('none');
+  const [customDays, setCustomDays] = useState<string[]>([]);
   const [isScheduling, setIsScheduling] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [meetLink, setMeetLink] = useState<string>("");
@@ -58,7 +61,7 @@ export function InternalScheduleDialog({
     try {
       let users = [];
       if (currentUserRole === 'intern') {
-        users = await getMentorProfiles();
+        users = await getInternTeamProfiles();
       } else {
         users = await getInternProfiles();
       }
@@ -77,7 +80,7 @@ export function InternalScheduleDialog({
   }, [isOpen, loadUsers]);
 
   const handleSchedule = async () => {
-    if (!date || !targetUserId || !title) {
+    if (!date || targetUserIds.length === 0 || !title) {
       toast.error("Please fill all required fields");
       return;
     }
@@ -85,12 +88,13 @@ export function InternalScheduleDialog({
     setIsScheduling(true);
     try {
       const res = await scheduleInternalMeeting({
-        targetUserId,
+        targetUserIds,
         title,
         description,
         date: format(date, "yyyy-MM-dd"),
         time,
-        repeat
+        repeat,
+        customDays
       });
 
       if (res.success) {
@@ -179,7 +183,8 @@ export function InternalScheduleDialog({
           setMeetLink("");
           setTitle("");
           setDescription("");
-          setTargetUserId("");
+          setTargetUserIds([]);
+          setCustomDays([]);
         }, 300);
       }
     }}>
@@ -283,33 +288,64 @@ export function InternalScheduleDialog({
               </div>
 
               <div className="space-y-2">
-                <Label className="text-[10px] uppercase font-black tracking-widest text-white/30 ml-1">Target Person</Label>
-                <Select value={targetUserId} onValueChange={setTargetUserId}>
-                  <SelectTrigger className="bg-white/5 border-white/10 rounded-xl">
-                    <SelectValue placeholder={isLoadingUsers ? "Loading users..." : "Select person"} />
-                  </SelectTrigger>
-                  <SelectContent className="glass-card border-white/10">
-                    <SelectItem value="all">
-                      <div className="flex items-center gap-2">
-                        <Avatar className="w-5 h-5">
-                          <AvatarFallback>ALL</AvatarFallback>
-                        </Avatar>
-                        <span className="text-xs">All Team Members</span>
+                <Label className="text-[10px] uppercase font-black tracking-widest text-white/30 ml-1">Target Persons</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className="w-full h-11 bg-white/5 border-white/10 rounded-xl justify-start text-xs font-normal relative overflow-hidden">
+                      <div className="flex items-center gap-2 truncate">
+                        <Users className="w-3.5 h-3.5 text-primary shrink-0" />
+                        <span className="truncate">
+                          {targetUserIds.length === 0 ? "Select persons" : targetUserIds.includes("all") ? "All Team Members" : `${targetUserIds.length} selected`}
+                        </span>
                       </div>
-                    </SelectItem>
-                    {availableUsers.map(user => (
-                      <SelectItem key={user.id} value={user.id}>
-                        <div className="flex items-center gap-2">
-                          <Avatar className="w-5 h-5">
-                            <AvatarImage src={user.avatar_url ?? undefined} />
-                            <AvatarFallback>{user.full_name?.charAt(0)}</AvatarFallback>
-                          </Avatar>
-                          <span className="text-xs">{user.full_name} ({user.role})</span>
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[300px] p-2 glass-card border-white/10 max-h-64 overflow-y-auto" align="start">
+                    <div 
+                      className={cn("flex items-center justify-between p-2 rounded-lg cursor-pointer hover:bg-white/5 transition-colors", targetUserIds.includes("all") && "bg-white/10")}
+                      onClick={() => setTargetUserIds(prev => prev.includes("all") ? [] : ["all"])}
+                    >
+                      <div className="flex items-center gap-2">
+                        <Avatar className="w-6 h-6">
+                          <AvatarFallback className="text-[10px]">ALL</AvatarFallback>
+                        </Avatar>
+                        <span className="text-sm font-medium">All Team Members</span>
+                      </div>
+                      {targetUserIds.includes("all") && <Check className="w-4 h-4 text-emerald-400" />}
+                    </div>
+                    
+                    <div className="h-px bg-white/10 my-2" />
+                    
+                    {availableUsers.map(user => {
+                      const isSelected = targetUserIds.includes(user.id);
+                      return (
+                        <div 
+                          key={user.id}
+                          className={cn("flex items-center justify-between p-2 rounded-lg cursor-pointer hover:bg-white/5 transition-colors mt-1", isSelected && "bg-white/10")}
+                          onClick={() => {
+                            if (targetUserIds.includes("all")) {
+                              setTargetUserIds([user.id]);
+                            } else {
+                              setTargetUserIds(prev => isSelected ? prev.filter(id => id !== user.id) : [...prev, user.id]);
+                            }
+                          }}
+                        >
+                          <div className="flex items-center gap-3">
+                            <Avatar className="w-6 h-6 border border-white/10">
+                              <AvatarImage src={user.avatar_url ?? undefined} />
+                              <AvatarFallback className="text-[10px] bg-primary/20 text-primary">{user.full_name?.charAt(0) || "U"}</AvatarFallback>
+                            </Avatar>
+                            <div className="flex flex-col">
+                              <span className="text-sm font-medium text-white/90 leading-tight">{user.full_name}</span>
+                              <span className="text-[10px] text-white/40 uppercase tracking-widest">{user.role?.replace('_', ' ')}</span>
+                            </div>
+                          </div>
+                          {isSelected && <Check className="w-4 h-4 text-emerald-400" />}
                         </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                      )
+                    })}
+                  </PopoverContent>
+                </Popover>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -355,7 +391,7 @@ export function InternalScheduleDialog({
 
               <div className="space-y-2">
                 <Label className="text-[10px] uppercase font-black tracking-widest text-white/30 ml-1">Repeat Options</Label>
-                <Select value={repeat} onValueChange={(val: 'none' | 'daily' | 'weekly' | 'monthly') => setRepeat(val)}>
+                <Select value={repeat} onValueChange={(val: 'none' | 'daily' | 'weekly' | 'monthly' | 'custom') => { setRepeat(val); if (val !== 'custom') setCustomDays([]); }}>
                   <SelectTrigger className="bg-white/5 border-white/10 rounded-xl">
                     <div className="flex items-center gap-2">
                       <Repeat className="w-3.5 h-3.5 text-primary" />
@@ -367,9 +403,23 @@ export function InternalScheduleDialog({
                     <SelectItem value="daily">Daily</SelectItem>
                     <SelectItem value="weekly">Weekly</SelectItem>
                     <SelectItem value="monthly">Monthly</SelectItem>
+                    <SelectItem value="custom">Custom</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
+
+              {repeat === 'custom' && (
+                <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
+                  <Label className="text-[10px] uppercase font-black tracking-widest text-white/30 ml-1">Select Days</Label>
+                  <ToggleGroup type="multiple" value={customDays} onValueChange={setCustomDays} className="justify-between bg-white/5 border border-white/10 rounded-xl p-1 gap-1">
+                    {['MO', 'TU', 'WE', 'TH', 'FR', 'SA', 'SU'].map((day, i) => (
+                      <ToggleGroupItem key={day} value={day} className="h-8 w-8 text-xs font-bold rounded-lg data-[state=on]:bg-primary data-[state=on]:text-primary-foreground hover:bg-white/10 transition-colors">
+                        {['M', 'T', 'W', 'T', 'F', 'S', 'S'][i]}
+                      </ToggleGroupItem>
+                    ))}
+                  </ToggleGroup>
+                </div>
+              )}
 
               <div className="space-y-2">
                 <Label className="text-[10px] uppercase font-black tracking-widest text-white/30 ml-1">Description (Optional)</Label>
@@ -386,7 +436,7 @@ export function InternalScheduleDialog({
               <Button
                 className="w-full h-12 rounded-xl font-bold tracking-tight shadow-lg shadow-primary/20"
                 onClick={handleSchedule}
-                disabled={!date || !targetUserId || !title || isScheduling}
+                disabled={!date || targetUserIds.length === 0 || !title || isScheduling || (repeat === 'custom' && customDays.length === 0)}
               >
                 {isScheduling ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Video className="w-4 h-4 mr-2" />}
                 {isScheduling ? "Scheduling..." : "Schedule Sync"}

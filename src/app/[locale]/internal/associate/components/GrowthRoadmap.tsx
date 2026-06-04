@@ -48,24 +48,24 @@ export default function GrowthRoadmap({ initialChecklist, hideTitle }: GrowthRoa
   return (
     <div className="space-y-10">
       {!hideTitle ? (
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <h2 className="text-2xl font-display font-bold flex items-center gap-3">
             <Target className="w-6 h-6 text-indigo-400" />
             {t("title")}
           </h2>
-          <div className="flex items-center gap-4">
-            <span className="text-xs font-black uppercase tracking-widest text-indigo-400">
+          <div className="flex items-center gap-4 w-full sm:w-auto">
+            <span className="text-xs font-black uppercase tracking-widest text-indigo-400 whitespace-nowrap">
               {t("completion", { value: Math.round(progressValue) })}
             </span>
-            <Progress value={progressValue} className="w-32 h-2 bg-indigo-500/10" />
+            <Progress value={progressValue} className="w-full sm:w-32 h-2 bg-indigo-500/10" />
           </div>
         </div>
       ) : (
-        <div className="flex items-center justify-end gap-4 bg-indigo-500/5 p-4 rounded-xl border border-indigo-500/10 mb-6">
+        <div className="flex flex-wrap items-center justify-start sm:justify-end gap-4 bg-indigo-500/5 p-4 rounded-xl border border-indigo-500/10 mb-6">
           <span className="text-[10px] font-black uppercase tracking-widest text-indigo-400">
             {t("overallProgress")}
           </span>
-          <Progress value={progressValue} className="w-48 h-2 bg-indigo-500/10" />
+          <Progress value={progressValue} className="flex-1 min-w-[100px] max-w-[200px] h-2 bg-indigo-500/10" />
           <Badge variant="outline" className="bg-indigo-500/20 text-indigo-400 border-indigo-500/30 text-[10px] font-black italic px-3 py-1">
             {Math.round(progressValue)}%
           </Badge>
@@ -86,8 +86,8 @@ export default function GrowthRoadmap({ initialChecklist, hideTitle }: GrowthRoa
                   group.progress === 100 ? 'bg-emerald-500/5 border-emerald-500/20 opacity-60' : 'hover:border-indigo-500/30'
                 }`}>
                   <AccordionTrigger className="p-6 hover:no-underline">
-                    <div className="flex items-center gap-6 w-full text-left">
-                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center border transition-all ${
+                    <div className="flex items-center gap-4 sm:gap-6 w-full text-left">
+                      <div className={`w-10 h-10 shrink-0 rounded-xl flex items-center justify-center border transition-all ${
                         group.progress === 100 ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-400' : 'bg-indigo-500/10 border-indigo-500/20 text-indigo-400'
                       }`}>
                         <span className="text-xs font-black">{i + 1}</span>

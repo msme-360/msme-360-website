@@ -32,11 +32,8 @@ async function SupportPortalContent({
   const profile = await getProfileDirect(user.id);
   const userRole = profile?.role || "user";
 
-  // --- Hub Silo Guard ---
-  // Support level or higher (L3+)
-  if (!hasPermission(userRole, 3)) {
-    return <RestrictedAccess requiredLevel="Technical Support" />;
-  }
+  // Support portal is accessible to all users for their own workspace.
+  // The Role Silo Check below ensures they can only access their own support space unless they are Level 0.
 
   const requestedRole = slug?.[0];
   

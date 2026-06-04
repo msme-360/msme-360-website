@@ -45,15 +45,19 @@ export function CommandCenter({ roleLevel, roleId }: CommandCenterProps) {
     { id: '2', title: 'Hiring Dashboard', subtitle: 'Applicant Pipeline', icon: Zap, url: `/${locale}/internal/hiring`, category: 'Operational', minLevel: 0, maxLevel: 3 },
     
     // PERSONNEL & SUPERVISORY (L3 - L3.5)
-    { id: '3', title: 'Team Directory', subtitle: 'Personnel Registry', icon: User, url: `/${locale}/internal/team/${roleId}/directory`, category: 'Personnel', minLevel: 0, maxLevel: 3.5 },
-    { id: '6', title: 'Team Reflections', subtitle: 'Sentiment Analysis', icon: Activity, url: `/${locale}/internal/team/${roleId}/reflections`, category: 'Personnel', minLevel: 0, maxLevel: 3.5 },
-    { id: '7', title: 'Leave Management', subtitle: 'Availability Hub', icon: Zap, url: `/${locale}/internal/team/${roleId}/leaves`, category: 'Operational', minLevel: 0, maxLevel: 3.5 },
-    { id: '8', title: 'Mission Reviews', subtitle: 'PoW Verification', icon: Zap, url: `/${locale}/internal/team/${roleId}/reviews`, category: 'Operational', minLevel: 0, maxLevel: 3.5 },
-    { id: '9', title: 'Onboarding Registry', subtitle: 'Protocol Activation', icon: Activity, url: `/${locale}/internal/team/${roleId}/onboarding`, category: 'Personnel', minLevel: 0, maxLevel: 3.5 },
-    { id: '10', title: 'Policy Hub', subtitle: 'Operational Handbooks', icon: Shield, url: `/${locale}/internal/team/${roleId}/policies`, category: 'Governance', minLevel: 0, maxLevel: 3.5 },
+    { id: '3', title: 'Team Directory', subtitle: 'Personnel Registry', icon: User, url: `/${locale}/internal/team`, category: 'Personnel', minLevel: 0, maxLevel: 3.5 },
+    { id: '6', title: 'Team Reflections', subtitle: 'Sentiment Analysis', icon: Activity, url: `/${locale}/internal/team/reflections`, category: 'Personnel', minLevel: 0, maxLevel: 3.5 },
+    { id: '7', title: 'Leave Management', subtitle: 'Availability Hub', icon: Zap, url: `/${locale}/internal/team/leaves`, category: 'Operational', minLevel: 0, maxLevel: 3.5 },
+    { id: '8', title: 'Mission Reviews', subtitle: 'PoW Verification', icon: Zap, url: `/${locale}/internal/team/reviews`, category: 'Operational', minLevel: 0, maxLevel: 3.5 },
+    { id: '9', title: 'Onboarding Registry', subtitle: 'Protocol Activation', icon: Activity, url: `/${locale}/internal/team/onboarding`, category: 'Personnel', minLevel: 0, maxLevel: 3.5 },
+    { id: '10', title: 'Policy Hub', subtitle: 'Operational Handbooks', icon: Shield, url: `/${locale}/internal/team/policies`, category: 'Governance', minLevel: 0, maxLevel: 3.5 },
     
-    // GENERAL
+    // GENERAL / UNIVERSAL
     { id: '5', title: 'Security Ops', subtitle: 'Threat Mitigation', icon: Shield, url: `/${locale}/admin/audit?tab=security`, category: 'Infrastructure', minLevel: 0, maxLevel: 2 },
+    { id: '11', title: 'Help & Support', subtitle: 'Technical Assistance', icon: Shield, url: `/${locale}/internal/support`, category: 'General', minLevel: 0, maxLevel: 6 },
+    { id: '12', title: 'My Dashboard', subtitle: 'Primary Interface', icon: Zap, url: `/${locale}/dashboard`, category: 'General', minLevel: 0, maxLevel: 6 },
+    { id: '13', title: '1-on-1 Syncs', subtitle: 'Mentorship & Meetings', icon: User, url: `/${locale}/internal/meetings`, category: 'General', minLevel: 0, maxLevel: 6 },
+    { id: '14', title: 'Business Identity', subtitle: 'Corporate Profile', icon: User, url: `/${locale}/internal/identity`, category: 'General', minLevel: 0, maxLevel: 6 },
   ];
 
   const results = allResults

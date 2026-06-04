@@ -9,17 +9,24 @@ import { logSystemAction } from "./shared";
  */
 
 export async function getSupportTickets(role?: string, department?: string) {
+  const verifiedUser = await getUser();
+  if (!verifiedUser) return [];
+
   const supabase = await createServiceClient();
   let query = supabase
     .from('support_tickets')
     .select('*, profiles(full_name, email)');
 
-  if (role && role !== 'admin') {
-    // Non-admin can only see their own or their department's tickets
-    // This is a simplified logic, adjust based on actual RBAC
-    query = query.eq("category", department || "General");
-  } else if (department) {
-    query = query.eq("category", department);
+  const isTechnical = department?.toLowerCase().includes('tech') || 
+                      department?.toLowerCase().includes('eng') || 
+                      role === 'super_admin';
+
+  if (!isTechnical) {
+    // Normal users only see their own tickets
+    query = query.eq("user_id", verifiedUser.id);
+  } else if (role !== 'super_admin') {
+    // Tech/Eng users see all tickets (or you can scope to department if needed)
+    // For now, let resolvers see all tickets so they can resolve them
   }
 
   const { data, error } = await query.order('created_at', { ascending: false });

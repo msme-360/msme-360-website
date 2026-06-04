@@ -43,8 +43,9 @@ import PlannerBoard from "./components/PlannerBoard";
 import { useTranslations } from "next-intl";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useRouter } from "next/navigation";
+import { updateChecklistItem } from "@/app/[locale]/internal/actions";
 import { Button } from "@/components/ui/button";
-import { LayoutDashboard } from "lucide-react";
+import { Clock, LayoutDashboard } from "lucide-react";
 import { useAssociateTasks } from "./useAssociateTasks";
 import TaskDetailSheet from "./components/TaskDetailSheet";
 import MissionDialog from "./components/MissionDialog";
@@ -97,13 +98,13 @@ interface AssociateClientProps {
   initialSyncs?: Meeting[];
 }
 
-export function AssociateClient({ 
-  profile, 
-  initialTasks, 
-  initialAttendance, 
-  initialChecklist, 
-  mentor, 
-  promotion, 
+export function AssociateClient({
+  profile,
+  initialTasks,
+  initialAttendance,
+  initialChecklist,
+  mentor,
+  promotion,
   view,
   performanceData,
   initialSyncs = []
@@ -136,6 +137,17 @@ export function AssociateClient({
     handleLeaveSubmit,
     handleAddComment
   } = useAssociateTasks(initialTasks, profile.id);
+
+  const handleChecklistUpdate = async (id: string, isCompleted: boolean) => {
+    toast.loading("Updating mission status...", { id: 'ob-update' });
+    const res = await updateChecklistItem(id, isCompleted);
+    if (res.success) {
+      toast.success("Mission updated", { id: 'ob-update' });
+      router.refresh();
+    } else {
+      toast.error(res.error || "Failed to update", { id: 'ob-update' });
+    }
+  };
 
   // --- Real Implementation: Dynamic Metrics Calculation ---
   const { onboardingProgress, learningVelocity, completedTasksCount, attendanceSync } = useMemo(() => {
@@ -173,14 +185,14 @@ export function AssociateClient({
 
   const handleRequestMission = async () => {
     if (!mentor?.id) {
-       toast.error("No mentor assigned to receive request.");
-       return;
+      toast.error("No mentor assigned to receive request.");
+      return;
     }
-    
+
     toast.promise(new Promise(resolve => setTimeout(resolve, 1500)), {
-       loading: 'Transmitting tactical objective request to mentor...',
-       success: 'Objective request queued. Mentor notified.',
-       error: 'Transmission failure. Please retry.'
+      loading: 'Transmitting tactical objective request to mentor...',
+      success: 'Objective request queued. Mentor notified.',
+      error: 'Transmission failure. Please retry.'
     });
   };
 
@@ -201,48 +213,58 @@ export function AssociateClient({
       badgeLabel={profile.role === 'intern' ? "Associate Lab" : "Staff Hub"}
       authorityLevel={profile.role === 'intern' ? "Career Launchpad Tier (L1)" : "Standard Execution (L2)"}
       actions={
-        <div className="flex items-center gap-3">
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="text-[10px] font-black uppercase tracking-widest text-indigo-400 hover:bg-indigo-500/10 h-9 gap-2 bg-indigo-500/5 border border-indigo-500/10 px-4"
-            onClick={() => setIsReflectionOpen(true)}
-          >
-            <ClipboardCheck className="w-4 h-4 text-emerald-400" />
-            Submit Reflection
-          </Button>
+        <div className="flex flex-wrap items-center gap-3">
+          {(!view || view === 'hub' || view === 'roadmap') && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-[10px] font-black uppercase tracking-widest text-indigo-400 hover:bg-indigo-500/10 h-9 gap-2 bg-indigo-500/5 border border-indigo-500/10 px-4"
+              onClick={() => setIsReflectionOpen(true)}
+            >
+              <ClipboardCheck className="w-4 h-4 text-emerald-400" />
+              Submit Reflection
+            </Button>
+          )}
 
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="text-[10px] font-black uppercase tracking-widest text-indigo-400 hover:bg-indigo-500/10 h-9 gap-2 bg-indigo-500/5 border border-indigo-500/10 px-4"
-            onClick={() => setIsLeaveRequestOpen(true)}
-          >
-            <Plane className="w-4 h-4 text-indigo-400" />
-            Request Leave
-          </Button>
+          {(!view || view === 'attendance') && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-[10px] font-black uppercase tracking-widest text-indigo-400 hover:bg-indigo-500/10 h-9 gap-2 bg-indigo-500/5 border border-indigo-500/10 px-4"
+              onClick={() => setIsLeaveRequestOpen(true)}
+            >
+              <Plane className="w-4 h-4 text-indigo-400" />
+              Request Leave
+            </Button>
+          )}
 
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="text-[10px] font-black uppercase tracking-widest text-indigo-400 hover:bg-indigo-500/10 h-9 gap-2 bg-indigo-500/5 border border-indigo-500/10 px-4"
-            onClick={() => router.push(`${window.location.pathname}?view=${view === 'planner' ? 'hub' : 'planner'}`)}
-          >
-            <LayoutDashboard className="w-4 h-4" />
-            {view === 'planner' ? 'List View' : 'Board View'}
-          </Button>
+          {(view === 'hub' || view === 'planner') && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-[10px] font-black uppercase tracking-widest text-indigo-400 hover:bg-indigo-500/10 h-9 gap-2 bg-indigo-500/5 border border-indigo-500/10 px-4"
+              onClick={() => router.push(`${window.location.pathname}?view=${view === 'planner' ? 'hub' : 'planner'}`)}
+            >
+              <LayoutDashboard className="w-4 h-4" />
+              {view === 'planner' ? 'List View' : 'Board View'}
+            </Button>
+          )}
 
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="text-[10px] font-black uppercase tracking-widest text-indigo-400 hover:bg-indigo-500/10 h-9 gap-2 bg-indigo-500/5 border border-indigo-500/10 px-4"
-            onClick={() => setIsScheduleOpen(true)}
-          >
-            <CalendarIcon className="w-4 h-4 text-primary" />
-            Schedule Sync
-          </Button>
+          {(!view || view === 'hub' || view === 'roadmap') && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-[10px] font-black uppercase tracking-widest text-indigo-400 hover:bg-indigo-500/10 h-9 gap-2 bg-indigo-500/5 border border-indigo-500/10 px-4"
+              onClick={() => setIsScheduleOpen(true)}
+            >
+              <CalendarIcon className="w-4 h-4 text-primary" />
+                Schedule Sync
+            </Button>
+          )}
 
-          <MissionDialog onCreateTask={handleCreateTask} />
+          {(!view || view === 'hub' || view === 'planner') && (
+            <MissionDialog onCreateTask={handleCreateTask} />
+          )}
         </div>
       }
     >
@@ -259,7 +281,7 @@ export function AssociateClient({
             />
 
             <Suspense fallback={<Skeleton className="h-64 w-full rounded-3xl" />}>
-              {profile.role === 'intern' && <InternOnboardingFlow metrics={dynamicMetrics} />}
+              {profile.role === 'intern' && <InternOnboardingFlow metrics={dynamicMetrics} checklist={initialChecklist} onUpdate={handleChecklistUpdate} />}
               {profile.role === 'jr_developer' && <JrDevLearningPath metrics={dynamicMetrics} />}
               {profile.role === 'associate' && <AssociateLaunchpad metrics={dynamicMetrics} />}
               {profile.role === 'trainee' && <TraineeLaunchpad metrics={dynamicMetrics} />}
@@ -274,15 +296,67 @@ export function AssociateClient({
         )}
 
         {view === 'attendance' && (
-          <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
-             {/* Attendance view content... keeping same for brevity but extracted into a hook-driven state */}
-             {/* (Omitted for brevity, but logically identical to previous version) */}
+          <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+            {/* Performance Analytics Dashboard */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {dynamicMetrics.map((metric, idx) => (
+                <div key={idx} className="glass-card border-white/5 p-6 rounded-2xl relative overflow-hidden group hover:border-primary/30 transition-all duration-300">
+                  <div className="absolute -top-10 -right-10 w-32 h-32 bg-primary/10 rounded-full blur-[40px] group-hover:bg-primary/20 transition-all" />
+                  <div className="relative z-10">
+                    <h4 className="text-[10px] uppercase font-black tracking-widest text-white/50 mb-3 flex items-center justify-between">
+                      {metric.label}
+                      <span className="px-2 py-1 rounded-md bg-white/5 border border-white/10 text-[8px] text-emerald-400">{metric.status}</span>
+                    </h4>
+                    <div className="flex items-baseline gap-3">
+                      <span className="text-3xl font-black tracking-tighter text-white drop-shadow-sm">{metric.value}</span>
+                      <span className="text-xs font-bold text-primary">{metric.change}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Logs Table */}
+            <div className="glass-card border-white/10 rounded-3xl overflow-hidden shadow-2xl relative p-6 md:p-8">
+              <h2 className="text-xl font-bold mb-6 flex items-center gap-3">
+                <div className="p-2 bg-emerald-500/10 rounded-lg text-emerald-400">
+                  <Clock className="w-5 h-5" />
+                </div>
+                Raw Access Logs
+              </h2>
+              {attendance.length === 0 ? (
+                <div className="text-center p-12 bg-white/5 rounded-2xl border border-white/10 italic text-sm text-muted-foreground">
+                  No telemetry recorded yet. Deploy to site to initiate logging.
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {attendance.map(log => (
+                    <div key={log.id} className="flex flex-wrap md:flex-nowrap justify-between items-center p-4 bg-white/[0.02] hover:bg-white/5 transition-colors border border-white/10 rounded-2xl gap-4">
+                      <div className="flex flex-col w-full md:w-auto">
+                        <span className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Op Date</span>
+                        <span className="font-bold">{new Date(log.check_in).toLocaleDateString()}</span>
+                      </div>
+                      <div className="flex items-center gap-6 md:gap-12 w-full md:w-auto justify-between md:justify-end">
+                        <div className="flex flex-col items-start md:items-end">
+                          <span className="text-[10px] text-indigo-400 uppercase font-black tracking-widest">Initiated</span>
+                          <span className="font-bold font-mono">{new Date(log.check_in).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                        </div>
+                        <div className="flex flex-col items-end">
+                          <span className="text-[10px] text-emerald-400 uppercase font-black tracking-widest">Concluded</span>
+                          <span className="font-bold font-mono text-emerald-400">{log.check_out ? new Date(log.check_out).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "ACTIVE"}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         )}
 
         {view === 'planner' && (
           <div className="w-full animate-in zoom-in-95 duration-500">
-            <PlannerBoard 
+            <PlannerBoard
               tasks={tasks}
               onTaskStatus={handleTaskStatus}
               onTaskSelect={handleSelectTask}
@@ -320,17 +394,17 @@ export function AssociateClient({
               />
 
               <MentorInsights mentor={mentor} />
-              
-              <TacticalMerits 
-                commendations={performanceData?.commendations as Commendation[] || []} 
+
+              <TacticalMerits
+                commendations={performanceData?.commendations as Commendation[] || []}
                 tier={performanceData?.tier as string}
               />
             </div>
           )}
         </div>
       </div>
-      
-      <TaskDetailSheet 
+
+      <TaskDetailSheet
         selectedTask={selectedTask}
         onClose={() => setSelectedTask(null)}
         comments={comments}
@@ -344,19 +418,19 @@ export function AssociateClient({
         onUpdateBlocker={handleUpdateBlocker}
       />
 
-      <WeeklyReflectionDialog 
+      <WeeklyReflectionDialog
         isOpen={isReflectionOpen}
         onClose={() => setIsReflectionOpen(false)}
         onSubmit={handleReflectionSubmit}
       />
 
-      <LeaveRequestDialog 
+      <LeaveRequestDialog
         isOpen={isLeaveRequestOpen}
         onClose={() => setIsLeaveRequestOpen(false)}
         onSubmit={handleLeaveSubmit}
       />
 
-      <InternalScheduleDialog 
+      <InternalScheduleDialog
         isOpen={isScheduleOpen}
         onOpenChange={setIsScheduleOpen}
         isGoogleConnected={!!profile.metadata?.google_tokens}

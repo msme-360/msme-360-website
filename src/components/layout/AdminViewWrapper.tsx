@@ -30,7 +30,7 @@ export function AdminViewWrapper({
           <p className="text-muted-foreground text-sm font-medium">{subtitle}</p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
-          {badgeLabel && (
+          {/* {badgeLabel && (
             <Badge variant="outline" className="bg-primary/10 border-primary/20 text-primary px-3 py-1 font-bold italic">
               {badgeLabel}
             </Badge>
@@ -39,7 +39,7 @@ export function AdminViewWrapper({
             <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest bg-white/5 px-2 py-1 rounded border border-white/10">
               Authority: {authorityLevel}
             </div>
-          )}
+          )} */}
           {actions}
         </div>
       </div>
