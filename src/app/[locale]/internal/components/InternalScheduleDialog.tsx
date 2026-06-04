@@ -24,7 +24,6 @@ import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
 
 interface InternalScheduleDialogProps {
   isOpen: boolean;
@@ -296,15 +295,15 @@ export function InternalScheduleDialog({
                       <div className="flex items-center gap-2 truncate">
                         <Users className="w-3.5 h-3.5 text-primary shrink-0" />
                         <span className="truncate">
-                          {targetUserIds.length === 0 ? "Select persons" : targetUserIds.includes("all") ? "All Team Members" : `${targetUserIds.length} selected`}
+                          {targetUserIds.length === 0 ? "Select persons" : targetUserIds.length === availableUsers.length && availableUsers.length > 0 ? "All Team Members" : `${targetUserIds.length} selected`}
                         </span>
                       </div>
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-[300px] p-2 glass-card border-white/10 max-h-64 overflow-y-auto" align="start">
                     <div 
-                      className={cn("flex items-center justify-between p-2 rounded-lg cursor-pointer hover:bg-white/5 transition-colors", targetUserIds.includes("all") && "bg-white/10")}
-                      onClick={() => setTargetUserIds(prev => prev.includes("all") ? [] : ["all"])}
+                      className={cn("flex items-center justify-between p-2 rounded-lg cursor-pointer hover:bg-white/5 transition-colors", targetUserIds.length === availableUsers.length && availableUsers.length > 0 && "bg-white/10")}
+                      onClick={() => setTargetUserIds(prev => prev.length === availableUsers.length && availableUsers.length > 0 ? [] : availableUsers.map(u => u.id))}
                     >
                       <div className="flex items-center gap-2">
                         <Avatar className="w-6 h-6">
@@ -312,7 +311,7 @@ export function InternalScheduleDialog({
                         </Avatar>
                         <span className="text-sm font-medium">All Team Members</span>
                       </div>
-                      {targetUserIds.includes("all") && <Check className="w-4 h-4 text-emerald-400" />}
+                      {targetUserIds.length === availableUsers.length && availableUsers.length > 0 && <Check className="w-4 h-4 text-emerald-400" />}
                     </div>
 
                     {availableUsers.map(user => {
@@ -322,7 +321,7 @@ export function InternalScheduleDialog({
                           key={user.id}
                           className={cn("flex items-center justify-between p-2 rounded-lg cursor-pointer hover:bg-white/5 transition-colors mt-1", isSelected && "bg-white/10")}
                           onClick={() => {
-                            if (targetUserIds.includes("all")) {
+                            if (targetUserIds.length === availableUsers.length && availableUsers.length > 0) {
                               setTargetUserIds([user.id]);
                             } else {
                               setTargetUserIds(prev => isSelected ? prev.filter(id => id !== user.id) : [...prev, user.id]);

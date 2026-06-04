@@ -988,13 +988,11 @@ export async function getScheduledSyncs(userId?: string) {
   } else if (verifiedUser.role !== 'admin' && verifiedUser.role !== 'ceo') {
     // For mentors, they might not have their ID in the table yet if we only store mentor_name
     // But for now, let's just return all for management, or filter by mentee for associates
-    if (verifiedUser.role === 'associate' || verifiedUser.role === 'intern') {
-      const fullName = verifiedUser.user_metadata?.full_name;
-      if (fullName) {
-        query = query.or(`mentee_id.eq.${verifiedUser.id},mentor_name.eq."${fullName}",mentee_id.is.null`);
-      } else {
-        query = query.or(`mentee_id.eq.${verifiedUser.id},mentee_id.is.null`);
-      }
+    const fullName = verifiedUser.user_metadata?.full_name;
+    if (fullName) {
+      query = query.or(`mentee_id.eq.${verifiedUser.id},mentor_name.eq."${fullName}",mentee_id.is.null`);
+    } else {
+      query = query.or(`mentee_id.eq.${verifiedUser.id},mentee_id.is.null`);
     }
   }
 
@@ -1005,7 +1003,8 @@ export async function getScheduledSyncs(userId?: string) {
     return {
       ...m,
       title: title || m.expertise,
-      link: link || '#'
+      link: link || '#',
+      type: 'Internal Sync'
     };
   });
 }

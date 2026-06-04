@@ -300,15 +300,13 @@ export async function onboardIntern(applicationId: string) {
     role: 'intern',
     department: application.department || 'Operations',
     designation: application.role || 'Intern',
-    manager_id: mentorId,
-    metadata: {
-      hired_from: applicationId,
-      hired_at: new Date().toISOString(),
-      onboarding_status: 'active'
-    }
+    manager_id: mentorId
   });
 
-  if (profileError) console.error("Profile sync error:", profileError);
+  if (profileError) {
+    console.error("Profile sync error:", profileError);
+    return { success: false, error: "Failed to create user profile: " + profileError.message };
+  }
 
   // 3. Initialize Onboarding Checklist
   const templateId = (application.metadata as Record<string, unknown>)?.template_id as string || getRecommendedTemplate(application.role || '');
