@@ -1,0 +1,6 @@
+model-service/
+node_modules/
+.next/
+out/
+build/
+dist/
