@@ -10,7 +10,7 @@ import {
 } from "@/services/api/forecasting";
 
 // Sample columns for now
-// Later → read from actual CSV
+// Later → read from actual CSV headers
 const SAMPLE_COLUMNS = [
   "Date",
   "Product Name",
@@ -24,14 +24,11 @@ export default function MapColumnsPage() {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [datasetId, setDatasetId] = useState("")
-  const [filePath, setFilePath] = useState("")
 
   useEffect(() => {
-    // Get datasetId from previous page
+    // Get datasetId saved from upload page
     const id = localStorage.getItem("datasetId") || ""
-    const path = localStorage.getItem("filePath") || ""
     setDatasetId(id)
-    setFilePath(path)
   }, [])
 
   const handleConfirm = async (
@@ -45,20 +42,15 @@ export default function MapColumnsPage() {
       // Step 1 — Save column mapping to Supabase
       await saveColumnMapping(datasetId, mapping)
 
-      // Step 2 — Create forecast run
+      // Step 2 — Create forecast run in Supabase
       const run = await createForecastRun(datasetId, model, horizon)
 
       // Step 3 — Save runId for results page
       localStorage.setItem("runId", run.id)
 
       // Step 4 — Trigger Python ML service
-      await triggerMLService(
-        run.id,
-        filePath,
-        mapping,
-        model,
-        horizon
-      )
+      // Python reads everything from Supabase using run_id
+      await triggerMLService(run.id)
 
       // Step 5 — Go to results page
       router.push(

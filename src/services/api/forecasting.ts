@@ -14,13 +14,18 @@ export async function uploadFileToStorage(file: File) {
 
 // Step 2 — Save dataset record
 export async function saveDataset(
-  fileName: string, 
-  filePath: string, 
+  fileName: string,
+  filePath: string,
   rowCount: number
 ) {
+  // Get logged in user for RLS
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error("Not logged in")
+
   const { data, error } = await supabase
     .from('datasets')
     .insert({
+      user_id: user.id,
       file_name: fileName,
       file_path: filePath,
       upload_status: 'uploaded',
@@ -35,7 +40,7 @@ export async function saveDataset(
 
 // Step 3 — Save column mapping
 export async function saveColumnMapping(
-  datasetId: string, 
+  datasetId: string,
   mapping: Record<string, string>
 ) {
   const rows = Object.entries(mapping).map(([original, mapped]) => ({
@@ -54,8 +59,8 @@ export async function saveColumnMapping(
 
 // Step 4 — Create forecast run
 export async function createForecastRun(
-  datasetId: string, 
-  model: string, 
+  datasetId: string,
+  model: string,
   horizon: number
 ) {
   const { data, error } = await supabase
@@ -73,25 +78,14 @@ export async function createForecastRun(
   return data
 }
 
-// Step 5 — Send run_id to Python
-export async function triggerMLService(
-  runId: string,
-  filePath: string,
-  mapping: Record<string, string>,
-  model: string,
-  horizon: number
-) {
-  const res = await fetch('http://localhost:8000/train', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      run_id: runId,
-      file_path: filePath,
-      mapping: mapping,
-      model: model,
-      horizon: horizon
-    })
-  })
+// Step 5 — Trigger Python ML service
+// Python only needs run_id in URL
+// It reads everything else from Supabase directly
+export async function triggerMLService(runId: string) {
+  const res = await fetch(
+    `http://localhost:8000/api/v1/forecast/run/${runId}`,
+    { method: 'POST' }
+  )
   return res.json()
 }
 
