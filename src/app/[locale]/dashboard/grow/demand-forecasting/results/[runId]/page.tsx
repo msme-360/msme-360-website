@@ -20,7 +20,6 @@ export default function ResultsPage() {
   useEffect(() => {
     if (!runId) return
 
-    // Poll every 3 seconds
     const interval = setInterval(async () => {
       try {
         const currentStatus = await getRunStatus(runId as string)
@@ -28,7 +27,6 @@ export default function ResultsPage() {
 
         if (currentStatus === "completed") {
           clearInterval(interval)
-          // Fetch results
           const { metrics, predictions } = await getRunResults(runId as string)
           setMetrics(metrics)
           setPredictions(predictions ?? [])
@@ -48,6 +46,47 @@ export default function ResultsPage() {
     return () => clearInterval(interval)
   }, [runId])
 
+  // Export handler — real CSV download
+  const handleExport = async (runId: string) => {
+    try {
+      const { predictions } = await getRunResults(runId)
+
+      if (!predictions || predictions.length === 0) return
+
+      const headers = [
+        "date",
+        "product",
+        "predicted",
+        "actual",
+        "lower_bound",
+        "upper_bound"
+      ].join(",")
+
+      const rows = predictions.map(p =>
+        [
+          p.forecast_date,
+          p.entity_name,
+          p.predicted_value,
+          p.actual_value ?? "",
+          p.lower_bound ?? "",
+          p.upper_bound ?? ""
+        ].join(",")
+      )
+
+      const csv = [headers, ...rows].join("\n")
+      const blob = new Blob([csv], { type: "text/csv" })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement("a")
+      a.href = url
+      a.download = `forecast-${runId}.csv`
+      a.click()
+      URL.revokeObjectURL(url)
+
+    } catch (error: any) {
+      console.error("Export failed:", error.message)
+    }
+  }
+
   // Loading State
   if (status === "pending" || status === "processing") {
     return (
@@ -61,14 +100,13 @@ export default function ResultsPage() {
             This may take a few moments
           </p>
         </div>
-        {/* Processing Steps */}
         <div className="w-full space-y-2 mt-4">
           {[
             "Cleaning data",
             "Engineering features",
             "Training model",
             "Generating predictions"
-          ].map((step, index) => (
+          ].map((step) => (
             <div
               key={step}
               className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/10"
@@ -101,8 +139,6 @@ export default function ResultsPage() {
   // Results State
   return (
     <div className="max-w-4xl mx-auto py-10 px-4 space-y-8">
-
-      {/* Header */}
       <div className="space-y-1">
         <h1 className="text-4xl font-black tracking-tight">
           Forecast Results
@@ -112,33 +148,24 @@ export default function ResultsPage() {
         </p>
       </div>
 
-      {/* Metric Cards */}
       {metrics && <MetricCards metrics={metrics} />}
 
-      {/* Forecast Chart */}
       {predictions.length > 0 && (
         <ForecastChart predictions={predictions} />
       )}
 
-      {/* Insight Summary */}
       <InsightSummary modelName="Prophet" horizon={7} />
 
-      {/* Forecast Table */}
       {predictions.length > 0 && (
         <ForecastTable predictions={predictions} />
       )}
 
-      {/* Export Button */}
       <div className="flex justify-end">
         <ExportButton
           runId={runId as string}
-          onExport={async (id) => {
-            await new Promise(r => setTimeout(r, 2000))
-            console.log("Export:", id)
-          }}
+          onExport={handleExport}
         />
       </div>
-
     </div>
   )
 }
