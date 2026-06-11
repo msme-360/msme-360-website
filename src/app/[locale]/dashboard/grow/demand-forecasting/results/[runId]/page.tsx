@@ -7,7 +7,8 @@ import ForecastChart from "../components/ForecastChart";
 import ForecastTable from "../components/ForecastTable";
 import InsightSummary from "../components/InsightSummary";
 import ExportButton from "../components/ExportButton";
-import { getRunStatus, getRunResults } from "@/services/api/forecasting";
+import { getRunResults } from "@/services/api/forecasting";
+import { supabase } from "@/services/supabase/supabase";
 import { Loader2 } from "lucide-react";
 
 export default function ResultsPage() {
@@ -20,30 +21,60 @@ export default function ResultsPage() {
   useEffect(() => {
     if (!runId) return
 
-    const interval = setInterval(async () => {
-      try {
-        const currentStatus = await getRunStatus(runId as string)
-        setStatus(currentStatus)
-
-        if (currentStatus === "completed") {
-          clearInterval(interval)
+    // Fetch initial status first
+    const fetchInitialStatus = async () => {
+      const { data } = await supabase
+        .from('forecast_runs')
+        .select('status')
+        .eq('id', runId as string)
+        .single()
+      
+      if (data) {
+        setStatus(data.status)
+        if (data.status === 'completed') {
           const { metrics, predictions } = await getRunResults(runId as string)
           setMetrics(metrics)
           setPredictions(predictions ?? [])
         }
-
-        if (currentStatus === "failed") {
-          clearInterval(interval)
+        if (data.status === 'failed') {
           setError(true)
         }
-
-      } catch (err) {
-        clearInterval(interval)
-        setError(true)
       }
-    }, 3000)
+    }
 
-    return () => clearInterval(interval)
+    fetchInitialStatus()
+
+    // Set up Realtime subscription
+    const channel = supabase
+      .channel(`forecast_run_${runId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'forecast_runs',
+          filter: `id=eq.${runId}`
+        },
+        async (payload) => {
+          const newStatus = payload.new.status
+          setStatus(newStatus)
+          
+          if (newStatus === 'completed') {
+            const { metrics, predictions } = await getRunResults(runId as string)
+            setMetrics(metrics)
+            setPredictions(predictions ?? [])
+          }
+          
+          if (newStatus === 'failed') {
+            setError(true)
+          }
+        }
+      )
+      .subscribe()
+
+    return () => {
+      channel.unsubscribe()
+    }
   }, [runId])
 
   // Export handler — real CSV download

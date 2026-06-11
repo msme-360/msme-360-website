@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import ColumnMapper from "./components/ColumnMapper";
 import {
   saveColumnMapping,
@@ -22,14 +22,9 @@ const SAMPLE_COLUMNS = [
 
 export default function MapColumnsPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [isLoading, setIsLoading] = useState(false)
-  const [datasetId, setDatasetId] = useState("")
-
-  useEffect(() => {
-    // Get datasetId saved from upload page
-    const id = localStorage.getItem("datasetId") || ""
-    setDatasetId(id)
-  }, [])
+  const datasetId = searchParams.get("datasetId") || ""
 
   const handleConfirm = async (
     mapping: Record<string, string>,
@@ -45,14 +40,11 @@ export default function MapColumnsPage() {
       // Step 2 — Create forecast run in Supabase
       const run = await createForecastRun(datasetId, model, horizon)
 
-      // Step 3 — Save runId for results page
-      localStorage.setItem("runId", run.id)
-
-      // Step 4 — Trigger Python ML service
+      // Step 3 — Trigger Python ML service
       // Python reads everything from Supabase using run_id
       await triggerMLService(run.id)
 
-      // Step 5 — Go to results page
+      // Step 4 — Go to results page
       router.push(
         `/dashboard/grow/demand-forecasting/results/${run.id}`
       )

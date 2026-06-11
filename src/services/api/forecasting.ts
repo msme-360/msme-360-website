@@ -1,41 +1,48 @@
 import { supabase } from '@/services/supabase/supabase'
 
-// Step 1 — Upload file to storage
-export async function uploadFileToStorage(file: File) {
-  const fileName = `${Date.now()}-${file.name}`
-  
-  const { data, error } = await supabase.storage
-    .from('forecast-uploads')
-    .upload(fileName, file)
-
-  if (error) throw error
-  return data.path
-}
-
-// Step 2 — Save dataset record
-export async function saveDataset(
-  fileName: string,
-  filePath: string,
-  rowCount: number
-) {
+// Step 1 & 2 — Create dataset and upload file to storage
+export async function uploadFileToStorageAndSaveDataset(file: File) {
   // Get logged in user for RLS
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error("Not logged in")
-
-  const { data, error } = await supabase
+  
+  // First create dataset record without file_path
+  const { data: dataset, error: dsError } = await supabase
     .from('datasets')
     .insert({
       user_id: user.id,
-      file_name: fileName,
-      file_path: filePath,
-      upload_status: 'uploaded',
-      row_count: rowCount
+      file_name: file.name,
+      file_path: '', // temporary
+      upload_status: 'uploading',
+      row_count: 0
     })
     .select()
     .single()
+  if (dsError) throw dsError
+  
+  // Now construct the storage path
+  const storagePath = `user_${user.id}/dataset_${dataset.id}.csv`
+  
+  // Upload to datasets bucket
+  const { error: storageError } = await supabase.storage
+    .from('datasets')
+    .upload(storagePath, file)
 
-  if (error) throw error
-  return data
+  if (storageError) throw storageError
+  
+  // Update dataset with actual file_path
+  const { data: updatedDataset, error: updateErr } = await supabase
+    .from('datasets')
+    .update({
+      file_path: storagePath,
+      upload_status: 'uploaded'
+    })
+    .eq('id', dataset.id)
+    .select()
+    .single()
+  
+  if (updateErr) throw updateErr
+  return updatedDataset
 }
 
 // Step 3 — Save column mapping

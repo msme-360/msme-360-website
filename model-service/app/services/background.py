@@ -46,10 +46,9 @@ async def background_pipeline_orchestration(run_id: UUID):
         }
 
         # 2. Fetch & Stream: Download raw tracking csv data directly into memory
-        # Assuming bucket name is 'datasets'
-        bucket_name = "forecast-uploads"
-        # depends on file format on how frotnend stores
-        storage_path = file_path.split("/")[-1] if "/" in file_path else file_path
+        bucket_name = "datasets"
+        # Use the exact file_path from dataset table
+        storage_path = file_path
         
         file_bytes = supabase.storage.from_(bucket_name).download(storage_path)
         df = pd.read_csv(io.BytesIO(file_bytes))

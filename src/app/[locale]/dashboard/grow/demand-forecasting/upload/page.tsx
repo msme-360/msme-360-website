@@ -5,11 +5,7 @@ import { useRouter } from "next/navigation";
 import UploadCard from "./components/UploadCard";
 import UploadStatus from "./components/UploadStatus";
 import {
-  uploadFileToStorage,
-  saveDataset,
-  saveColumnMapping,
-  createForecastRun,
-  triggerMLService
+  uploadFileToStorageAndSaveDataset,
 } from "@/services/api/forecasting";
 
 type Status = "idle" | "loading" | "success" | "error"
@@ -19,27 +15,17 @@ export default function UploadPage() {
   const [status, setStatus] = useState<Status>("idle")
   const [fileName, setFileName] = useState("")
   const [errorMessage, setErrorMessage] = useState("")
+  const [datasetId, setDatasetId] = useState("")
 
   const handleUpload = async (file: File) => {
     try {
       setFileName(file.name)
       setStatus("loading")
 
-      // Step 1 — Upload file to Supabase Storage
-      const filePath = await uploadFileToStorage(file)
+      // Combined step: create dataset + upload file to storage
+      const dataset = await uploadFileToStorageAndSaveDataset(file)
 
-      // Step 2 — Save dataset record
-      const dataset = await saveDataset(
-        file.name,
-        filePath,
-        0 // row count — ML will update this
-      )
-
-      // Step 3 — Save to localStorage for map-columns page
-      localStorage.setItem("datasetId", dataset.id)
-      localStorage.setItem("filePath", filePath)
-      localStorage.setItem("fileName", file.name)
-
+      setDatasetId(dataset.id)
       setStatus("success")
 
     } catch (error: any) {
@@ -69,7 +55,7 @@ export default function UploadPage() {
   }
 
   const handleContinue = () => {
-    router.push("/dashboard/grow/demand-forecasting/map-columns")
+    router.push(`/dashboard/grow/demand-forecasting/map-columns?datasetId=${datasetId}`)
   }
 
   const handleRetry = () => {
