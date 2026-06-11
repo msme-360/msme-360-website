@@ -8,23 +8,26 @@ import {
   createForecastRun,
   triggerMLService
 } from "@/services/api/forecasting";
-
-// Sample columns for now
-// Later → read from actual CSV headers
-const SAMPLE_COLUMNS = [
-  "Date",
-  "Product Name",
-  "Qty Sold",
-  "Store",
-  "Region",
-  "Price"
-]
+import { ColumnInfo } from "@/utils/fileParser";
 
 export default function MapColumnsPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [isLoading, setIsLoading] = useState(false)
+  const [columnInfos, setColumnInfos] = useState<ColumnInfo[]>([])
   const datasetId = searchParams.get("datasetId") || ""
+
+  useEffect(() => {
+    const columnsJson = searchParams.get("columns")
+    if (columnsJson) {
+      try {
+        const parsed = JSON.parse(decodeURIComponent(columnsJson))
+        setColumnInfos(parsed)
+      } catch (e) {
+        console.error("Failed to parse columns", e)
+      }
+    }
+  }, [searchParams])
 
   const handleConfirm = async (
     mapping: Record<string, string>,
@@ -35,7 +38,7 @@ export default function MapColumnsPage() {
       setIsLoading(true)
 
       // Step 1 — Save column mapping to Supabase
-      await saveColumnMapping(datasetId, mapping)
+      await saveColumnMapping(datasetId, mapping, columnInfos)
 
       // Step 2 — Create forecast run in Supabase
       const run = await createForecastRun(datasetId, model, horizon)
@@ -58,7 +61,7 @@ export default function MapColumnsPage() {
   return (
     <div className="max-w-2xl mx-auto py-10 px-4">
       <ColumnMapper
-        csvColumns={SAMPLE_COLUMNS}
+        csvColumns={columnInfos.map(col => col.name)}
         onConfirm={handleConfirm}
         isLoading={isLoading}
       />

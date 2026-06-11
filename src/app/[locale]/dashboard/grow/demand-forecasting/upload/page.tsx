@@ -7,6 +7,7 @@ import UploadStatus from "./components/UploadStatus";
 import {
   uploadFileToStorageAndSaveDataset,
 } from "@/services/api/forecasting";
+import { ColumnInfo } from "@/utils/fileParser";
 
 type Status = "idle" | "loading" | "success" | "error"
 
@@ -16,14 +17,16 @@ export default function UploadPage() {
   const [fileName, setFileName] = useState("")
   const [errorMessage, setErrorMessage] = useState("")
   const [datasetId, setDatasetId] = useState("")
+  const [columns, setColumns] = useState<ColumnInfo[]>([])
 
-  const handleUpload = async (file: File) => {
+  const handleUpload = async (file: File, columnInfos: ColumnInfo[]) => {
     try {
       setFileName(file.name)
+      setColumns(columnInfos)
       setStatus("loading")
 
       // Combined step: create dataset + upload file to storage
-      const dataset = await uploadFileToStorageAndSaveDataset(file)
+      const dataset = await uploadFileToStorageAndSaveDataset(file, columnInfos)
 
       setDatasetId(dataset.id)
       setStatus("success")
@@ -46,7 +49,11 @@ export default function UploadPage() {
         type: "text/csv"
       })
 
-      await handleUpload(file)
+      // Parse sample file
+      const { parseFile } = await import("@/utils/fileParser")
+      const columnInfos = await parseFile(file)
+
+      await handleUpload(file, columnInfos)
 
     } catch (error: any) {
       setErrorMessage(error.message || "Failed to load sample data")
@@ -55,7 +62,9 @@ export default function UploadPage() {
   }
 
   const handleContinue = () => {
-    router.push(`/dashboard/grow/demand-forecasting/map-columns?datasetId=${datasetId}`)
+    // Pass columns as JSON string in search params
+    const columnsJson = encodeURIComponent(JSON.stringify(columns))
+    router.push(`/dashboard/grow/demand-forecasting/map-columns?datasetId=${datasetId}&columns=${columnsJson}`)
   }
 
   const handleRetry = () => {

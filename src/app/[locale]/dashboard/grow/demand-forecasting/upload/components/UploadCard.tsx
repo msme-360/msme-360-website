@@ -4,9 +4,10 @@ import { useState } from "react";
 import { UploadCloud, FileText, X, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
+import { parseFile, ColumnInfo } from "@/utils/fileParser";
 
 interface UploadCardProps {
-  onUpload: (file: File) => void
+  onUpload: (file: File, columns: ColumnInfo[]) => void
   onUseSample?: () => void
   isLoading?: boolean
 }
@@ -19,6 +20,7 @@ export default function UploadCard({
   const [dragOver, setDragOver] = useState(false)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [parsing, setParsing] = useState(false)
 
   const validateFile = (file: File) => {
     const validTypes = [
@@ -57,8 +59,18 @@ export default function UploadCard({
     setError(null)
   }
 
-  const handleSubmit = () => {
-    if (selectedFile) onUpload(selectedFile)
+  const handleSubmit = async () => {
+    if (selectedFile) {
+      setParsing(true)
+      try {
+        const columns = await parseFile(selectedFile)
+        onUpload(selectedFile, columns)
+      } catch (err: any) {
+        setError(err.message || "Failed to parse file")
+      } finally {
+        setParsing(false)
+      }
+    }
   }
 
   return (
@@ -166,10 +178,10 @@ export default function UploadCard({
       {/* Upload Button */}
       <Button
         onClick={handleSubmit}
-        disabled={!selectedFile || isLoading}
+        disabled={!selectedFile || isLoading || parsing}
         className="w-full h-12 rounded-2xl shadow-glow bg-primary text-primary-foreground font-black uppercase tracking-widest hover:scale-[1.02] transition-transform"
       >
-        {isLoading ? "Uploading..." : "Upload File"}
+        {parsing ? "Parsing File..." : isLoading ? "Uploading..." : "Upload File"}
       </Button>
 
     </motion.div>

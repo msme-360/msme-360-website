@@ -1,0 +1,11 @@
+date,product,units_sold
+2026-01-01,Product A,100
+2026-01-02,Product A,120
+2026-01-03,Product A,90
+2026-01-04,Product A,150
+2026-01-05,Product A,110
+2026-01-01,Product B,80
+2026-01-02,Product B,95
+2026-01-03,Product B,70
+2026-01-04,Product B,110
+2026-01-05,Product B,85

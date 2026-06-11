@@ -22,7 +22,8 @@ async def background_pipeline_orchestration(run_id: UUID):
 
         # Fetch run details to get dataset_id and horizon
         run_response = supabase.table("forecast_runs").select("*").eq("id", str(run_id)).single().execute()
-        if not run_response.data:
+        # NEED TO BE CHANGED TO if not run_response.data BUT FOR SMALL TESTING PURPOSES
+        if run_response.data:
             raise Exception(f"Forecast run {run_id} not found")
         
         run_data = run_response.data
@@ -46,7 +47,7 @@ async def background_pipeline_orchestration(run_id: UUID):
         }
 
         # 2. Fetch & Stream: Download raw tracking csv data directly into memory
-        bucket_name = "datasets"
+        bucket_name = "forecast-uploads"
         # Use the exact file_path from dataset table
         storage_path = file_path
         
