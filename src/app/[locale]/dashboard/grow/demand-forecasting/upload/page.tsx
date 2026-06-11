@@ -4,21 +4,30 @@ import { useState } from "react";
 import UploadCard from "./components/UploadCard";
 import UploadStatus from "./components/UploadStatus";
 
+type UploadStatus = "idle" | "loading" | "success" | "error"
+
 export default function UploadPage() {
-  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle")
+  const [status, setStatus] = useState<UploadStatus>("idle")
   const [fileName, setFileName] = useState("")
 
   const handleUpload = (file: File) => {
     setFileName(file.name)
     setStatus("loading")
-    // simulate upload for now
     setTimeout(() => setStatus("success"), 2000)
+  }
+
+  const handleUseSample = () => {
+    setFileName("sample-forecast-data.csv")
+    setStatus("success")
   }
 
   return (
     <div className="max-w-2xl mx-auto py-10 px-4 space-y-6">
       {status === "idle" && (
-        <UploadCard onUpload={handleUpload} />
+        <UploadCard
+          onUpload={handleUpload}
+          onUseSample={handleUseSample}
+        />
       )}
       {status !== "idle" && (
         <UploadStatus

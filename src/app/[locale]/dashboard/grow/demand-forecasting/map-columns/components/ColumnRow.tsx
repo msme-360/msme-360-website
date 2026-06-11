@@ -53,8 +53,8 @@ export default function ColumnRow({
           <select
             value={mappedValue}
             onChange={(e) => onMapChange(originalName, e.target.value)}
-            className="w-full appearance-none bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-sm font-black cursor-pointer focus:outline-none focus:border-primary/50 transition-colors"
-          >
+            className="w-full appearance-none bg-background border border-white/10 rounded-xl px-4 py-2 text-sm font-black cursor-pointer focus:outline-none focus:border-primary/50 transition-colors"
+            >
             <option value="">Select column</option>
             {SYSTEM_COLUMNS.map((col) => (
               <option key={col.value} value={col.value}>

@@ -1,19 +1,24 @@
 "use client";
 
 import { useState } from "react";
-import { UploadCloud, FileText, X } from "lucide-react";
+import { UploadCloud, FileText, X, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 
 interface UploadCardProps {
-  onUpload: (file: File) => void;
-  isLoading?: boolean;
+  onUpload: (file: File) => void
+  onUseSample?: () => void
+  isLoading?: boolean
 }
 
-export default function UploadCard({ onUpload, isLoading }: UploadCardProps) {
-  const [dragOver, setDragOver] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [error, setError] = useState<string | null>(null);
+export default function UploadCard({ 
+  onUpload, 
+  onUseSample,
+  isLoading 
+}: UploadCardProps) {
+  const [dragOver, setDragOver] = useState(false)
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [error, setError] = useState<string | null>(null)
 
   const validateFile = (file: File) => {
     const validTypes = [
@@ -62,6 +67,7 @@ export default function UploadCard({ onUpload, isLoading }: UploadCardProps) {
       animate={{ opacity: 1, y: 0 }}
       className="glass-card p-8 space-y-6"
     >
+
       {/* Header */}
       <div className="space-y-1">
         <h2 className="text-3xl font-black tracking-tight">
@@ -105,6 +111,29 @@ export default function UploadCard({ onUpload, isLoading }: UploadCardProps) {
         </label>
       </div>
 
+      {/* Divider */}
+      <div className="flex items-center gap-3">
+        <div className="flex-1 border-t border-white/10" />
+        <span className="text-xs font-black uppercase tracking-widest opacity-40">
+          or
+        </span>
+        <div className="flex-1 border-t border-white/10" />
+      </div>
+
+      {/* Sample Dataset Button */}
+      <button
+        onClick={() => onUseSample?.()}
+        className="w-full flex items-center justify-center gap-3 p-4 rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 transition-all hover:scale-[1.02]"
+      >
+        <Download className="w-4 h-4 text-primary" />
+        <div className="text-left">
+          <p className="text-sm font-black">Use Sample Dataset</p>
+          <p className="text-xs text-muted-foreground font-bold">
+            Try with our demo sales data
+          </p>
+        </div>
+      </button>
+
       {/* Selected File */}
       {selectedFile && (
         <motion.div
@@ -134,7 +163,7 @@ export default function UploadCard({ onUpload, isLoading }: UploadCardProps) {
         </p>
       )}
 
-      {/* Button */}
+      {/* Upload Button */}
       <Button
         onClick={handleSubmit}
         disabled={!selectedFile || isLoading}

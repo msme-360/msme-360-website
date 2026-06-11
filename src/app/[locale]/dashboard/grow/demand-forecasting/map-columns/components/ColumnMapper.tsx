@@ -5,10 +5,11 @@ import { motion } from "framer-motion";
 import { GitMerge, AlertCircle, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ColumnRow from "./ColumnRow";
+import ModelSelector from "./ModelSelector";
 
 interface ColumnMapperProps {
-  csvColumns: string[]        // columns detected from CSV
-  onConfirm: (mapping: Record<string, string>) => void
+  csvColumns: string[]
+  onConfirm: (mapping: Record<string, string>, model: string, horizon: number) => void
   isLoading?: boolean
 }
 
@@ -18,29 +19,21 @@ export default function ColumnMapper({
   isLoading
 }: ColumnMapperProps) {
 
-  // Stores mapping: { "Date": "date", "Qty Sold": "units_sold" }
   const [mapping, setMapping] = useState<Record<string, string>>({})
+  const [selectedModel, setSelectedModel] = useState("prophet")
+  const [selectedHorizon, setSelectedHorizon] = useState(7)
   const [error, setError] = useState<string | null>(null)
 
-  // Required columns that must be mapped
   const REQUIRED = ["date", "product_id", "units_sold"]
 
-  // Update mapping when user changes dropdown
   const handleMapChange = (original: string, mapped: string) => {
-    setMapping(prev => ({
-      ...prev,
-      [original]: mapped
-    }))
+    setMapping(prev => ({ ...prev, [original]: mapped }))
     setError(null)
   }
 
-  // Check if all required columns are mapped
   const validateMapping = () => {
     const mappedValues = Object.values(mapping)
-    const missingRequired = REQUIRED.filter(
-      req => !mappedValues.includes(req)
-    )
-
+    const missingRequired = REQUIRED.filter(req => !mappedValues.includes(req))
     if (missingRequired.length > 0) {
       setError(`Please map these required columns: ${missingRequired.join(", ")}`)
       return false
@@ -48,10 +41,9 @@ export default function ColumnMapper({
     return true
   }
 
-  // Submit mapping
   const handleConfirm = () => {
     if (validateMapping()) {
-      onConfirm(mapping)
+      onConfirm(mapping, selectedModel, selectedHorizon)
     }
   }
 
@@ -71,11 +63,11 @@ export default function ColumnMapper({
           </h2>
         </div>
         <p className="text-xs text-muted-foreground font-bold uppercase tracking-widest">
-          Tell us what each column in your file means
+          Tell us what each column means then select your model
         </p>
       </div>
 
-      {/* Required columns notice */}
+      {/* Required notice */}
       <div className="flex items-start gap-3 p-4 rounded-2xl bg-primary/5 border border-primary/20">
         <AlertCircle className="w-4 h-4 text-primary mt-0.5 shrink-0" />
         <p className="text-xs font-bold text-primary">
@@ -101,13 +93,22 @@ export default function ColumnMapper({
         ))}
       </div>
 
+      {/* Divider */}
+      <div className="border-t border-white/10" />
+
+      {/* Model + Horizon Selector */}
+      <ModelSelector
+        selectedModel={selectedModel}
+        selectedHorizon={selectedHorizon}
+        onModelChange={setSelectedModel}
+        onHorizonChange={setSelectedHorizon}
+      />
+
       {/* Error */}
       {error && (
         <div className="flex items-center gap-2 p-4 rounded-2xl bg-red-400/10 border border-red-400/20">
           <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
-          <p className="text-xs font-black text-red-400">
-            {error}
-          </p>
+          <p className="text-xs font-black text-red-400">{error}</p>
         </div>
       )}
 
@@ -117,7 +118,7 @@ export default function ColumnMapper({
         disabled={isLoading}
         className="w-full h-12 rounded-2xl shadow-glow bg-primary text-primary-foreground font-black uppercase tracking-widest gap-3 hover:scale-[1.02] transition-transform"
       >
-        {isLoading ? "Confirming..." : "Confirm Mapping"}
+        {isLoading ? "Starting Forecast..." : "Confirm & Start Forecast"}
         <ArrowRight className="w-4 h-4" />
       </Button>
 
