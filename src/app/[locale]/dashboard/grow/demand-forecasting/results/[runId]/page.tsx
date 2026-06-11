@@ -1,79 +1,104 @@
 "use client";
 
+import { useState, useEffect } from "react";
+import { useParams } from "next/navigation";
 import MetricCards from "../components/MetricCards";
-import ExportButton from "../components/ExportButton";
 import ForecastChart from "../components/ForecastChart";
 import ForecastTable from "../components/ForecastTable";
 import InsightSummary from "../components/InsightSummary";
-
-// Sample data for testing UI
-const SAMPLE_METRICS = {
-  id: "test-123",
-  run_id: "run-123",
-  mae: 3.2,
-  rmse: 4.1,
-  mape: 8.5
-}
-
-const SAMPLE_PREDICTIONS = [
-  {
-    id: "1",
-    run_id: "run-123",
-    forecast_date: "2026-06-10",
-    entity_name: "SKU-001",
-    actual_value: 30,
-    predicted_value: 34,
-    lower_bound: 28,
-    upper_bound: 40
-  },
-  {
-    id: "2",
-    run_id: "run-123",
-    forecast_date: "2026-06-11",
-    entity_name: "SKU-001",
-    actual_value: 27,
-    predicted_value: 29,
-    lower_bound: 24,
-    upper_bound: 35
-  },
-  {
-    id: "3",
-    run_id: "run-123",
-    forecast_date: "2026-06-12",
-    entity_name: "SKU-001",
-    actual_value: null,
-    predicted_value: 41,
-    lower_bound: 35,
-    upper_bound: 47
-  },
-  {
-    id: "4",
-    run_id: "run-123",
-    forecast_date: "2026-06-13",
-    entity_name: "SKU-001",
-    actual_value: null,
-    predicted_value: 38,
-    lower_bound: 32,
-    upper_bound: 44
-  },
-  {
-    id: "5",
-    run_id: "run-123",
-    forecast_date: "2026-06-14",
-    entity_name: "SKU-001",
-    actual_value: null,
-    predicted_value: 45,
-    lower_bound: 38,
-    upper_bound: 52
-  }
-]
+import ExportButton from "../components/ExportButton";
+import { getRunStatus, getRunResults } from "@/services/api/forecasting";
+import { Loader2 } from "lucide-react";
 
 export default function ResultsPage() {
-  const handleExport = async (runId: string) => {
-    await new Promise(resolve => setTimeout(resolve, 2000))
-    console.log("Exporting run:", runId)
+  const { runId } = useParams()
+  const [status, setStatus] = useState("pending")
+  const [metrics, setMetrics] = useState<any>(null)
+  const [predictions, setPredictions] = useState<any[]>([])
+  const [error, setError] = useState(false)
+
+  useEffect(() => {
+    if (!runId) return
+
+    // Poll every 3 seconds
+    const interval = setInterval(async () => {
+      try {
+        const currentStatus = await getRunStatus(runId as string)
+        setStatus(currentStatus)
+
+        if (currentStatus === "completed") {
+          clearInterval(interval)
+          // Fetch results
+          const { metrics, predictions } = await getRunResults(runId as string)
+          setMetrics(metrics)
+          setPredictions(predictions ?? [])
+        }
+
+        if (currentStatus === "failed") {
+          clearInterval(interval)
+          setError(true)
+        }
+
+      } catch (err) {
+        clearInterval(interval)
+        setError(true)
+      }
+    }, 3000)
+
+    return () => clearInterval(interval)
+  }, [runId])
+
+  // Loading State
+  if (status === "pending" || status === "processing") {
+    return (
+      <div className="max-w-2xl mx-auto py-20 px-4 flex flex-col items-center gap-6">
+        <Loader2 className="w-12 h-12 text-primary animate-spin" />
+        <div className="text-center space-y-2">
+          <p className="text-lg font-black uppercase tracking-widest">
+            Running Forecast...
+          </p>
+          <p className="text-xs text-muted-foreground font-bold">
+            This may take a few moments
+          </p>
+        </div>
+        {/* Processing Steps */}
+        <div className="w-full space-y-2 mt-4">
+          {[
+            "Cleaning data",
+            "Engineering features",
+            "Training model",
+            "Generating predictions"
+          ].map((step, index) => (
+            <div
+              key={step}
+              className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/10"
+            >
+              <Loader2 className="w-3 h-3 text-primary animate-spin" />
+              <p className="text-xs font-black uppercase tracking-widest opacity-60">
+                {step}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+    )
   }
 
+  // Error State
+  if (error || status === "failed") {
+    return (
+      <div className="max-w-2xl mx-auto py-20 px-4 text-center space-y-4">
+        <p className="text-lg font-black uppercase tracking-widest text-red-400">
+          Forecast Failed
+        </p>
+        <p className="text-xs text-muted-foreground font-bold">
+          Something went wrong. Please try again.
+        </p>
+      </div>
+    )
+  }
+
+  // Results State
   return (
     <div className="max-w-4xl mx-auto py-10 px-4 space-y-8">
 
@@ -88,25 +113,29 @@ export default function ResultsPage() {
       </div>
 
       {/* Metric Cards */}
-      <MetricCards metrics={SAMPLE_METRICS} />
+      {metrics && <MetricCards metrics={metrics} />}
 
       {/* Forecast Chart */}
-      <ForecastChart predictions={SAMPLE_PREDICTIONS} />
+      {predictions.length > 0 && (
+        <ForecastChart predictions={predictions} />
+      )}
 
       {/* Insight Summary */}
-      <InsightSummary
-        modelName="Prophet"
-        horizon={7}
-      />
+      <InsightSummary modelName="Prophet" horizon={7} />
 
       {/* Forecast Table */}
-      <ForecastTable predictions={SAMPLE_PREDICTIONS} />
+      {predictions.length > 0 && (
+        <ForecastTable predictions={predictions} />
+      )}
 
       {/* Export Button */}
       <div className="flex justify-end">
         <ExportButton
-          runId="test-123"
-          onExport={handleExport}
+          runId={runId as string}
+          onExport={async (id) => {
+            await new Promise(r => setTimeout(r, 2000))
+            console.log("Export:", id)
+          }}
         />
       </div>
 
