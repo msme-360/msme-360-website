@@ -12,77 +12,125 @@ import { supabase } from "@/services/supabase/supabase";
 import { Loader2 } from "lucide-react";
 
 export default function ResultsPage() {
-  const { runId } = useParams()
-  const [status, setStatus] = useState("pending")
-  const [metrics, setMetrics] = useState<any>(null)
-  const [predictions, setPredictions] = useState<any[]>([])
-  const [error, setError] = useState(false)
+  const { runId } = useParams();
+  const [status, setStatus] = useState("pending");
+  const [metrics, setMetrics] = useState<any>(null);
+  const [predictions, setPredictions] = useState<any[]>([]);
+  const [error, setError] = useState(false);
+  const [realtimeConnected, setRealtimeConnected] = useState(false);
 
   useEffect(() => {
-    if (!runId) return
+    if (!runId) return;
 
-    // Fetch initial status first
-    const fetchInitialStatus = async () => {
-      const { data } = await supabase
-        .from('forecast_runs')
-        .select('status')
-        .eq('id', runId as string)
-        .single()
-      
-      if (data) {
-        setStatus(data.status)
-        if (data.status === 'completed') {
-          const { metrics, predictions } = await getRunResults(runId as string)
-          setMetrics(metrics)
-          setPredictions(predictions ?? [])
+    let pollInterval: NodeJS.Timeout;
+
+    // Fetch initial data immediately
+    const fetchInitialData = async () => {
+      try {
+        // First check session
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          console.error("No active session");
+          return;
         }
-        if (data.status === 'failed') {
-          setError(true)
+
+        // Fetch initial run status
+        const { data: runData } = await supabase
+          .from("forecast_runs")
+          .select("*")
+          .eq("id", runId as string)
+          .single();
+
+        if (runData) {
+          setStatus(runData.status);
+          if (runData.status === "completed") {
+            const results = await getRunResults(runId as string);
+            setMetrics(results.metrics);
+            setPredictions(results.predictions ?? []);
+          }
+          if (runData.status === "failed") {
+            setError(true);
+          }
         }
+      } catch (err) {
+        console.error("Error fetching initial data:", err);
       }
-    }
+    };
 
-    fetchInitialStatus()
+    fetchInitialData();
 
-    // Set up Realtime subscription
+    // Set up realtime channel
     const channel = supabase
       .channel(`forecast_run_${runId}`)
       .on(
-        'postgres_changes',
+        "postgres_changes",
         {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'forecast_runs',
+          event: "UPDATE",
+          schema: "public",
+          table: "forecast_runs",
           filter: `id=eq.${runId}`
         },
         async (payload) => {
-          const newStatus = payload.new.status
-          setStatus(newStatus)
-          
-          if (newStatus === 'completed') {
-            const { metrics, predictions } = await getRunResults(runId as string)
-            setMetrics(metrics)
-            setPredictions(predictions ?? [])
+          console.log("Realtime update received:", payload.new);
+          const newStatus = payload.new.status;
+          setStatus(newStatus);
+
+          if (newStatus === "completed") {
+            const results = await getRunResults(runId as string);
+            setMetrics(results.metrics);
+            setPredictions(results.predictions ?? []);
           }
-          
-          if (newStatus === 'failed') {
-            setError(true)
+
+          if (newStatus === "failed") {
+            setError(true);
           }
         }
       )
-      .subscribe()
+      .subscribe((status) => {
+        console.log("Realtime channel status:", status);
+        if (status === "SUBSCRIBED") {
+          setRealtimeConnected(true);
+        } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+          setRealtimeConnected(false);
+          // Fallback to polling if realtime fails
+          pollInterval = setInterval(async () => {
+            const { data: runData } = await supabase
+              .from("forecast_runs")
+              .select("*")
+              .eq("id", runId as string)
+              .single();
+
+            if (runData && runData.status !== status) {
+              setStatus(runData.status);
+              if (runData.status === "completed") {
+                const results = await getRunResults(runId as string);
+                setMetrics(results.metrics);
+                setPredictions(results.predictions ?? []);
+              }
+              if (runData.status === "failed") {
+                setError(true);
+                clearInterval(pollInterval);
+              }
+              if (["completed", "failed"].includes(runData.status)) {
+                clearInterval(pollInterval);
+              }
+            }
+          }, 2000); // Poll every 2 seconds
+        }
+      });
 
     return () => {
-      channel.unsubscribe()
-    }
-  }, [runId])
+      channel.unsubscribe();
+      if (pollInterval) clearInterval(pollInterval);
+    };
+  }, [runId]);
 
   // Export handler — real CSV download
   const handleExport = async (runId: string) => {
     try {
-      const { predictions } = await getRunResults(runId)
+      const { predictions } = await getRunResults(runId);
 
-      if (!predictions || predictions.length === 0) return
+      if (!predictions || predictions.length === 0) return;
 
       const headers = [
         "date",
@@ -91,7 +139,7 @@ export default function ResultsPage() {
         "actual",
         "lower_bound",
         "upper_bound"
-      ].join(",")
+      ].join(",");
 
       const rows = predictions.map(p =>
         [
@@ -102,21 +150,21 @@ export default function ResultsPage() {
           p.lower_bound ?? "",
           p.upper_bound ?? ""
         ].join(",")
-      )
+      );
 
-      const csv = [headers, ...rows].join("\n")
-      const blob = new Blob([csv], { type: "text/csv" })
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement("a")
-      a.href = url
-      a.download = `forecast-${runId}.csv`
-      a.click()
-      URL.revokeObjectURL(url)
+      const csv = [headers, ...rows].join("\n");
+      const blob = new Blob([csv], { type: "text/csv" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `forecast-${runId}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
 
     } catch (error: any) {
-      console.error("Export failed:", error.message)
+      console.error("Export failed:", error.message);
     }
-  }
+  };
 
   // Loading State
   if (status === "pending" || status === "processing") {
@@ -129,6 +177,7 @@ export default function ResultsPage() {
           </p>
           <p className="text-xs text-muted-foreground font-bold">
             This may take a few moments
+            {!realtimeConnected && " (polling for updates)"}
           </p>
         </div>
         <div className="w-full space-y-2 mt-4">
@@ -150,7 +199,7 @@ export default function ResultsPage() {
           ))}
         </div>
       </div>
-    )
+    );
   }
 
   // Error State
@@ -164,7 +213,7 @@ export default function ResultsPage() {
           Something went wrong. Please try again.
         </p>
       </div>
-    )
+    );
   }
 
   // Results State
@@ -198,5 +247,5 @@ export default function ResultsPage() {
         />
       </div>
     </div>
-  )
+  );
 }

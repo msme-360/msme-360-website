@@ -7,7 +7,20 @@ import UploadStatus from "./components/UploadStatus";
 import {
   uploadFileToStorageAndSaveDataset,
 } from "@/services/api/forecasting";
-import { ColumnInfo } from "@/utils/fileParser";
+import { parseFile, ColumnInfo } from "@/utils/fileParser";
+
+// Hardcode sample CSV content to avoid fetch issues
+const SAMPLE_CSV_CONTENT = `date,product,units_sold
+2026-01-01,Product A,100
+2026-01-02,Product A,120
+2026-01-03,Product A,90
+2026-01-04,Product A,150
+2026-01-05,Product A,110
+2026-01-01,Product B,80
+2026-01-02,Product B,95
+2026-01-03,Product B,70
+2026-01-04,Product B,110
+2026-01-05,Product B,85`;
 
 type Status = "idle" | "loading" | "success" | "error"
 
@@ -42,15 +55,13 @@ export default function UploadPage() {
       setFileName("sample-forecast-data.csv")
       setStatus("loading")
 
-      // Fetch sample file from public folder
-      const res = await fetch("/sample-forecast-data.csv")
-      const blob = await res.blob()
+      // Create Blob and File from hardcoded content
+      const blob = new Blob([SAMPLE_CSV_CONTENT], { type: "text/csv" })
       const file = new File([blob], "sample-forecast-data.csv", {
         type: "text/csv"
       })
 
       // Parse sample file
-      const { parseFile } = await import("@/utils/fileParser")
       const columnInfos = await parseFile(file)
 
       await handleUpload(file, columnInfos)

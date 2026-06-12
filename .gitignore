@@ -39,7 +39,7 @@
 .agent/
 docs/
 scratch/
-
+flow.txt
 # debug
 npm-debug.log*
 yarn-debug.log*

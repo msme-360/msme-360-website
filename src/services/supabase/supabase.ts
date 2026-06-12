@@ -9,5 +9,13 @@ import { createBrowserClient } from '@supabase/ssr';
  */
 export const supabase = createBrowserClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  {
+    realtime: {
+      heartbeatIntervalMs: 15000, // Send heartbeat every 15 seconds
+      params: {
+        eventsPerSecond: 10,
+      },
+    },
+  }
 );

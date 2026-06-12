@@ -10,8 +10,9 @@ function inferDataType(value: string): 'text' | 'numeric' | 'date' {
   const trimmed = value.trim()
   if (!trimmed) return 'text'
 
-  // Check if numeric
-  if (!isNaN(Number(trimmed)) && trimmed !== '') {
+  // Check if numeric first
+  const num = Number(trimmed)
+  if (!isNaN(num) && !isNaN(parseFloat(trimmed)) && trimmed === String(num)) {
     return 'numeric'
   }
 
@@ -26,10 +27,14 @@ function inferDataType(value: string): 'text' | 'numeric' | 'date' {
     return 'date'
   }
 
-  // Try parsing with Date
-  const parsedDate = Date.parse(trimmed)
-  if (!isNaN(parsedDate)) {
-    return 'date'
+  // Try parsing with Date more carefully
+  try {
+    const date = new Date(trimmed)
+    if (!isNaN(date.getTime()) && date.toString() !== 'Invalid Date') {
+      return 'date'
+    }
+  } catch {
+    // Do nothing
   }
 
   return 'text'
@@ -51,7 +56,7 @@ export async function parseFile(file: File): Promise<ColumnInfo[]> {
             // Get first non-empty value for this column
             let dataType: 'text' | 'numeric' | 'date' = 'text'
             for (const row of results.data) {
-              const value = row[header]
+              const value = (row as Record<string, unknown>)[header]
               if (value !== undefined && value !== null && value !== '') {
                 dataType = inferDataType(String(value))
                 break
@@ -81,7 +86,7 @@ export async function parseFile(file: File): Promise<ColumnInfo[]> {
             // Check first few rows for data type
             for (let i = 1; i < Math.min(jsonData.length, 11); i++) {
               const row = jsonData[i]
-              const value = row[index]
+              const value = (row as unknown[])[index]
               if (value !== undefined && value !== null && value !== '') {
                 dataType = inferDataType(String(value))
                 break
