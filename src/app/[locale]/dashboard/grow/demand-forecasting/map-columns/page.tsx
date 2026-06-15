@@ -3,12 +3,9 @@
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import ColumnMapper from "./components/ColumnMapper";
-import {
-  saveColumnMapping,
-  createForecastRun,
-  triggerMLService
-} from "@/services/api/forecasting";
+import { initializeForecast } from "@/services/api/forecasting";
 import { ColumnInfo } from "@/utils/fileParser";
+import { supabase } from "@/services/supabase/supabase";
 
 export default function MapColumnsPage() {
   const router = useRouter()
@@ -16,6 +13,7 @@ export default function MapColumnsPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [columnInfos, setColumnInfos] = useState<ColumnInfo[]>([])
   const datasetId = searchParams.get("datasetId") || ""
+  const filePath = searchParams.get("filePath") || ""
 
   useEffect(() => {
     const columnsJson = searchParams.get("columns")
@@ -37,19 +35,24 @@ export default function MapColumnsPage() {
     try {
       setIsLoading(true)
 
-      // Step 1 — Save column mapping to Supabase
-      await saveColumnMapping(datasetId, mapping, columnInfos)
+      // Get user ID
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) throw new Error("Not logged in")
 
-      // Step 2 — Create forecast run in Supabase
-      const run = await createForecastRun(datasetId, model, horizon)
+      // Step 1 — Single call to FastAPI /initialize endpoint
+      const initResponse = await initializeForecast(
+        user.id,
+        datasetId,
+        decodeURIComponent(filePath),
+        horizon,
+        model,
+        mapping,
+        columnInfos
+      )
 
-      // Step 3 — Trigger Python ML service
-      // Python reads everything from Supabase using run_id
-      await triggerMLService(run.id)
-
-      // Step 4 — Go to results page
+      // Step 2 — Go directly to results page with new run_id
       router.push(
-        `/dashboard/grow/demand-forecasting/results/${run.id}`
+        `/dashboard/grow/demand-forecasting/results/${initResponse.run_id}`
       )
 
     } catch (error: any) {
