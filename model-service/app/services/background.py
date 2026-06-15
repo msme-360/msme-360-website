@@ -5,7 +5,7 @@ from uuid import UUID
 from datetime import datetime
 from app.utils.supabase_client import supabase
 from app.services.preprocessor import preprocess_data
-from app.services.model_runner import run_forecast_model
+from app.ml.predict import predict_demand_batch
 
 logger = logging.getLogger(__name__)
 
@@ -22,8 +22,7 @@ async def background_pipeline_orchestration(run_id: UUID):
 
         # Fetch run details to get dataset_id and horizon
         run_response = supabase.table("forecast_runs").select("*").eq("id", str(run_id)).single().execute()
-        # NEED TO BE CHANGED TO if not run_response.data BUT FOR SMALL TESTING PURPOSES
-        if run_response.data:
+        if not run_response.data:
             raise Exception(f"Forecast run {run_id} not found")
         
         run_data = run_response.data
@@ -48,7 +47,6 @@ async def background_pipeline_orchestration(run_id: UUID):
 
         # 2. Fetch & Stream: Download raw tracking csv data directly into memory
         bucket_name = "forecast-uploads"
-        # Use the exact file_path from dataset table
         storage_path = file_path
         
         file_bytes = supabase.storage.from_(bucket_name).download(storage_path)
@@ -57,32 +55,32 @@ async def background_pipeline_orchestration(run_id: UUID):
         # 3. Dynamic Renaming & Preprocessing
         df = preprocess_data(df, mapping_dict)
 
-        # 4. Pipeline Execution: Route through placeholder functions
-        model_results = run_forecast_model(df, horizon)
+        # 4. Pipeline Execution: Use real ML model
+        model_results = predict_demand_batch(df, horizon)
 
         # Seed forecast_outputs back to Supabase
         forecast_outputs = [
             {
                 "run_id": str(run_id),
-                "forecast_date": res["forecast_date"],
-                "entity_name": res["entity_name"],
-                "predicted_value": res["predicted_value"],
-                "lower_bound": res["lower_bound"],
-                "upper_bound": res["upper_bound"]
+                "forecast_date": res["date"],
+                "entity_name": f"{res['store_id']}-{res['category']}-{res['region']}",
+                "predicted_value": float(res["predicted_units"]),
+                "lower_bound": float(res["predicted_units"]) * 0.9,
+                "upper_bound": float(res["predicted_units"]) * 1.1
             }
-            for res in model_results["forecast"]
+            for res in model_results
         ]
         
         if forecast_outputs:
             supabase.table("forecast_outputs").insert(forecast_outputs).execute()
 
-        # Seed forecast_metrics back to Supabase
-        metrics = model_results["metrics"]
+        # Seed forecast_metrics back to Supabase (using placeholder metrics for now)
+        total_units = sum(res["predicted_units"] for res in model_results)
         supabase.table("forecast_metrics").insert({
             "run_id": str(run_id),
-            "mae": metrics["mae"],
-            "rmse": metrics["rmse"],
-            "mape": metrics["mape"]
+            "mae": 0.0,
+            "rmse": 0.0,
+            "mape": 0.0
         }).execute()
 
         # 5. Finalize: Update status to 'completed'
