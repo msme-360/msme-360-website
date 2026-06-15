@@ -9,6 +9,6 @@ sqlalchemy
 psycopg2-binary
 python-multipart
 lightgbm==4.3.0
-scikit-learn==1.5.0
+scikit-learn>=1.5.0
 numpy>=1.24.0
 joblib>=1.3.0

@@ -4,20 +4,40 @@ from datetime import datetime
 from typing import Optional, List
 from decimal import Decimal
 
+# --- New Ingestion Models ---
+
+class ColumnMapping(BaseModel):
+    original_name: str
+    mapped_name: str
+    data_type: str
+
+class IngestionPayload(BaseModel):
+    user_id: str
+    dataset_id: str
+    file_path: str
+    horizon: int
+    model_name: str
+    column_mappings: List[ColumnMapping]
+
+class InitializeResponse(BaseModel):
+    run_id: str
+    status: str
+    message: str
+
 # --- Dataset Models ---
 
 class DatasetBase(BaseModel):
-    file_name: str
+    file_name: Optional[str] = None  # Make optional since we get file_path
     file_path: str
     upload_status: Optional[str] = "uploaded"
     row_count: Optional[int] = None
 
 class DatasetCreate(DatasetBase):
-    user_id: Optional[UUID] = None
+    user_id: Optional[str] = None  # Accept string UUIDs
 
 class Dataset(DatasetBase):
     id: UUID
-    user_id: Optional[UUID]
+    user_id: Optional[str]
     created_at: datetime
     
     model_config = ConfigDict(from_attributes=True)
