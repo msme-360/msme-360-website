@@ -4,9 +4,11 @@ import { ChevronDown } from "lucide-react";
 
 // System columns that user maps to
 const SYSTEM_COLUMNS = [
-  { value: "date", label: "Date" },
-  { value: "entity_name", label: "Entity Name" },
-  { value: "actual_value", label: "Actual Value" },
+  { value: "store_id", label: "Store Identifier" },
+  { value: "category", label: "Product Category" },
+  { value: "region", label: "Store Region" },
+  { value: "unit_price", label: "Product Price" },
+  { value: "promo_flag", label: "Promotion Flag Status" },
   { value: "ignore", label: "Ignore this column" },
 ]
 

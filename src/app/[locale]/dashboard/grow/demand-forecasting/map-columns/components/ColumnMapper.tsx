@@ -24,7 +24,7 @@ export default function ColumnMapper({
   const [selectedHorizon, setSelectedHorizon] = useState(7)
   const [error, setError] = useState<string | null>(null)
 
-  const REQUIRED = ["date", "entity_name", "actual_value"]
+  const REQUIRED = ["store_id", "category", "region", "unit_price", "promo_flag"]
 
   const handleMapChange = (original: string, mapped: string) => {
     setMapping(prev => ({ ...prev, [original]: mapped }))
@@ -71,7 +71,7 @@ export default function ColumnMapper({
       <div className="flex items-start gap-3 p-4 rounded-2xl bg-primary/5 border border-primary/20">
         <AlertCircle className="w-4 h-4 text-primary mt-0.5 shrink-0" />
         <p className="text-xs font-bold text-primary">
-          Required: date, entity_name, actual_value must be mapped to continue
+          Required: store_id, category, region, unit_price, promo_flag must be mapped to continue
         </p>
       </div>
 

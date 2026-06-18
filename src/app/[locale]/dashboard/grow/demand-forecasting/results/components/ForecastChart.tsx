@@ -45,7 +45,6 @@ export default function ForecastChart({ predictions }: ForecastChartProps) {
   const chartData = predictions.map(p => ({
     date: p.forecast_date,
     predicted: p.predicted_value,
-    actual: p.actual_value ?? null,
     lower: p.lower_bound ?? null,
     upper: p.upper_bound ?? null,
   }))
@@ -65,7 +64,7 @@ export default function ForecastChart({ predictions }: ForecastChartProps) {
             Forecast Chart
           </h2>
           <p className="text-xs text-muted-foreground font-bold uppercase tracking-widest">
-            Predicted vs Actual demand
+            Predicted demand with confidence range
           </p>
         </div>
       </div>
@@ -76,12 +75,6 @@ export default function ForecastChart({ predictions }: ForecastChartProps) {
           <div className="w-3 h-3 rounded-full bg-primary" />
           <span className="text-xs font-black uppercase tracking-widest opacity-60">
             Predicted
-          </span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded-full bg-emerald-400" />
-          <span className="text-xs font-black uppercase tracking-widest opacity-60">
-            Actual
           </span>
         </div>
         <div className="flex items-center gap-2">
@@ -134,17 +127,6 @@ export default function ForecastChart({ predictions }: ForecastChartProps) {
               stroke="hsl(var(--primary))"
               strokeWidth={2}
               dot={false}
-              activeDot={{ r: 4 }}
-            />
-
-            {/* Actual line */}
-            <Line
-              type="monotone"
-              dataKey="actual"
-              stroke="#34d399"
-              strokeWidth={2}
-              dot={false}
-              strokeDasharray="5 5"
               activeDot={{ r: 4 }}
             />
 

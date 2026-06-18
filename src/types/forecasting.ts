@@ -42,8 +42,9 @@ export interface ForecastOutput {
   id: string
   run_id: string
   forecast_date: string
-  entity_name: string
-  actual_value: number | null
+  store_id: string
+  category: string
+  region: string
   predicted_value: number
   lower_bound: number | null
   upper_bound: number | null

@@ -111,9 +111,10 @@ export default function ResultsPage() {
 
       const headers = [
         "date",
-        "product",
+        "store_id",
+        "category",
+        "region",
         "predicted",
-        "actual",
         "lower_bound",
         "upper_bound"
       ].join(",");
@@ -121,9 +122,10 @@ export default function ResultsPage() {
       const rows = predictions.map(p =>
         [
           p.forecast_date,
-          p.entity_name,
+          p.store_id,
+          p.category,
+          p.region,
           p.predicted_value,
-          p.actual_value ?? "",
           p.lower_bound ?? "",
           p.upper_bound ?? ""
         ].join(",")

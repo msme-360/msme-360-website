@@ -51,7 +51,9 @@ async def background_pipeline_orchestration(
             {
                 "run_id": str(run_id),
                 "forecast_date": res["date"],
-                "entity_name": f"{res['store_id']}-{res['category']}-{res['region']}",
+                "store_id": res["store_id"],
+                "category": res["category"],
+                "region": res["region"],
                 "predicted_value": float(res["predicted_units"]),
                 "lower_bound": float(res["predicted_units"]) * 0.9,
                 "upper_bound": float(res["predicted_units"]) * 1.1

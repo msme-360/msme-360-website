@@ -40,13 +40,16 @@ export default function ForecastTable({ predictions }: ForecastTableProps) {
                 Date
               </th>
               <th className="text-left p-4 text-[10px] font-black uppercase tracking-widest opacity-60">
-                Product
+                Store ID
+              </th>
+              <th className="text-left p-4 text-[10px] font-black uppercase tracking-widest opacity-60">
+                Category
+              </th>
+              <th className="text-left p-4 text-[10px] font-black uppercase tracking-widest opacity-60">
+                Region
               </th>
               <th className="text-right p-4 text-[10px] font-black uppercase tracking-widest opacity-60">
                 Predicted
-              </th>
-              <th className="text-right p-4 text-[10px] font-black uppercase tracking-widest opacity-60">
-                Actual
               </th>
               <th className="text-right p-4 text-[10px] font-black uppercase tracking-widest opacity-60">
                 Lower
@@ -71,13 +74,16 @@ export default function ForecastTable({ predictions }: ForecastTableProps) {
                   {row.forecast_date}
                 </td>
                 <td className="p-4 font-bold">
-                  {row.entity_name}
+                  {row.store_id}
+                </td>
+                <td className="p-4 font-bold">
+                  {row.category}
+                </td>
+                <td className="p-4 font-bold">
+                  {row.region}
                 </td>
                 <td className="p-4 text-right font-black text-primary">
                   {row.predicted_value}
-                </td>
-                <td className="p-4 text-right font-bold text-emerald-400">
-                  {row.actual_value ?? "—"}
                 </td>
                 <td className="p-4 text-right font-bold opacity-60">
                   {row.lower_bound ?? "—"}
