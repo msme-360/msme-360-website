@@ -14,6 +14,7 @@ export default function MapColumnsPage() {
   const [columnInfos, setColumnInfos] = useState<ColumnInfo[]>([])
   const datasetId = searchParams.get("datasetId") || ""
   const filePath = searchParams.get("filePath") || ""
+  const isSample = searchParams.get("isSample") === "true"
 
   useEffect(() => {
     const columnsJson = searchParams.get("columns")
@@ -29,27 +30,33 @@ export default function MapColumnsPage() {
 
   const handleConfirm = async (
     mapping: Record<string, string>,
-    horizon: number        // ← removed model
+    horizon: number
   ) => {
     try {
       setIsLoading(true)
 
-      // Get user ID
+      // Sample data → skip ML → show sample results
+      if (isSample) {
+        router.push(
+          `/dashboard/grow/demand-forecasting/results/sample`
+        )
+        return
+      }
+
+      // Real data → call ML service
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error("Not logged in")
 
-      // Single call to FastAPI /initialize endpoint
       const initResponse = await initializeForecast(
         user.id,
         datasetId,
         decodeURIComponent(filePath),
         horizon,
-        "prophet",     // ← hardcoded model
+        "prophet",
         mapping,
         columnInfos
       )
 
-      // Go to results page
       router.push(
         `/dashboard/grow/demand-forecasting/results/${initResponse.run_id}`
       )

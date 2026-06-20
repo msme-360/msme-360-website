@@ -52,27 +52,40 @@ export default function UploadPage() {
     }
   }
 
-  const handleUseSample = async () => {
-    try {
-      setFileName("sample-forecast-data.csv")
-      setStatus("loading")
+ const handleUseSample = async () => {
+  try {
+    setFileName("sample-forecast-data.csv")
+    setStatus("loading")
 
-      // Create Blob and File from hardcoded content
-      const blob = new Blob([SAMPLE_CSV_CONTENT], { type: "text/csv" })
-      const file = new File([blob], "sample-forecast-data.csv", {
-        type: "text/csv"
-      })
+    const res = await fetch("/sample-forecast-data.csv")
+    const blob = await res.blob()
+    const file = new File([blob], "sample-forecast-data.csv", {
+      type: "text/csv"
+    })
 
-      // Parse sample file
-      const columnInfos = await parseFile(file)
+    // Parse columns
+    const columnInfos = await parseFile(file)
 
-      await handleUpload(file, columnInfos)
+    // Upload to storage
+    const { id: datasetId, file_path: filePath } =
+      await uploadFileToStorageAndSaveDataset(file, columnInfos)
 
-    } catch (error: any) {
-      setErrorMessage(error.message || "Failed to load sample data")
-      setStatus("error")
-    }
+    const columnsParam = encodeURIComponent(
+      JSON.stringify(columnInfos)
+    )
+
+    setStatus("success")
+
+    // Pass isSample=true in URL ← key change
+    router.push(
+      `/dashboard/grow/demand-forecasting/map-columns?datasetId=${datasetId}&filePath=${encodeURIComponent(filePath)}&columns=${columnsParam}&isSample=true`
+    )
+
+  } catch (error: any) {
+    setErrorMessage(error.message || "Failed to load sample")
+    setStatus("error")
   }
+}
 
   const handleContinue = () => {
     // Pass columns as JSON string in search params
