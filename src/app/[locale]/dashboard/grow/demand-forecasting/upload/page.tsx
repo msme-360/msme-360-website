@@ -10,17 +10,17 @@ import {
 import { parseFile, ColumnInfo } from "@/utils/fileParser";
 
 // Hardcoded sample CSV — no fetch needed -due to proxy
-const SAMPLE_CSV_CONTENT = `date,product,units_sold
-2026-01-01,Product A,100
-2026-01-02,Product A,120
-2026-01-03,Product A,90
-2026-01-04,Product A,150
-2026-01-05,Product A,110
-2026-01-01,Product B,80
-2026-01-02,Product B,95
-2026-01-03,Product B,70
-2026-01-04,Product B,110
-2026-01-05,Product B,85`
+const SAMPLE_CSV_CONTENT = `date,store_id,category,region,unit_price,promo_flag
+2026-01-01,S001,GROCERIES,NORTH,25.99,1
+2026-01-02,S001,GROCERIES,NORTH,25.99,0
+2026-01-03,S001,ELECTRONICS,NORTH,129.99,1
+2026-01-04,S002,GROCERIES,CENTRAL,22.99,0
+2026-01-05,S002,CLOTHING,CENTRAL,49.99,1
+2026-01-06,S003,ELECTRONICS,SOUTH,99.99,0
+2026-01-07,S003,CLOTHING,SOUTH,59.99,1
+2026-01-08,S004,GROCERIES,WEST,27.99,0
+2026-01-09,S004,ELECTRONICS,WEST,119.99,1
+2026-01-10,S005,CLOTHING,WEST,44.99,0`
 
 type Status = "idle" | "loading" | "success" | "error"
 
