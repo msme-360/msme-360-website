@@ -27,11 +27,11 @@ async def background_pipeline_orchestration(
             "started_at": datetime.now().isoformat()
         }).eq("id", str(run_id)).execute()
 
-        # 2. Create mapping dict and rename columns
+        # 2. Create mapping dict (filter out ignored columns) and rename columns
         mapping_dict = {
             mapping.original_name: mapping.mapped_name
             for mapping in column_mappings
-            if mapping.original_name and mapping.mapped_name
+            if mapping.original_name and mapping.mapped_name and mapping.mapped_name != "ignore"
         }
 
         # 3. Download & Load: Stream down user CSV from storage
@@ -42,6 +42,10 @@ async def background_pipeline_orchestration(
 
         # Rename columns using user mappings
         input_df = input_df.rename(columns=mapping_dict)
+        
+        # Hard defense boundary: keep only the 5 critical columns
+        required_model_cols = ["store_id", "category", "region", "unit_price", "promo_flag"]
+        input_df = input_df[required_model_cols]
 
         # 4. Execute unified ML inference engine
         model_results = predict_demand_batch(input_df, horizon)

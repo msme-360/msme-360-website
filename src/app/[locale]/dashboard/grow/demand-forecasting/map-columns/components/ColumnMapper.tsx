@@ -26,15 +26,16 @@ export default function ColumnMapper({
   isSample
 }: ColumnMapperProps) {
 
-  // Auto-fill sample mappings
+  // Auto-fill sample mappings for messy realistic headers
   const initialMapping: Record<string, string> = isSample
     ? {
-        date: "ignore", // ignore date, model generates dates
-        store_id: "store_id",
-        category: "category",
-        region: "region",
-        unit_price: "unit_price",
-        promo_flag: "promo_flag"
+        "Txn_Date": "ignore",
+        "Outlet_Code": "store_id",
+        "Prod_Cat": "category",
+        "Geographic_Region": "region",
+        "Item_MSRP": "unit_price",
+        "On_Promotion": "promo_flag",
+        "Internal_Skunkworks_ID": "ignore"
       }
     : {}
 

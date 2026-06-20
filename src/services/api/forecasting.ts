@@ -47,17 +47,17 @@ export async function initializeForecast(
   mapping: Record<string, string>,
   columnInfos: ColumnInfo[]
 ) {
-  // Create column mappings array
+  // Create column mappings array (filter out ignored columns but keep track for clarity)
   const dataTypeMap = columnInfos.reduce((acc, col) => {
-    acc[col.name] = col.dataType
-    return acc
-  }, {} as Record<string, string>)
+    acc[col.name] = col.dataType;
+    return acc;
+  }, {} as Record<string, string>);
 
   const columnMappings = Object.entries(mapping).map(([original, mapped]) => ({
     original_name: original,
     mapped_name: mapped,
-    data_type: dataTypeMap[original] || 'text'
-  }))
+    data_type: dataTypeMap[original] || "text"
+  }));
 
   // Call new FastAPI initialize endpoint
   console.log("Calling initialize endpoint with:", {
