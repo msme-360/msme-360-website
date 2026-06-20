@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useParams } from "next/navigation";
-import MetricCards from "../components/MetricCards";
 import ForecastChart from "../components/ForecastChart";
 import ForecastTable from "../components/ForecastTable";
 import InsightSummary from "../components/InsightSummary";
@@ -14,7 +13,6 @@ import { Loader2 } from "lucide-react";
 export default function ResultsPage() {
   const { runId } = useParams();
   const [status, setStatus] = useState("pending");
-  const [metrics, setMetrics] = useState<any>(null);
   const [predictions, setPredictions] = useState<any[]>([]);
   const [error, setError] = useState(false);
   const [timeoutError, setTimeoutError] = useState(false);
@@ -39,7 +37,6 @@ export default function ResultsPage() {
           setStatus(runData.status);
           if (runData.status === "completed") {
             const results = await getRunResults(runId as string);
-            setMetrics(results.metrics);
             setPredictions(results.predictions ?? []);
           }
           if (runData.status === "failed") {
@@ -82,7 +79,6 @@ export default function ResultsPage() {
           if (newStatus === "completed") {
             clearInterval(intervalId);
             const results = await getRunResults(runId as string);
-            setMetrics(results.metrics);
             setPredictions(results.predictions ?? []);
           }
 
@@ -220,13 +216,11 @@ export default function ResultsPage() {
         </p>
       </div>
 
-      {metrics && <MetricCards metrics={metrics} />}
-
       {predictions.length > 0 && (
         <ForecastChart predictions={predictions} />
       )}
 
-      <InsightSummary modelName="Prophet" horizon={7} />
+      <InsightSummary />
 
       {predictions.length > 0 && (
         <ForecastTable predictions={predictions} />

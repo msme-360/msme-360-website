@@ -18,6 +18,7 @@ class IngestionPayload(BaseModel):
     horizon: int
     model_name: str
     column_mappings: List[ColumnMapping]
+    start_date: str
 
 class InitializeResponse(BaseModel):
     run_id: str

@@ -2,7 +2,7 @@ import logging
 import io
 import pandas as pd
 from uuid import UUID
-from datetime import datetime
+from datetime import datetime, date
 from app.utils.supabase_client import supabase
 from app.ml.predict import predict_demand_batch
 from app.schemas.forecast import ColumnMapping
@@ -13,7 +13,8 @@ async def background_pipeline_orchestration(
     run_id: UUID,
     file_path: str,
     column_mappings: list[ColumnMapping],
-    horizon: int
+    horizon: int,
+    start_date: str
 ):
     """
     Asynchronous worker function for background processing with in-memory parameters.
@@ -26,6 +27,9 @@ async def background_pipeline_orchestration(
             "status": "processing",
             "started_at": datetime.now().isoformat()
         }).eq("id", str(run_id)).execute()
+
+        # Parse start_date into date object
+        start_date_obj = date.fromisoformat(start_date)
 
         # 2. Create mapping dict (filter out ignored columns) and rename columns
         mapping_dict = {
@@ -48,7 +52,7 @@ async def background_pipeline_orchestration(
         input_df = input_df[required_model_cols]
 
         # 4. Execute unified ML inference engine
-        model_results = predict_demand_batch(input_df, horizon)
+        model_results = predict_demand_batch(input_df, horizon, start_date_obj)
 
         # 5. Format for database contract and bulk save
         forecast_outputs = [

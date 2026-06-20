@@ -45,7 +45,8 @@ export async function initializeForecast(
   horizon: number,
   modelName: string,
   mapping: Record<string, string>,
-  columnInfos: ColumnInfo[]
+  columnInfos: ColumnInfo[],
+  startDate: string
 ) {
   // Create column mappings array (filter out ignored columns but keep track for clarity)
   const dataTypeMap = columnInfos.reduce((acc, col) => {
@@ -61,7 +62,7 @@ export async function initializeForecast(
 
   // Call new FastAPI initialize endpoint
   console.log("Calling initialize endpoint with:", {
-    userId, datasetId, filePath, horizon, modelName, columnMappings
+    userId, datasetId, filePath, horizon, modelName, columnMappings, startDate
   })
 
   const res = await fetch('http://localhost:8000/api/v1/forecast/initialize', {
@@ -75,7 +76,8 @@ export async function initializeForecast(
       file_path: filePath,
       horizon,
       model_name: modelName,
-      column_mappings: columnMappings
+      column_mappings: columnMappings,
+      start_date: startDate
     })
   })
 

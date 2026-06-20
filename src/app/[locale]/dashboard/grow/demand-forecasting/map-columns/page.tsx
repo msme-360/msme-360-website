@@ -30,7 +30,8 @@ export default function MapColumnsPage() {
 
   const handleConfirm = async (
     mapping: Record<string, string>,
-    horizon: number
+    horizon: number,
+    startDate: string
   ) => {
     try {
       setIsLoading(true)
@@ -54,7 +55,8 @@ export default function MapColumnsPage() {
         horizon,
         "prophet",
         mapping,
-        columnInfos
+        columnInfos,
+        startDate
       )
 
       router.push(

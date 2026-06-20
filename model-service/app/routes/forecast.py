@@ -60,7 +60,8 @@ async def initialize_forecast(payload: IngestionPayload, background_tasks: Backg
             run_id,
             payload.file_path,
             payload.column_mappings,
-            payload.horizon
+            payload.horizon,
+            payload.start_date
         )
 
         # 5. Return 202 with run_id

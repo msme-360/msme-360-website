@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import ForecastChart from "../components/ForecastChart";
 import ForecastTable from "../components/ForecastTable";
-import MetricCards from "../components/MetricCards";
+import InsightSummary from "../components/InsightSummary";
 import ExportButton from "../components/ExportButton";
 import { ForecastOutput, ForecastMetrics } from "@/types/forecasting";
 
@@ -167,7 +167,7 @@ export default function SampleResultsPage() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="space-y-2"
+        className="space-y-1"
       >
         <div className="flex items-center gap-3">
           <h1 className="text-4xl font-black tracking-tight">
@@ -182,11 +182,11 @@ export default function SampleResultsPage() {
         </p>
       </motion.div>
 
-      {/* Metric Cards */}
-      <MetricCards metrics={SAMPLE_METRICS} />
-
       {/* Forecast Chart */}
       <ForecastChart predictions={SAMPLE_PREDICTIONS} />
+
+      {/* Action Items */}
+      <InsightSummary />
 
       {/* Forecast Table */}
       <ForecastTable predictions={SAMPLE_PREDICTIONS} />

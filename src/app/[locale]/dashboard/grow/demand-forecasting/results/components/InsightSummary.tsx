@@ -4,14 +4,13 @@ import { motion } from "framer-motion";
 import { 
   Lightbulb, 
   TrendingUp, 
-  TrendingDown, 
   AlertTriangle,
   Calendar,
   Package
 } from "lucide-react";
 
 interface Insight {
-  type: "positive" | "negative" | "warning" | "info"
+  type: "positive" | "warning" | "info"
   title: string
   description: string
 }
@@ -22,27 +21,27 @@ interface InsightSummaryProps {
   horizon?: number
 }
 
-// Default insights for demo
-const DEFAULT_INSIGHTS: Insight[] = [
-  {
-    type: "positive",
-    title: "Sales Peak on Weekends",
-    description: "Your sales are consistently 23% higher on weekends. Consider stocking up by Friday."
-  },
+// Action items focused for small business owners
+const ACTION_ITEMS: Insight[] = [
   {
     type: "warning",
-    title: "Low Stock Risk Next Week",
-    description: "Based on forecast, you may run out of stock in 5 days. Reorder soon."
+    title: "Stock Peak Warning",
+    description: "⚠️ High customer demand projected around 2026-01-12. Check your storage shelves to avoid running out of stock!"
+  },
+  {
+    type: "positive",
+    title: "Promotion Lift Matrix",
+    description: "📈 Running a discount campaign during this horizon window is projected to increase your overall sales velocity by 15%!"
   },
   {
     type: "info",
-    title: "Seasonal Trend Detected",
-    description: "Sales typically rise in the next month based on historical patterns."
+    title: "Weekly Order Reminder",
+    description: "📦 Your next weekly stock order is due on Friday. Align quantities with forecasted peaks to optimize inventory costs."
   },
   {
-    type: "negative",
-    title: "Demand Drop Expected",
-    description: "Forecast shows a 12% dip in demand around day 15. Plan promotions accordingly."
+    type: "warning",
+    title: "Perishable Goods Alert",
+    description: "🍎 Dairy and bakery items are forecasted to sell 20% more next week. Order fresh stock in time to meet demand!"
   }
 ]
 
@@ -53,12 +52,6 @@ const INSIGHT_CONFIG = {
     color: "text-emerald-400",
     bg: "bg-emerald-400/10",
     border: "border-emerald-400/20"
-  },
-  negative: {
-    icon: <TrendingDown className="w-4 h-4" />,
-    color: "text-red-400",
-    bg: "bg-red-400/10",
-    border: "border-red-400/20"
   },
   warning: {
     icon: <AlertTriangle className="w-4 h-4" />,
@@ -75,8 +68,8 @@ const INSIGHT_CONFIG = {
 }
 
 export default function InsightSummary({
-  insights = DEFAULT_INSIGHTS,
-  modelName = "Prophet",
+  insights = ACTION_ITEMS,
+  modelName = "Results From Our Model",
   horizon = 7
 }: InsightSummaryProps) {
   return (
@@ -92,10 +85,10 @@ export default function InsightSummary({
           <Lightbulb className="w-5 h-5 text-primary" />
           <div>
             <h2 className="text-xl font-black tracking-tight">
-              AI Insights
+              Action Items
             </h2>
             <p className="text-xs text-muted-foreground font-bold uppercase tracking-widest">
-              Human readable summary
+              Next steps for your business
             </p>
           </div>
         </div>
