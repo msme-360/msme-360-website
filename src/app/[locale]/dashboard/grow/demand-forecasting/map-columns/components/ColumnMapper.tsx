@@ -10,6 +10,7 @@ interface ColumnMapperProps {
   csvColumns: string[]
   onConfirm: (mapping: Record<string, string>, horizon: number) => void
   isLoading?: boolean
+  isSample?: boolean
 }
 
 const HORIZONS = [
@@ -21,7 +22,8 @@ const HORIZONS = [
 export default function ColumnMapper({
   csvColumns,
   onConfirm,
-  isLoading
+  isLoading,
+  isSample
 }: ColumnMapperProps) {
 
   const [mapping, setMapping] = useState<Record<string, string>>({})
@@ -36,6 +38,9 @@ export default function ColumnMapper({
   }
 
   const validateMapping = () => {
+    // Skip validation for sample data
+    if (isSample) return true
+
     const mappedValues = Object.values(mapping)
     const missingRequired = REQUIRED.filter(
       req => !mappedValues.includes(req)
@@ -73,13 +78,25 @@ export default function ColumnMapper({
         </p>
       </div>
 
-      {/* Required notice */}
-      <div className="flex items-start gap-3 p-4 rounded-2xl bg-primary/5 border border-primary/20">
-        <AlertCircle className="w-4 h-4 text-primary mt-0.5 shrink-0" />
-        <p className="text-xs font-bold text-primary">
-          Required: store_id, category, region, unit_price, promo_flag must be mapped
-        </p>
-      </div>
+      {/* Required notice — hide for sample */}
+      {!isSample && (
+        <div className="flex items-start gap-3 p-4 rounded-2xl bg-primary/5 border border-primary/20">
+          <AlertCircle className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+          <p className="text-xs font-bold text-primary">
+            Required: store_id, category, region, unit_price, promo_flag must be mapped
+          </p>
+        </div>
+      )}
+
+      {/* Sample notice */}
+      {isSample && (
+        <div className="flex items-start gap-3 p-4 rounded-2xl bg-amber-400/10 border border-amber-400/20">
+          <AlertCircle className="w-4 h-4 text-amber-400 mt-0.5 shrink-0" />
+          <p className="text-xs font-bold text-amber-400">
+            Sample data — just pick your horizon and confirm!
+          </p>
+        </div>
+      )}
 
       {/* Column Rows */}
       <div className="space-y-3">
@@ -102,7 +119,7 @@ export default function ColumnMapper({
       {/* Divider */}
       <div className="border-t border-white/10" />
 
-      {/* Horizon Selection Only */}
+      {/* Horizon Selection */}
       <div className="space-y-3">
         <p className="text-xs font-black uppercase tracking-widest opacity-60">
           Forecast Horizon
