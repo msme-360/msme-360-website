@@ -29,8 +29,7 @@ export default function MapColumnsPage() {
 
   const handleConfirm = async (
     mapping: Record<string, string>,
-    model: string,
-    horizon: number
+    horizon: number        // ← removed model
   ) => {
     try {
       setIsLoading(true)
@@ -39,18 +38,18 @@ export default function MapColumnsPage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error("Not logged in")
 
-      // Step 1 — Single call to FastAPI /initialize endpoint
+      // Single call to FastAPI /initialize endpoint
       const initResponse = await initializeForecast(
         user.id,
         datasetId,
         decodeURIComponent(filePath),
         horizon,
-        model,
+        "prophet",     // ← hardcoded model
         mapping,
         columnInfos
       )
 
-      // Step 2 — Go directly to results page with new run_id
+      // Go to results page
       router.push(
         `/dashboard/grow/demand-forecasting/results/${initResponse.run_id}`
       )

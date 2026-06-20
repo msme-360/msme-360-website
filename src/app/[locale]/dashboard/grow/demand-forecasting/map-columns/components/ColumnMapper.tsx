@@ -2,16 +2,21 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { GitMerge, AlertCircle, ArrowRight } from "lucide-react";
+import { GitMerge, AlertCircle, ArrowRight, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ColumnRow from "./ColumnRow";
-import ModelSelector from "./ModelSelector";
 
 interface ColumnMapperProps {
   csvColumns: string[]
-  onConfirm: (mapping: Record<string, string>, model: string, horizon: number) => void
+  onConfirm: (mapping: Record<string, string>, horizon: number) => void
   isLoading?: boolean
 }
+
+const HORIZONS = [
+  { value: 7, label: "7 Days" },
+  { value: 30, label: "30 Days" },
+  { value: 90, label: "90 Days" }
+]
 
 export default function ColumnMapper({
   csvColumns,
@@ -20,7 +25,6 @@ export default function ColumnMapper({
 }: ColumnMapperProps) {
 
   const [mapping, setMapping] = useState<Record<string, string>>({})
-  const [selectedModel, setSelectedModel] = useState("prophet")
   const [selectedHorizon, setSelectedHorizon] = useState(7)
   const [error, setError] = useState<string | null>(null)
 
@@ -33,9 +37,11 @@ export default function ColumnMapper({
 
   const validateMapping = () => {
     const mappedValues = Object.values(mapping)
-    const missingRequired = REQUIRED.filter(req => !mappedValues.includes(req))
+    const missingRequired = REQUIRED.filter(
+      req => !mappedValues.includes(req)
+    )
     if (missingRequired.length > 0) {
-      setError(`Please map these required columns: ${missingRequired.join(", ")}`)
+      setError(`Please map: ${missingRequired.join(", ")}`)
       return false
     }
     return true
@@ -43,7 +49,7 @@ export default function ColumnMapper({
 
   const handleConfirm = () => {
     if (validateMapping()) {
-      onConfirm(mapping, selectedModel, selectedHorizon)
+      onConfirm(mapping, selectedHorizon)
     }
   }
 
@@ -63,7 +69,7 @@ export default function ColumnMapper({
           </h2>
         </div>
         <p className="text-xs text-muted-foreground font-bold uppercase tracking-widest">
-          Tell us what each column means then select your model
+          Tell us what each column means
         </p>
       </div>
 
@@ -71,7 +77,7 @@ export default function ColumnMapper({
       <div className="flex items-start gap-3 p-4 rounded-2xl bg-primary/5 border border-primary/20">
         <AlertCircle className="w-4 h-4 text-primary mt-0.5 shrink-0" />
         <p className="text-xs font-bold text-primary">
-          Required: store_id, category, region, unit_price, promo_flag must be mapped to continue
+          Required: store_id, category, region, unit_price, promo_flag must be mapped
         </p>
       </div>
 
@@ -96,13 +102,33 @@ export default function ColumnMapper({
       {/* Divider */}
       <div className="border-t border-white/10" />
 
-      {/* Model + Horizon Selector */}
-      <ModelSelector
-        selectedModel={selectedModel}
-        selectedHorizon={selectedHorizon}
-        onModelChange={setSelectedModel}
-        onHorizonChange={setSelectedHorizon}
-      />
+      {/* Horizon Selection Only */}
+      <div className="space-y-3">
+        <p className="text-xs font-black uppercase tracking-widest opacity-60">
+          Forecast Horizon
+        </p>
+        <div className="flex gap-3">
+          {HORIZONS.map((h) => (
+            <button
+              key={h.value}
+              onClick={() => setSelectedHorizon(h.value)}
+              className={`
+                flex-1 flex items-center justify-center gap-2
+                p-3 rounded-2xl border font-black text-sm
+                uppercase tracking-widest transition-all
+                hover:scale-[1.02]
+                ${selectedHorizon === h.value
+                  ? "border-primary bg-primary/10 text-primary"
+                  : "border-white/10 bg-white/5 text-muted-foreground"
+                }
+              `}
+            >
+              <Clock className="w-3 h-3" />
+              {h.label}
+            </button>
+          ))}
+        </div>
+      </div>
 
       {/* Error */}
       {error && (
