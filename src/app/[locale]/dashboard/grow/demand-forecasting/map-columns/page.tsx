@@ -73,6 +73,7 @@ export default function MapColumnsPage() {
         csvColumns={columnInfos.map(col => col.name)}
         onConfirm={handleConfirm}
         isLoading={isLoading}
+        isSample={isSample}
       />
     </div>
   )

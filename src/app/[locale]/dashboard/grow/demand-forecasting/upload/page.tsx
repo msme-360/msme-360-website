@@ -71,12 +71,10 @@ export default function UploadPage() {
 
       const columnInfos = await parseFile(file)
 
-      const { id: did, file_path: fp } =
-        await uploadFileToStorageAndSaveDataset(file, columnInfos)
-
-      // Save state — don't navigate yet ✅
-      setDatasetId(did)
-      setFilePath(fp)
+      // NO STORAGE UPLOAD, NO NETWORK CALLS!
+      // Use placeholder datasetId/filePath since no real upload
+      setDatasetId("sample-dataset-id")
+      setFilePath("sample/dataset/path.csv")
       setColumns(columnInfos)
       setIsSample(true)      // ← mark as sample
       setStatus("success")   // ← show success screen

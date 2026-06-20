@@ -19,68 +19,90 @@ const SAMPLE_PREDICTIONS: ForecastOutput[] = [
   {
     id: "1",
     run_id: "sample",
-    forecast_date: "2026-01-06",
+    forecast_date: "2026-01-11",
     store_id: "S001",
-    category: "Product A",
-    region: "south",
+    category: "GROCERIES",
+    region: "NORTH",
     predicted_value: 118,
-    lower_bound: 105,
-    upper_bound: 131
+    lower_bound: 106,
+    upper_bound: 130
   },
   {
     id: "2",
     run_id: "sample",
-    forecast_date: "2026-01-07",
+    forecast_date: "2026-01-11",
     store_id: "S001",
-    category: "Product A",
-    region: "south",
+    category: "ELECTRONICS",
+    region: "NORTH",
+    predicted_value: 245,
+    lower_bound: 220,
+    upper_bound: 270
+  },
+  {
+    id: "3",
+    run_id: "sample",
+    forecast_date: "2026-01-11",
+    store_id: "S002",
+    category: "GROCERIES",
+    region: "CENTRAL",
+    predicted_value: 92,
+    lower_bound: 83,
+    upper_bound: 101
+  },
+  {
+    id: "4",
+    run_id: "sample",
+    forecast_date: "2026-01-11",
+    store_id: "S002",
+    category: "CLOTHING",
+    region: "CENTRAL",
+    predicted_value: 156,
+    lower_bound: 140,
+    upper_bound: 172
+  },
+  {
+    id: "5",
+    run_id: "sample",
+    forecast_date: "2026-01-11",
+    store_id: "S003",
+    category: "ELECTRONICS",
+    region: "SOUTH",
+    predicted_value: 205,
+    lower_bound: 184,
+    upper_bound: 226
+  },
+  {
+    id: "6",
+    run_id: "sample",
+    forecast_date: "2026-01-11",
+    store_id: "S003",
+    category: "CLOTHING",
+    region: "SOUTH",
+    predicted_value: 189,
+    lower_bound: 170,
+    upper_bound: 208
+  },
+  {
+    id: "7",
+    run_id: "sample",
+    forecast_date: "2026-01-12",
+    store_id: "S001",
+    category: "GROCERIES",
+    region: "NORTH",
     predicted_value: 125,
     lower_bound: 112,
     upper_bound: 138
   },
   {
-    id: "3",
+    id: "8",
     run_id: "sample",
-    forecast_date: "2026-01-08",
+    forecast_date: "2026-01-12",
     store_id: "S001",
-    category: "Product A",
-    region: "south",
-    predicted_value: 108,
-    lower_bound: 95,
-    upper_bound: 121
-  },
-  {
-    id: "4",
-    run_id: "sample",
-    forecast_date: "2026-01-06",
-    store_id: "S002",
-    category: "Product B",
-    region: "north",
-    predicted_value: 88,
-    lower_bound: 78,
-    upper_bound: 98
-  },
-  {
-    id: "5",
-    run_id: "sample",
-    forecast_date: "2026-01-07",
-    store_id: "S002",
-    category: "Product B",
-    region: "north",
-    predicted_value: 95,
-    lower_bound: 85,
-    upper_bound: 105
-  },
-  {
-    id: "6",
-    run_id: "sample",
-    forecast_date: "2026-01-08",
-    store_id: "S002",
-    category: "Product B",
-    region: "north",
-    predicted_value: 82,
-    lower_bound: 72,
-    upper_bound: 92
+    category: "ELECTRONICS",
+    region: "NORTH",
+    predicted_value: 260,
+    lower_bound: 234,
+    upper_bound: 286
   }
 ]
 
@@ -89,7 +111,9 @@ export default function SampleResultsPage() {
   const handleExport = async () => {
     const headers = [
       "date",
-      "product",
+      "store_id",
+      "category",
+      "region",
       "predicted",
       "lower_bound",
       "upper_bound"
@@ -98,7 +122,9 @@ export default function SampleResultsPage() {
     const rows = SAMPLE_PREDICTIONS.map(p =>
       [
         p.forecast_date,
-        p.category,        // ← fixed from entity_name
+        p.store_id,
+        p.category,
+        p.region,
         p.predicted_value,
         p.lower_bound,
         p.upper_bound
@@ -117,6 +143,25 @@ export default function SampleResultsPage() {
 
   return (
     <div className="max-w-4xl mx-auto py-10 px-4 space-y-8">
+
+      {/* EXPLICIT UX DISCLAIMER BANNER */}
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex items-start gap-3 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20"
+      >
+        <div className="text-2xl">⚠️</div>
+        <div className="flex-1">
+          <h3 className="text-sm font-black text-amber-500 mb-1">
+            Viewing Sample Simulation Mode
+          </h3>
+          <p className="text-xs font-bold text-amber-400/80">
+            The analytics displayed here are mock baseline results. Real chart rendering, dynamic
+            filtering, and comprehensive data matrices will automatically update upon your true custom
+            dataset file upload.
+          </p>
+        </div>
+      </motion.div>
 
       {/* Header */}
       <motion.div

@@ -26,7 +26,19 @@ export default function ColumnMapper({
   isSample
 }: ColumnMapperProps) {
 
-  const [mapping, setMapping] = useState<Record<string, string>>({})
+  // Auto-fill sample mappings
+  const initialMapping: Record<string, string> = isSample
+    ? {
+        date: "ignore", // ignore date, model generates dates
+        store_id: "store_id",
+        category: "category",
+        region: "region",
+        unit_price: "unit_price",
+        promo_flag: "promo_flag"
+      }
+    : {}
+
+  const [mapping, setMapping] = useState<Record<string, string>>(initialMapping)
   const [selectedHorizon, setSelectedHorizon] = useState(7)
   const [error, setError] = useState<string | null>(null)
 
