@@ -9,7 +9,6 @@ import {
 } from "@/services/api/forecasting";
 import { parseFile, ColumnInfo } from "@/utils/fileParser";
 
-// Hardcoded sample CSV — no fetch needed -due to proxy
 const SAMPLE_CSV_CONTENT = `date,store_id,category,region,unit_price,promo_flag
 2026-01-01,S001,GROCERIES,NORTH,25.99,1
 2026-01-02,S001,GROCERIES,NORTH,25.99,0
@@ -32,6 +31,7 @@ export default function UploadPage() {
   const [datasetId, setDatasetId] = useState("")
   const [filePath, setFilePath] = useState("")
   const [columns, setColumns] = useState<ColumnInfo[]>([])
+  const [isSample, setIsSample] = useState(false) // ← new
 
   const handleUpload = async (file: File, columnInfos: ColumnInfo[]) => {
     try {
@@ -46,6 +46,7 @@ export default function UploadPage() {
 
       setDatasetId(dataset.id)
       setFilePath(dataset.file_path)
+      setIsSample(false)     // ← real data
       setStatus("success")
 
     } catch (error: any) {
@@ -59,7 +60,6 @@ export default function UploadPage() {
       setFileName("sample-forecast-data.csv")
       setStatus("loading")
 
-      // Use hardcoded content — NO fetch! ✅
       const blob = new Blob([SAMPLE_CSV_CONTENT], {
         type: "text/csv"
       })
@@ -69,23 +69,17 @@ export default function UploadPage() {
         { type: "text/csv" }
       )
 
-      // Parse columns from file
       const columnInfos = await parseFile(file)
 
-      // Upload to Supabase storage
-      const { id: datasetId, file_path: filePath } =
+      const { id: did, file_path: fp } =
         await uploadFileToStorageAndSaveDataset(file, columnInfos)
 
-      const columnsParam = encodeURIComponent(
-        JSON.stringify(columnInfos)
-      )
-
-      setStatus("success")
-
-      // Navigate to map-columns with isSample=true
-      router.push(
-        `/dashboard/grow/demand-forecasting/map-columns?datasetId=${datasetId}&filePath=${encodeURIComponent(filePath)}&columns=${columnsParam}&isSample=true`
-      )
+      // Save state — don't navigate yet ✅
+      setDatasetId(did)
+      setFilePath(fp)
+      setColumns(columnInfos)
+      setIsSample(true)      // ← mark as sample
+      setStatus("success")   // ← show success screen
 
     } catch (error: any) {
       setErrorMessage(error.message || "Failed to load sample")
@@ -96,14 +90,17 @@ export default function UploadPage() {
   const handleContinue = () => {
     const columnsJson = encodeURIComponent(JSON.stringify(columns))
     const filePathJson = encodeURIComponent(filePath)
+
+    // Add isSample to URL ✅
     router.push(
-      `/dashboard/grow/demand-forecasting/map-columns?datasetId=${datasetId}&filePath=${filePathJson}&columns=${columnsJson}`
+      `/dashboard/grow/demand-forecasting/map-columns?datasetId=${datasetId}&filePath=${filePathJson}&columns=${columnsJson}${isSample ? "&isSample=true" : ""}`
     )
   }
 
   const handleRetry = () => {
     setStatus("idle")
     setErrorMessage("")
+    setIsSample(false)
   }
 
   return (
