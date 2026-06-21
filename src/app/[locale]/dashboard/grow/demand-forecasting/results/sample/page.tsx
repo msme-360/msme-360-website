@@ -186,7 +186,11 @@ export default function SampleResultsPage() {
       <ForecastChart predictions={SAMPLE_PREDICTIONS} />
 
       {/* Action Items */}
-      <InsightSummary />
+      <InsightSummary
+        predictions={SAMPLE_PREDICTIONS}
+        fileName="sample-data.csv"
+        horizon={7}
+      />
 
       {/* Forecast Table */}
       <ForecastTable predictions={SAMPLE_PREDICTIONS} />

@@ -42,6 +42,7 @@ export async function initializeForecast(
   userId: string,
   datasetId: string,
   filePath: string,
+  fileName: string,
   horizon: number,
   modelName: string,
   mapping: Record<string, string>,
@@ -64,7 +65,7 @@ export async function initializeForecast(
 
   // Call new FastAPI initialize endpoint
   console.log("Calling initialize endpoint with:", {
-    userId, datasetId, filePath, horizon, modelName, columnMappings, startDate
+    userId, datasetId, filePath, fileName, horizon, modelName, columnMappings, startDate
   })
 
   const res = await fetch('http://localhost:8000/api/v1/forecast/initialize', {
@@ -76,6 +77,7 @@ export async function initializeForecast(
       user_id: userId,
       dataset_id: datasetId,
       file_path: filePath,
+      file_name: fileName,
       horizon,
       model_name: modelName,
       column_mappings: columnMappings,

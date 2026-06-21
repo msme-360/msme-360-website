@@ -29,6 +29,7 @@ async def initialize_forecast(payload: IngestionPayload, background_tasks: Backg
             "id": str(dataset_id),
             "user_id": payload.user_id,
             "file_path": payload.file_path,
+            "file_name": payload.file_name,
             "upload_status": "uploaded"
         }).execute()
 

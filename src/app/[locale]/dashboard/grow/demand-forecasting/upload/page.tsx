@@ -99,10 +99,11 @@ export default function UploadPage() {
   const handleContinue = () => {
     const columnsJson = encodeURIComponent(JSON.stringify(columns))
     const filePathJson = encodeURIComponent(filePath)
+    const fileNameJson = encodeURIComponent(fileName)
 
-    // Add isSample to URL ✅
+    // Add isSample and fileName to URL ✅
     router.push(
-      `/dashboard/grow/demand-forecasting/map-columns?datasetId=${datasetId}&filePath=${filePathJson}&columns=${columnsJson}${isSample ? "&isSample=true" : ""}`
+      `/dashboard/grow/demand-forecasting/map-columns?datasetId=${datasetId}&filePath=${filePathJson}&columns=${columnsJson}&fileName=${fileNameJson}${isSample ? "&isSample=true" : ""}`
     )
   }
 

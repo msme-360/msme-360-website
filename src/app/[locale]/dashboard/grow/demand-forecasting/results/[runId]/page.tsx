@@ -16,6 +16,8 @@ export default function ResultsPage() {
   const [predictions, setPredictions] = useState<any[]>([]);
   const [error, setError] = useState(false);
   const [timeoutError, setTimeoutError] = useState(false);
+  const [fileName, setFileName] = useState<string>("");
+  const [horizon, setHorizon] = useState<number>(7);
 
   // Ref to track current status without resetting interval
   const statusRef = useRef(status);
@@ -29,12 +31,18 @@ export default function ResultsPage() {
       try {
         const { data: runData } = await supabase
           .from("forecast_runs")
-          .select("*")
+          .select("*, datasets!forecast_runs_dataset_id_fkey(file_name)")
           .eq("id", runId as string)
           .single();
 
         if (runData) {
           setStatus(runData.status);
+          if (runData.horizon) {
+            setHorizon(runData.horizon);
+          }
+          if (runData.datasets && runData.datasets.file_name) {
+            setFileName(runData.datasets.file_name);
+          }
           if (runData.status === "completed") {
             const results = await getRunResults(runId as string);
             setPredictions(results.predictions ?? []);
@@ -66,7 +74,7 @@ export default function ResultsPage() {
       try {
         const { data: runData } = await supabase
           .from("forecast_runs")
-          .select("*")
+          .select("*, datasets!forecast_runs_dataset_id_fkey(file_name)")
           .eq("id", runId as string)
           .single();
 
@@ -75,6 +83,12 @@ export default function ResultsPage() {
         const newStatus = runData.status;
         if (newStatus !== statusRef.current) {
           setStatus(newStatus);
+          if (runData.horizon) {
+            setHorizon(runData.horizon);
+          }
+          if (runData.datasets && runData.datasets.file_name) {
+            setFileName(runData.datasets.file_name);
+          }
 
           if (newStatus === "completed") {
             clearInterval(intervalId);
@@ -162,25 +176,25 @@ export default function ResultsPage() {
         <Loader2 className="w-12 h-12 text-primary animate-spin" />
         <div className="text-center space-y-2">
           <p className="text-lg font-black uppercase tracking-widest">
-            🤖 Analyzing data structures and running predictions...
+            🤖 Crunching your sales data...
           </p>
-          <p className="text-xs text-muted-foreground font-bold">
-            This may take a few moments
+          <p className="text-sm text-muted-foreground font-bold">
+            Hang tight, we'll have your forecast ready in a sec!
           </p>
         </div>
         <div className="w-full space-y-2 mt-4">
           {[
-            "Cleaning data",
-            "Engineering features",
-            "Training model",
-            "Generating predictions"
+            "Checking your uploaded file",
+            "Building sales patterns",
+            "Generating future predictions",
+            "Putting your report together"
           ].map((step) => (
             <div
               key={step}
               className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/10"
             >
               <Loader2 className="w-3 h-3 text-primary animate-spin" />
-              <p className="text-xs font-black uppercase tracking-widest opacity-60">
+              <p className="text-sm font-bold uppercase tracking-widest opacity-60">
                 {step}
               </p>
             </div>
@@ -209,10 +223,10 @@ export default function ResultsPage() {
     <div className="max-w-4xl mx-auto py-10 px-4 space-y-8">
       <div className="space-y-1">
         <h1 className="text-4xl font-black tracking-tight">
-          Forecast Results
+          Your Demand Forecast is Ready! 🎉
         </h1>
         <p className="text-sm text-muted-foreground font-bold uppercase tracking-widest">
-          Your demand forecast is ready
+          Simple insights to help you stock better
         </p>
       </div>
 
@@ -220,7 +234,11 @@ export default function ResultsPage() {
         <ForecastChart predictions={predictions} />
       )}
 
-      <InsightSummary />
+      <InsightSummary
+        predictions={predictions}
+        fileName={fileName}
+        horizon={horizon}
+      />
 
       {predictions.length > 0 && (
         <ForecastTable predictions={predictions} />

@@ -15,6 +15,7 @@ class IngestionPayload(BaseModel):
     user_id: str
     dataset_id: str
     file_path: str
+    file_name: str
     horizon: int
     model_name: str
     column_mappings: List[ColumnMapping]
