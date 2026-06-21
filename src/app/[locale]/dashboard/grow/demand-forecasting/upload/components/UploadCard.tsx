@@ -64,6 +64,10 @@ export default function UploadCard({
       setParsing(true)
       try {
         const columns = await parseFile(selectedFile)
+        if (columns.length < 5) {
+          setError("Your file only has " + columns.length + " column(s). Our model needs at least 5 columns to work!")
+          return
+        }
         onUpload(selectedFile, columns)
       } catch (err: any) {
         setError(err.message || "Failed to parse file")
@@ -108,8 +112,15 @@ export default function UploadCard({
           Drag and drop your file here
         </p>
         <p className="text-xs text-muted-foreground mb-4">
-          Required columns: date, product_id, units_sold
+          Your CSV must have at least 5 columns for our model to work! Here's what you need:
         </p>
+        <div className="text-left text-[11px] text-muted-foreground mb-4 space-y-1">
+          <p>• Store ID (like S0045 or your shop name)</p>
+          <p>• Product Category (like Groceries, Pharma, Dairy)</p>
+          <p>• Store Region (like North, South, East, West, Central)</p>
+          <p>• Product Price (like 45.0)</p>
+          <p>• Promotion Flag (1 if on sale, 0 if not)</p>
+        </div>
         <label>
           <input
             type="file"
@@ -135,7 +146,7 @@ export default function UploadCard({
       {/* Sample Dataset Button */}
       <button
         onClick={() => onUseSample?.()}
-        className="w-full flex items-center justify-center gap-3 p-4 rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 transition-all hover:scale-[1.02]"
+        className="w-full flex items-center justify-center gap-3 p-4 rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 transition-all hover:scale-[1.02] cursor-pointer"
       >
         <Download className="w-4 h-4 text-primary" />
         <div className="text-left">
@@ -162,7 +173,7 @@ export default function UploadCard({
               </p>
             </div>
           </div>
-          <button onClick={handleRemove}>
+          <button onClick={handleRemove} className="cursor-pointer">
             <X className="w-4 h-4 text-muted-foreground hover:text-red-400 transition-colors" />
           </button>
         </motion.div>

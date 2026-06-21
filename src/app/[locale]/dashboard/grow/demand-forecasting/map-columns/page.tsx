@@ -17,6 +17,8 @@ export default function MapColumnsPage() {
   const isSample = searchParams.get("isSample") === "true"
 
   useEffect(() => {
+    // Reset state when search params change
+    setIsLoading(false)
     const columnsJson = searchParams.get("columns")
     if (columnsJson) {
       try {

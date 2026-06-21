@@ -49,6 +49,7 @@ interface ColumnRowProps {
   onMapChange: (original: string, mapped: string) => void;
   usedTargets: Set<string>;
   currentOriginal: string;
+  hint?: string;
 }
 
 export default function ColumnRow({
@@ -56,7 +57,8 @@ export default function ColumnRow({
   mappedValue,
   onMapChange,
   usedTargets,
-  currentOriginal
+  currentOriginal,
+  hint
 }: ColumnRowProps) {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -86,7 +88,7 @@ export default function ColumnRow({
       <div className="relative">
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className={`w-full flex items-center justify-between px-4 py-3 rounded-xl border text-left transition-all duration-200 ${
+          className={`w-full flex items-center justify-between px-4 py-3 rounded-xl border text-left transition-all duration-200 cursor-pointer ${
             selectedOption
               ? "border-primary/30 bg-primary/5"
               : "border-white/10 bg-white/5 hover:bg-white/10"
@@ -134,10 +136,10 @@ export default function ColumnRow({
                   disabled={isUsed}
                   className={`w-full flex items-start gap-3 px-4 py-3 text-left transition-all duration-200 ${
                     mappedValue === option.value
-                      ? "bg-primary/10"
+                      ? "bg-primary/10 cursor-pointer"
                       : isUsed
                         ? "opacity-40 cursor-not-allowed"
-                        : "hover:bg-white/5"
+                        : "hover:bg-white/5 cursor-pointer"
                   }`}
                 >
                   <div
@@ -173,6 +175,13 @@ export default function ColumnRow({
           </div>
         )}
       </div>
+
+      {/* Hint Chip */}
+      {hint && (
+        <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-amber-400/10 border border-amber-400/20">
+          <span className="text-xs font-bold text-amber-400">{hint}</span>
+        </div>
+      )}
     </div>
   );
 }

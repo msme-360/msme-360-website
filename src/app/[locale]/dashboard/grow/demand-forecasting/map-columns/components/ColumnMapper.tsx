@@ -1,9 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { format } from "date-fns";
 import { motion } from "framer-motion";
-import { GitMerge, AlertCircle, ArrowRight, Clock, Calendar, ChevronDown, ChevronUp, Info } from "lucide-react";
+import { GitMerge, AlertCircle, ArrowRight, Clock, Calendar as CalendarIcon, ChevronDown, ChevronUp, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { Input } from "@/components/ui/input";
 import ColumnRow from "./ColumnRow";
 
 interface ColumnMapperProps {
@@ -66,6 +70,17 @@ const getTomorrowDate = () => {
   return tomorrow.toISOString().split('T')[0];
 };
 
+// Hints for sample mode
+const SAMPLE_HINTS: Record<string, string> = {
+  "Txn_Date": "💡 Hint: Select 'Ignore this column'",
+  "Outlet_Code": "💡 Hint: Select 'Store Identifier'",
+  "Prod_Cat": "💡 Hint: Select 'Product Category'",
+  "Geographic_Region": "💡 Hint: Select 'Store Region'",
+  "Item_MSRP": "💡 Hint: Select 'Product Price'",
+  "On_Promotion": "💡 Hint: Select 'Promotion Flag Status'",
+  "Internal_Skunkworks_ID": "💡 Hint: Select 'Ignore this column'"
+};
+
 export default function ColumnMapper({
   csvColumns,
   onConfirm,
@@ -73,37 +88,26 @@ export default function ColumnMapper({
   isSample
 }: ColumnMapperProps) {
 
-  // Reset state on mount to prevent leaks!
-  useEffect(() => {
-    return () => {
-      // Cleanup if needed when unmounting
-    };
-  }, []);
-
-  // Auto-fill sample mappings for messy realistic headers
-  const initialMapping: Record<string, string> = isSample
-    ? {
-        "Txn_Date": "ignore",
-        "Outlet_Code": "store_id",
-        "Prod_Cat": "category",
-        "Geographic_Region": "region",
-        "Item_MSRP": "unit_price",
-        "On_Promotion": "promo_flag",
-        "Internal_Skunkworks_ID": "ignore"
-      }
-    : {}
-
-  const [mapping, setMapping] = useState<Record<string, string>>(initialMapping);
+  const [mapping, setMapping] = useState<Record<string, string>>({});
   const [selectedHorizon, setSelectedHorizon] = useState(7);
   const [startDate, setStartDate] = useState(getTomorrowDate());
   const [isHorizonDropdownOpen, setIsHorizonDropdownOpen] = useState(false);
+
+  // Reset state whenever csvColumns or isSample change (prevents state leak!)
+  useEffect(() => {
+    // Initialize empty mapping
+    setMapping({});
+    setSelectedHorizon(7);
+    setStartDate(getTomorrowDate());
+    setIsHorizonDropdownOpen(false);
+  }, [csvColumns, isSample]);
 
   const REQUIRED = ["store_id", "category", "region", "unit_price", "promo_flag"];
 
   // Calculate which required columns are mapped
   const mappedValues = Object.values(mapping);
   const missingRequired = REQUIRED.filter(req => !mappedValues.includes(req));
-  const isFormValid = missingRequired.length === 0 || isSample;
+  const isFormValid = missingRequired.length === 0;
 
   // Check which target options are already used (for unique selection constraint)
   const usedTargets = new Set(mappedValues.filter(v => v !== "ignore"));
@@ -113,8 +117,13 @@ export default function ColumnMapper({
   };
 
   const handleConfirm = () => {
-    if (isSample || missingRequired.length === 0) {
-      onConfirm(mapping, selectedHorizon, startDate);
+    if (isFormValid) {
+      // Ensure every column is in the mapping, defaulting to 'ignore'
+      const completeMapping = csvColumns.reduce((acc, col) => {
+        acc[col] = mapping[col] || "ignore";
+        return acc;
+      }, {} as Record<string, string>);
+      onConfirm(completeMapping, selectedHorizon, startDate);
     }
   };
 
@@ -141,32 +150,32 @@ export default function ColumnMapper({
         </p>
       </div>
 
-      {/* Required notice — hide for sample */}
-      {!isSample && (
-        <div className="flex items-start gap-3 p-4 rounded-2xl bg-primary/5 border border-primary/20">
-          <AlertCircle className="w-4 h-4 text-primary mt-0.5 shrink-0" />
-          <div className="space-y-1">
-            <p className="text-xs font-bold text-primary">
-              {missingRequired.length > 0 ? `Still need to map: ${missingRequired.join(", ")}` : "All required columns mapped!"}
+      {/* Sample notice */}
+      {isSample && (
+        <div className="flex items-start gap-3 p-4 rounded-2xl bg-amber-400/10 border border-amber-400/20">
+          <div className="text-2xl">🎮</div>
+          <div className="flex-1">
+            <p className="text-xs font-bold text-amber-400">
+              Practice Playground Mode — This is a safe practice screen using realistic example columns! Use this arena to learn how to map your data correctly before uploading your actual business files.
             </p>
-            {missingRequired.length > 0 && (
-              <p className="text-[10px] font-medium text-primary/70">
-                Please map all required columns before continuing
-              </p>
-            )}
           </div>
         </div>
       )}
 
-      {/* Sample notice */}
-      {isSample && (
-        <div className="flex items-start gap-3 p-4 rounded-2xl bg-amber-400/10 border border-amber-400/20">
-          <AlertCircle className="w-4 h-4 text-amber-400 mt-0.5 shrink-0" />
-          <p className="text-xs font-bold text-amber-400">
-            Sample data — just pick your horizon and confirm!
+      {/* Required notice */}
+      <div className="flex items-start gap-3 p-4 rounded-2xl bg-primary/5 border border-primary/20">
+        <AlertCircle className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+        <div className="space-y-1">
+          <p className="text-xs font-bold text-primary">
+            {missingRequired.length > 0 ? `Still need to map: ${missingRequired.join(", ")}` : "All required columns mapped!"}
           </p>
+          {missingRequired.length > 0 && (
+            <p className="text-[10px] font-medium text-primary/70">
+              Please map all required columns before continuing
+            </p>
+          )}
         </div>
-      )}
+      </div>
 
       {/* Column Rows */}
       <div className="space-y-3">
@@ -183,6 +192,7 @@ export default function ColumnMapper({
               onMapChange={handleMapChange}
               usedTargets={usedTargets}
               currentOriginal={col}
+              hint={isSample ? SAMPLE_HINTS[col] : undefined}
             />
           </motion.div>
         ))}
@@ -205,7 +215,7 @@ export default function ColumnMapper({
             <div className="relative">
               <button
                 onClick={() => setIsHorizonDropdownOpen(!isHorizonDropdownOpen)}
-                className="w-full flex items-center justify-between p-4 rounded-2xl border border-white/10 bg-white/5 text-left transition-all hover:border-white/20"
+                className="w-full flex items-center justify-between p-4 rounded-2xl border border-white/10 bg-white/5 text-left transition-all hover:border-white/20 cursor-pointer"
               >
                 <div className="flex items-center gap-3">
                   <Clock className="w-4 h-4 text-primary" />
@@ -233,7 +243,7 @@ export default function ColumnMapper({
                         setSelectedHorizon(h.value);
                         setIsHorizonDropdownOpen(false);
                       }}
-                      className={`w-full p-4 text-left transition-all flex items-start gap-3 ${
+                      className={`w-full p-4 text-left transition-all flex items-start gap-3 cursor-pointer ${
                         selectedHorizon === h.value ? "bg-primary/10 text-primary" : "hover:bg-white/5"
                       }`}
                     >
@@ -261,16 +271,31 @@ export default function ColumnMapper({
                 </div>
               </div>
             </div>
-            <div className="relative">
-              <input
-                type="date"
-                value={startDate}
-                min={tomorrow}
-                onChange={(e) => setStartDate(e.target.value)}
-                className="w-full px-4 py-3 rounded-2xl border border-white/10 bg-white/5 text-sm font-black text-white focus:outline-none focus:border-primary/50 transition-colors"
-              />
-              <Calendar className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            </div>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="w-full px-4 py-3 h-auto rounded-2xl border border-white/10 bg-white/5 text-sm font-black text-white hover:bg-white/10 focus:outline-none focus:border-primary/50 transition-colors justify-start text-left font-normal"
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {startDate ? format(new Date(startDate), "PPP") : <span>Pick a date</span>}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0 bg-[#0f0f13] border border-white/10 rounded-xl shadow-2xl">
+                <Calendar
+                  mode="single"
+                  selected={new Date(startDate)}
+                  onSelect={(date) => {
+                    if (date) {
+                      const formatted = date.toISOString().split('T')[0];
+                      setStartDate(formatted);
+                    }
+                  }}
+                  disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
           </div>
         </div>
       </div>

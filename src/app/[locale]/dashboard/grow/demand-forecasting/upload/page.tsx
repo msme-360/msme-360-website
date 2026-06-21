@@ -9,7 +9,7 @@ import {
 } from "@/services/api/forecasting";
 import { parseFile, ColumnInfo } from "@/utils/fileParser";
 
-const SAMPLE_CSV_CONTENT = `Txn_Date,Outlet_Code,Product,Geographic_Region,Item_MSRP,On_Promotion,Internal_Skunkworks_ID
+const SAMPLE_CSV_CONTENT = `Txn_Date,Outlet_Code,Prod_Cat,Geographic_Region,Item_MSRP,On_Promotion,Internal_Skunkworks_ID
 2026-01-01,S001,GROCERIES,NORTH,25.99,1,SKU-001-XYZ
 2026-01-02,S001,GROCERIES,NORTH,25.99,0,SKU-001-XYZ
 2026-01-03,S001,ELECTRONICS,NORTH,129.99,1,SKU-002-ABC

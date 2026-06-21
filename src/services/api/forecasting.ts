@@ -48,17 +48,19 @@ export async function initializeForecast(
   columnInfos: ColumnInfo[],
   startDate: string
 ) {
-  // Create column mappings array (filter out ignored columns but keep track for clarity)
+  // Create column mappings array (FILTER OUT ignored columns completely)
   const dataTypeMap = columnInfos.reduce((acc, col) => {
     acc[col.name] = col.dataType;
     return acc;
   }, {} as Record<string, string>);
 
-  const columnMappings = Object.entries(mapping).map(([original, mapped]) => ({
-    original_name: original,
-    mapped_name: mapped,
-    data_type: dataTypeMap[original] || "text"
-  }));
+  const columnMappings = Object.entries(mapping)
+    .filter(([_, mapped]) => mapped !== "ignore")
+    .map(([original, mapped]) => ({
+      original_name: original,
+      mapped_name: mapped,
+      data_type: dataTypeMap[original] || "text"
+    }));
 
   // Call new FastAPI initialize endpoint
   console.log("Calling initialize endpoint with:", {
