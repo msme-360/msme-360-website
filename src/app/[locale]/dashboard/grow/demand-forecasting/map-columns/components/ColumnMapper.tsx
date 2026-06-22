@@ -63,11 +63,22 @@ const SYSTEM_COLUMNS = [
   }
 ];
 
-// Helper to get tomorrow's date as default
+// Helper to get tomorrow's date as default (local timezone safe!)
 const getTomorrowDate = () => {
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
-  return tomorrow.toISOString().split('T')[0];
+  const year = tomorrow.getFullYear();
+  const month = String(tomorrow.getMonth() + 1).padStart(2, '0');
+  const day = String(tomorrow.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+// Helper to format date to yyyy-mm-dd safely (no timezone shift!)
+const formatDateSafe = (date: Date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 };
 
 // Hints for sample mode
@@ -284,14 +295,18 @@ export default function ColumnMapper({
               <PopoverContent className="w-auto p-0 bg-[#0f0f13] border border-white/10 rounded-xl shadow-2xl">
                 <Calendar
                   mode="single"
-                  selected={new Date(startDate)}
+                  selected={new Date(startDate + 'T00:00:00')} // Add time to keep local
                   onSelect={(date) => {
                     if (date) {
-                      const formatted = date.toISOString().split('T')[0];
+                      const formatted = formatDateSafe(date);
                       setStartDate(formatted);
                     }
                   }}
-                  disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                  disabled={(date) => {
+                    const todayStr = formatDateSafe(new Date());
+                    const dateStr = formatDateSafe(date);
+                    return dateStr < todayStr;
+                  }}
                   initialFocus
                 />
               </PopoverContent>

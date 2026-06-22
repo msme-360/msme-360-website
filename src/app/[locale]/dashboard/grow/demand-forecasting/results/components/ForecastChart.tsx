@@ -10,14 +10,13 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  ReferenceLine,
   Area,
   AreaChart
 } from "recharts";
 import { ForecastOutput } from "@/types/forecasting";
 
 interface ForecastChartProps {
-  predictions: ForecastOutput[]
+  predictions: ForecastOutput[];
 }
 
 // Custom tooltip
@@ -28,65 +27,65 @@ const CustomTooltip = ({ active, payload, label }: any) => {
         <p className="font-black uppercase tracking-widest opacity-60">
           {label}
         </p>
-        {payload.map((entry: any) => (
-          <p key={entry.name} style={{ color: entry.color }} className="font-black">
-            {entry.name}: {entry.value}
-          </p>
-        ))}
+        <p className="text-emerald-400 font-bold">
+          Predicted: {Math.round(payload[0].value)} units
+        </p>
       </div>
-    )
+    );
   }
-  return null
-}
+  return null;
+};
 
 export default function ForecastChart({ predictions }: ForecastChartProps) {
+  // Aggregate predictions by date!
+  const chartData = (() => {
+    const aggregated: Record<string, { predicted: number; lower: number; upper: number }> = {};
 
-  // Shape data for Recharts
-  const chartData = predictions.map(p => ({
-    date: p.forecast_date,
-    predicted: p.predicted_value,
-    lower: p.lower_bound ?? null,
-    upper: p.upper_bound ?? null,
-  }))
+    predictions.forEach((p) => {
+      if (!aggregated[p.forecast_date]) {
+        aggregated[p.forecast_date] = {
+          predicted: 0,
+          lower: 0,
+          upper: 0
+        };
+      }
+      aggregated[p.forecast_date].predicted += p.predicted_value;
+      aggregated[p.forecast_date].lower += (p.lower_bound || 0);
+      aggregated[p.forecast_date].upper += (p.upper_bound || 0);
+    });
+
+    // Convert to sorted array
+    return Object.entries(aggregated)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([date, values]) => ({
+        date,
+        predicted: values.predicted,
+        lower: values.lower,
+        upper: values.upper
+      }));
+  })();
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="glass-card p-8 space-y-6"
+      className="glass-card p-6 space-y-4"
     >
-
       {/* Header */}
       <div className="flex items-center gap-3">
         <BarChart3 className="w-5 h-5 text-primary" />
         <div>
-          <h2 className="text-xl font-black tracking-tight">
-            Forecast Chart
+          <h2 className="text-lg font-black tracking-tight">
+            Forecast Timeline
           </h2>
           <p className="text-xs text-muted-foreground font-bold uppercase tracking-widest">
-            Predicted demand with confidence range
+            Daily predicted demand with safety stock range
           </p>
         </div>
       </div>
 
-      {/* Legend */}
-      <div className="flex items-center gap-6">
-        <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded-full bg-primary" />
-          <span className="text-xs font-black uppercase tracking-widest opacity-60">
-            Predicted
-          </span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded-full bg-primary/20" />
-          <span className="text-xs font-black uppercase tracking-widest opacity-60">
-            Confidence Range
-          </span>
-        </div>
-      </div>
-
       {/* Chart */}
-      <div className="h-72">
+      <div className="h-64">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={chartData}>
             <CartesianGrid
@@ -106,18 +105,18 @@ export default function ForecastChart({ predictions }: ForecastChartProps) {
             />
             <Tooltip content={<CustomTooltip />} />
 
-            {/* Confidence range */}
+            {/* Confidence range — shaded area */}
             <Area
               type="monotone"
               dataKey="upper"
               stroke="transparent"
-              fill="rgba(var(--primary), 0.1)"
+              fill="rgba(var(--primary), 0.15)"
             />
             <Area
               type="monotone"
               dataKey="lower"
               stroke="transparent"
-              fill="white"
+              fill="transparent"
             />
 
             {/* Predicted line */}
@@ -125,15 +124,13 @@ export default function ForecastChart({ predictions }: ForecastChartProps) {
               type="monotone"
               dataKey="predicted"
               stroke="hsl(var(--primary))"
-              strokeWidth={2}
+              strokeWidth={3}
               dot={false}
-              activeDot={{ r: 4 }}
+              activeDot={{ r: 5 }}
             />
-
           </AreaChart>
         </ResponsiveContainer>
       </div>
-
     </motion.div>
-  )
+  );
 }
