@@ -83,9 +83,10 @@ export default function SampleResultsPage() {
     const dateTotals: Record<string, number> = {};
 
     SAMPLE_PREDICTIONS.forEach((p: any) => {
-      total += p.predicted_value;
-      categoryTotals[p.category] = (categoryTotals[p.category] || 0) + p.predicted_value;
-      dateTotals[p.forecast_date] = (dateTotals[p.forecast_date] || 0) + p.predicted_value;
+      if (!p) return;
+      total += (p?.predicted_value || 0);
+      categoryTotals[p?.category || ""] = (categoryTotals[p?.category || ""] || 0) + (p?.predicted_value || 0);
+      dateTotals[p?.forecast_date || ""] = (dateTotals[p?.forecast_date || ""] || 0) + (p?.predicted_value || 0);
     });
 
     let tCategory = "";
@@ -159,7 +160,7 @@ export default function SampleResultsPage() {
         </motion.div>
       </div>
 
-      <ForecastChart predictions={SAMPLE_PREDICTIONS} />
+      <ForecastChart predictions={SAMPLE_PREDICTIONS} horizon={7} />
 
       <InsightSummary
         predictions={SAMPLE_PREDICTIONS}

@@ -40,8 +40,9 @@ const generateInsights = (
   selectedCategory?: string
 ): Insight[] => {
   const insights: Insight[] = [];
+  const safePredictions = predictions || [];
 
-  if (predictions.length === 0) return insights;
+  if (safePredictions.length === 0) return insights;
 
   // Compute for the filtered set (if any)
   const categoryTotals: Record<string, number> = {};
@@ -49,11 +50,12 @@ const generateInsights = (
   const dateTotals: Record<string, number> = {};
   let total = 0;
 
-  predictions.forEach((p) => {
-    total += p.predicted_value;
-    categoryTotals[p.category] = (categoryTotals[p.category] || 0) + p.predicted_value;
-    regionTotals[p.region] = (regionTotals[p.region] || 0) + p.predicted_value;
-    dateTotals[p.forecast_date] = (dateTotals[p.forecast_date] || 0) + p.predicted_value;
+  safePredictions.forEach((p) => {
+    if (!p) return;
+    total += (p?.predicted_value || 0);
+    categoryTotals[p?.category || ""] = (categoryTotals[p?.category || ""] || 0) + (p?.predicted_value || 0);
+    regionTotals[p?.region || ""] = (regionTotals[p?.region || ""] || 0) + (p?.predicted_value || 0);
+    dateTotals[p?.forecast_date || ""] = (dateTotals[p?.forecast_date || ""] || 0) + (p?.predicted_value || 0);
   });
 
   // Find top date for this filtered set

@@ -34,17 +34,19 @@ export default function ResultsPage() {
 
   // Compute all our metrics from predictions using useMemo!
   const { totalVolume, topCategory, topDate, uniqueRegions, uniqueCategories, filteredPredictions } = useMemo(() => {
-    const regions = Array.from(new Set(predictions.map((p: any) => p.region)));
-    const categories = Array.from(new Set(predictions.map((p: any) => p.category)));
+    const safePredictions = predictions || [];
+    const regions = Array.from(new Set(safePredictions.map((p: any) => p?.region || "")));
+    const categories = Array.from(new Set(safePredictions.map((p: any) => p?.category || "")));
 
     let total = 0;
     const categoryTotals: Record<string, number> = {};
     const dateTotals: Record<string, number> = {};
 
-    predictions.forEach((p: any) => {
-      total += p.predicted_value;
-      categoryTotals[p.category] = (categoryTotals[p.category] || 0) + p.predicted_value;
-      dateTotals[p.forecast_date] = (dateTotals[p.forecast_date] || 0) + p.predicted_value;
+    safePredictions.forEach((p: any) => {
+      if (!p) return;
+      total += (p?.predicted_value || 0);
+      categoryTotals[p?.category || ""] = (categoryTotals[p?.category || ""] || 0) + (p?.predicted_value || 0);
+      dateTotals[p?.forecast_date || ""] = (dateTotals[p?.forecast_date || ""] || 0) + (p?.predicted_value || 0);
     });
 
     let tCategory = "";
@@ -55,15 +57,20 @@ export default function ResultsPage() {
     let tDateTotal = 0;
     Object.entries(dateTotals).forEach(([date, vol]) => { if (vol > tDateTotal) { tDateTotal = vol; tDate = date; } });
 
-    let filtered = predictions;
-    if (selectedRegion !== "all") filtered = filtered.filter((p: any) => p.region === selectedRegion);
-    if (selectedCategory !== "all") filtered = filtered.filter((p: any) => p.category === selectedCategory);
+    let filtered = safePredictions;
+    if (selectedRegion !== "all") filtered = filtered.filter((p: any) => p?.region === selectedRegion);
+    if (selectedCategory !== "all") filtered = filtered.filter((p: any) => p?.category === selectedCategory);
 
     return { totalVolume: total, topCategory: tCategory, topDate: tDate, uniqueRegions: regions, uniqueCategories: categories, filteredPredictions: filtered };
   }, [predictions, selectedRegion, selectedCategory]);
 
   useEffect(() => {
     if (!runId) return;
+
+    let intervalId: NodeJS.Timeout | null = null;
+    const pollingIntervalMs = 5000;
+    const maxPollingDurationMs = 300000;
+    let pollStartTime: number | null = null;
 
     const fetchInitialState = async () => {
       try {
@@ -80,50 +87,62 @@ export default function ResultsPage() {
           if (runData.status === "completed") {
             const results = await getRunResults(runId as string);
             setPredictions(results.predictions ?? []);
+            // No need to start polling if already completed!
+            return;
           }
-          if (runData.status === "failed") { setError(true); }
+          if (runData.status === "failed") { 
+            setError(true); 
+            return;
+          }
+
+          // Only start polling if still pending/processing
+          pollStartTime = Date.now();
+          startPolling();
         }
       } catch (err) { console.error("Error fetching initial state:", err); }
     };
 
+    const startPolling = () => {
+      intervalId = setInterval(async () => {
+        if (pollStartTime && Date.now() - pollStartTime > maxPollingDurationMs) {
+          if (intervalId) clearInterval(intervalId);
+          setTimeoutError(true);
+          return;
+        }
+
+        try {
+          const { data: runData } = await supabase
+            .from("forecast_runs")
+            .select("*, datasets!forecast_runs_dataset_id_fkey(file_name)")
+            .eq("id", runId as string)
+            .single();
+
+          if (!runData) return;
+          const newStatus = runData.status;
+          if (newStatus !== statusRef.current) {
+            setStatus(newStatus);
+            if (runData.horizon) { setHorizon(runData.horizon); }
+            if (runData.datasets && runData.datasets.file_name) { setFileName(runData.datasets.file_name); }
+
+            if (newStatus === "completed") {
+              if (intervalId) clearInterval(intervalId);
+              const results = await getRunResults(runId as string);
+              setPredictions(results.predictions ?? []);
+            }
+            if (newStatus === "failed") { 
+              if (intervalId) clearInterval(intervalId); 
+              setError(true); 
+            }
+          }
+        } catch (err) { console.error("Polling error:", err); }
+      }, pollingIntervalMs);
+    };
+
     fetchInitialState();
 
-    const pollingIntervalMs = 5000;
-    const maxPollingDurationMs = 300000;
-    const pollStartTime = Date.now();
-
-    const intervalId = setInterval(async () => {
-      if (Date.now() - pollStartTime > maxPollingDurationMs) {
-        clearInterval(intervalId);
-        setTimeoutError(true);
-        return;
-      }
-
-      try {
-        const { data: runData } = await supabase
-          .from("forecast_runs")
-          .select("*, datasets!forecast_runs_dataset_id_fkey(file_name)")
-          .eq("id", runId as string)
-          .single();
-
-        if (!runData) return;
-        const newStatus = runData.status;
-        if (newStatus !== statusRef.current) {
-          setStatus(newStatus);
-          if (runData.horizon) { setHorizon(runData.horizon); }
-          if (runData.datasets && runData.datasets.file_name) { setFileName(runData.datasets.file_name); }
-
-          if (newStatus === "completed") {
-            clearInterval(intervalId);
-            const results = await getRunResults(runId as string);
-            setPredictions(results.predictions ?? []);
-          }
-          if (newStatus === "failed") { clearInterval(intervalId); setError(true); }
-        }
-      } catch (err) { console.error("Polling error:", err); }
-    }, pollingIntervalMs);
-
-    return () => { clearInterval(intervalId); };
+    return () => { 
+      if (intervalId) clearInterval(intervalId); 
+    };
   }, [runId]);
 
   const handleExport = async (runId: string) => {
@@ -220,7 +239,7 @@ export default function ResultsPage() {
         </motion.div>
       </div>
 
-      <ForecastChart predictions={predictions} />
+      <ForecastChart predictions={predictions} horizon={horizon} />
 
       <InsightSummary
         predictions={predictions}
