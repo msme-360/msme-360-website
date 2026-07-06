@@ -1,0 +1,135 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import UploadCard from "./components/UploadCard";
+import UploadStatus from "./components/UploadStatus";
+import {
+  uploadFileToStorageAndSaveDataset,
+} from "@/services/api/forecasting";
+import { parseFile, ColumnInfo } from "@/utils/fileParser";
+
+const SAMPLE_CSV_CONTENT = `Txn_Date,Outlet_Code,Prod_Cat,Geographic_Region,Item_MSRP,On_Promotion,Internal_Skunkworks_ID
+2026-01-01,S001,GROCERIES,NORTH,25.99,1,SKU-001-XYZ
+2026-01-02,S001,GROCERIES,NORTH,25.99,0,SKU-001-XYZ
+2026-01-03,S001,ELECTRONICS,NORTH,129.99,1,SKU-002-ABC
+2026-01-04,S002,GROCERIES,CENTRAL,22.99,0,SKU-003-DEF
+2026-01-05,S002,CLOTHING,CENTRAL,49.99,1,SKU-004-GHI
+2026-01-06,S003,ELECTRONICS,SOUTH,99.99,0,SKU-005-JKL
+2026-01-07,S003,CLOTHING,SOUTH,59.99,1,SKU-006-MNO
+2026-01-08,S004,GROCERIES,WEST,27.99,0,SKU-007-PQR
+2026-01-09,S004,ELECTRONICS,WEST,119.99,1,SKU-008-STU
+2026-01-10,S005,CLOTHING,WEST,44.99,0,SKU-009-VWX`
+
+type Status = "idle" | "loading" | "success" | "error"
+
+export default function UploadPage() {
+  const router = useRouter()
+  const [status, setStatus] = useState<Status>("idle")
+  const [fileName, setFileName] = useState("")
+  const [errorMessage, setErrorMessage] = useState("")
+  const [datasetId, setDatasetId] = useState("")
+  const [filePath, setFilePath] = useState("")
+  const [columns, setColumns] = useState<ColumnInfo[]>([])
+  const [isSample, setIsSample] = useState(false) // ← new
+
+  // Reset state EVERY TIME the component mounts (prevents state leak!)
+  useEffect(() => {
+    setStatus("idle");
+    setFileName("");
+    setErrorMessage("");
+    setDatasetId("");
+    setFilePath("");
+    setColumns([]);
+    setIsSample(false);
+  }, []);
+
+  const handleUpload = async (file: File, columnInfos: ColumnInfo[]) => {
+    try {
+      setFileName(file.name)
+      setColumns(columnInfos)
+      setStatus("loading")
+
+      const dataset = await uploadFileToStorageAndSaveDataset(
+        file,
+        columnInfos
+      )
+
+      setDatasetId(dataset.id)
+      setFilePath(dataset.file_path)
+      setIsSample(false)     // ← real data
+      setStatus("success")
+
+    } catch (error: any) {
+      setErrorMessage(error.message || "Upload failed")
+      setStatus("error")
+    }
+  }
+
+  const handleUseSample = async () => {
+    try {
+      setFileName("sample-forecast-data.csv")
+      setStatus("loading")
+
+      const blob = new Blob([SAMPLE_CSV_CONTENT], {
+        type: "text/csv"
+      })
+      const file = new File(
+        [blob],
+        "sample-forecast-data.csv",
+        { type: "text/csv" }
+      )
+
+      const columnInfos = await parseFile(file)
+
+      // NO STORAGE UPLOAD, NO NETWORK CALLS!
+      // Use placeholder datasetId/filePath since no real upload
+      setDatasetId("sample-dataset-id")
+      setFilePath("sample/dataset/path.csv")
+      setColumns(columnInfos)
+      setIsSample(true)      // ← mark as sample
+      setStatus("success")   // ← show success screen
+
+    } catch (error: any) {
+      setErrorMessage(error.message || "Failed to load sample")
+      setStatus("error")
+    }
+  }
+
+  const handleContinue = () => {
+    const columnsJson = encodeURIComponent(JSON.stringify(columns))
+    const filePathJson = encodeURIComponent(filePath)
+    const fileNameJson = encodeURIComponent(fileName)
+
+    // Add isSample and fileName to URL ✅
+    router.push(
+      `/dashboard/grow/demand-forecasting/map-columns?datasetId=${datasetId}&filePath=${filePathJson}&columns=${columnsJson}&fileName=${fileNameJson}${isSample ? "&isSample=true" : ""}`
+    )
+  }
+
+  const handleRetry = () => {
+    setStatus("idle")
+    setErrorMessage("")
+    setIsSample(false)
+  }
+
+  return (
+    <div className="max-w-2xl mx-auto py-10 px-4 space-y-6">
+      {status === "idle" && (
+        <UploadCard
+          onUpload={handleUpload}
+          onUseSample={handleUseSample}
+        />
+      )}
+      {status !== "idle" && (
+        <UploadStatus
+          status={status}
+          fileName={fileName}
+          errorMessage={errorMessage}
+          onContinue={handleContinue}
+          onRetry={handleRetry}
+        />
+      )}
+    </div>
+  )
+}

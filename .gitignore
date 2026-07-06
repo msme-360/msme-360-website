@@ -1,5 +1,3 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
 # dependencies
 /node_modules
 /.pnp
@@ -9,6 +7,19 @@
 !.yarn/plugins
 !.yarn/releases
 !.yarn/versions
+
+# Python
+**/__pycache__/
+**/*.py[cod]
+**/*$py.class
+**/.venv/
+**/venv/
+**/ENV/
+**/.pytest_cache/
+**/.coverage
+**/htmlcov/
+**/.python-version
+**/.ipynb_checkpoints
 
 # testing
 /coverage
@@ -23,15 +34,22 @@
 # misc
 .DS_Store
 *.pem
-
+.cursor
+.codegraph
+.agent/
+docs/
+scratch/
+flow.txt
+msmeModelCode/
 # debug
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
+# env files
 .env*
+!.env.example
 
 # vercel
 .vercel
@@ -40,10 +58,8 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-.agent/
-
-docs/
-
-*.sql
-
-scratch/
+# Ensure build/config files are NOT ignored
+!.dockerignore
+!.vercelignore
+!docker-compose.yml
+!Dockerfile

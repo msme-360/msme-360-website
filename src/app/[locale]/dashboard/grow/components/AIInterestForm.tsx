@@ -24,8 +24,8 @@ export default function MicroAIInterestForm() {
 
   const form = useForm({
     defaultValues: {
-      revenue: "10-50L",
-      service: "Demand Forecasting"
+      revenue: "10_50L",
+      service: "forecasting"
     },
     validators: {
       onChange: microAISchema,
@@ -81,10 +81,10 @@ export default function MicroAIInterestForm() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="rounded-xl border-border/50">
-                    <SelectItem value="<10L">&lt; 10 Lakhs</SelectItem>
-                    <SelectItem value="10-50L">10 - 50 Lakhs</SelectItem>
-                    <SelectItem value="50L-2Cr">50L - 2 Crores</SelectItem>
-                    <SelectItem value=">2Cr">&gt; 2 Crores</SelectItem>
+                    <SelectItem value="lt10L">{t("interestForm.revenueOptions.lt10L")}</SelectItem>
+                    <SelectItem value="10_50L">{t("interestForm.revenueOptions.10_50L")}</SelectItem>
+                    <SelectItem value="50L_1Cr">{t("interestForm.revenueOptions.50L_1Cr")}</SelectItem>
+                    <SelectItem value="gt10Cr">{t("interestForm.revenueOptions.gt10Cr")}</SelectItem>
                   </SelectContent>
                 </Select>
               )}
@@ -92,7 +92,7 @@ export default function MicroAIInterestForm() {
           </div>
 
           <div className="space-y-1.5">
-            <Label className="text-[10px] font-black uppercase tracking-widest opacity-60 ml-1">{t("interestForm.capability")}</Label>
+            <Label className="text-[10px] font-black uppercase tracking-widest opacity-60 ml-1">{t("interestForm.targetService")}</Label>
             <form.Field name="service">
               {(field) => (
                 <Select value={field.state.value} onValueChange={(v) => field.handleChange(v)}>
@@ -100,10 +100,10 @@ export default function MicroAIInterestForm() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="rounded-xl border-border/50">
-                    <SelectItem value="Demand Forecasting">Demand Forecasting</SelectItem>
-                    <SelectItem value="Inventory Optimization">Inventory Optimization</SelectItem>
-                    <SelectItem value="Credit Scoring">Credit Scoring</SelectItem>
-                    <SelectItem value="Fraud Detection">Fraud Detection</SelectItem>
+                    <SelectItem value="forecasting">{t("interestForm.serviceOptions.forecasting")}</SelectItem>
+                    <SelectItem value="sop">{t("interestForm.serviceOptions.sop")}</SelectItem>
+                    <SelectItem value="inventory">{t("interestForm.serviceOptions.inventory")}</SelectItem>
+                    <SelectItem value="eligibility">{t("interestForm.serviceOptions.eligibility")}</SelectItem>
                   </SelectContent>
                 </Select>
               )}
