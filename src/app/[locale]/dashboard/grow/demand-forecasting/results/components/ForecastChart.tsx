@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { BarChart3 } from "lucide-react";
+import { TrendingUp, TrendingDown } from "lucide-react";
 import {
   LineChart,
   Line,
@@ -9,9 +9,7 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  ResponsiveContainer,
-  Area,
-  AreaChart
+  ResponsiveContainer
 } from "recharts";
 import { ForecastOutput } from "@/types/forecasting";
 
@@ -39,19 +37,15 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 export default function ForecastChart({ predictions }: ForecastChartProps) {
   // Aggregate predictions by date!
   const chartData = (() => {
-    const aggregated: Record<string, { predicted: number; lower: number; upper: number }> = {};
+    const aggregated: Record<string, { predicted: number }> = {};
 
     predictions.forEach((p) => {
       if (!aggregated[p.forecast_date]) {
         aggregated[p.forecast_date] = {
-          predicted: 0,
-          lower: 0,
-          upper: 0
+          predicted: 0
         };
       }
       aggregated[p.forecast_date].predicted += p.predicted_value;
-      aggregated[p.forecast_date].lower += (p.lower_bound || 0);
-      aggregated[p.forecast_date].upper += (p.upper_bound || 0);
     });
 
     // Convert to sorted array
@@ -59,27 +53,51 @@ export default function ForecastChart({ predictions }: ForecastChartProps) {
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([date, values]) => ({
         date,
-        predicted: values.predicted,
-        lower: values.lower,
-        upper: values.upper
+        predicted: values.predicted
       }));
   })();
+
+  // Determine growth trajectory
+  const isGrowing = chartData.length >= 2 && 
+    chartData[chartData.length - 1].predicted > chartData[0].predicted;
+  
+  const lineColor = isGrowing ? "#10b981" : "#f59e0b"; // green for growth, amber for stable
+  const badgeText = isGrowing 
+    ? "📈 Business is growing! Your overall customer demand is trending UP over this period."
+    : "📊 Sales stabilization period. Demand is expected to balance out over these days.";
+  const badgeBg = isGrowing ? "bg-emerald-500/10" : "bg-amber-500/10";
+  const badgeBorder = isGrowing ? "border-emerald-500/20" : "border-amber-500/20";
+  const badgeTextColor = isGrowing ? "text-emerald-400" : "text-amber-400";
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="glass-card p-6 space-y-4"
+      className="glass-card p-6 space-y-6"
     >
+      {/* Growth Badge */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className={`flex items-start gap-3 p-4 rounded-2xl ${badgeBg} border ${badgeBorder}`}
+      >
+        <div className="text-2xl">{isGrowing ? <TrendingUp className="w-6 h-6" /> : <TrendingDown className="w-6 h-6" />}</div>
+        <div className="flex-1">
+          <p className={`text-sm font-black leading-relaxed ${badgeTextColor}`}>
+            {badgeText}
+          </p>
+        </div>
+      </motion.div>
+
       {/* Header */}
       <div className="flex items-center gap-3">
-        <BarChart3 className="w-5 h-5 text-primary" />
+        {isGrowing ? <TrendingUp className="w-5 h-5 text-emerald-400" /> : <TrendingDown className="w-5 h-5 text-amber-400" />}
         <div>
-          <h2 className="text-lg font-black tracking-tight">
-            Forecast Timeline
+          <h2 className="text-xl font-black tracking-tight">
+            Business Growth Progress Curve
           </h2>
           <p className="text-xs text-muted-foreground font-bold uppercase tracking-widest">
-            Daily predicted demand with safety stock range
+            Daily total predicted demand across all products
           </p>
         </div>
       </div>
@@ -87,7 +105,7 @@ export default function ForecastChart({ predictions }: ForecastChartProps) {
       {/* Chart */}
       <div className="h-64">
         <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={chartData}>
+          <LineChart data={chartData}>
             <CartesianGrid
               strokeDasharray="3 3"
               stroke="rgba(255,255,255,0.05)"
@@ -105,30 +123,16 @@ export default function ForecastChart({ predictions }: ForecastChartProps) {
             />
             <Tooltip content={<CustomTooltip />} />
 
-            {/* Confidence range — shaded area */}
-            <Area
-              type="monotone"
-              dataKey="upper"
-              stroke="transparent"
-              fill="rgba(var(--primary), 0.15)"
-            />
-            <Area
-              type="monotone"
-              dataKey="lower"
-              stroke="transparent"
-              fill="transparent"
-            />
-
             {/* Predicted line */}
             <Line
               type="monotone"
               dataKey="predicted"
-              stroke="hsl(var(--primary))"
+              stroke={lineColor}
               strokeWidth={3}
-              dot={false}
-              activeDot={{ r: 5 }}
+              dot={{ r: 4, fill: lineColor }}
+              activeDot={{ r: 6 }}
             />
-          </AreaChart>
+          </LineChart>
         </ResponsiveContainer>
       </div>
     </motion.div>

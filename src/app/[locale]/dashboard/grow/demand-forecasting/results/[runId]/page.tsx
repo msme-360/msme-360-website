@@ -8,6 +8,7 @@ import { supabase } from "@/services/supabase/supabase";
 import { getRunResults } from "@/services/api/forecasting";
 import InsightSummary from "../components/InsightSummary";
 import ExportButton from "../components/ExportButton";
+import ForecastChart from "../components/ForecastChart";
 
 // Helper to format date nicely for display
 const formatDateNice = (dateStr: string) => {
@@ -218,6 +219,8 @@ export default function ResultsPage() {
           </div>
         </motion.div>
       </div>
+
+      <ForecastChart predictions={predictions} />
 
       <InsightSummary
         predictions={predictions}
