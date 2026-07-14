@@ -41,6 +41,7 @@ docs/
 scratch/
 flow.txt
 msmeModelCode/
+ocrv2/
 # debug
 npm-debug.log*
 yarn-debug.log*
