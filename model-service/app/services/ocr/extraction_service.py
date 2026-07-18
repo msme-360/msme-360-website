@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import logging
 import re
-from typing import Optional
+from typing import Any, Optional
 
 from app.schemas.ocr import (
     ConfidenceScores,
@@ -17,6 +17,15 @@ logger = logging.getLogger(__name__)
 
 # Currency symbols for amount parsing
 _CURRENCY_SYMBOLS = "\u20b9$\u20ac\u00a3\u00a5"  # ₹, $, €, £, ¥
+
+# Pattern to detect a subsequent label on the same line so we can truncate
+# (e.g. "INV-001 Invoice Date: 05/07/2026" → "INV-001")
+# Matches any label-like token: capitalized word(s) followed by optional
+# parenthesised content and a colon (e.g. "Invoice Date:", "PO Number:",
+# "Grand Total (INR):", "GSTIN:").
+_NEXT_LABEL_PATTERN = re.compile(
+    r"\b[A-Z][A-Za-z]*(?:\s+[A-Z][A-Za-z]*)*\s*(?:\([^)]*\))?\s*:"
+)
 
 
 # ---------------------------------------------------------------------------
@@ -45,10 +54,23 @@ def _find_value_after_label(lines: list[str], label_pattern: str) -> str | None:
         m = re.search(label_pattern, line, re.IGNORECASE)
         if not m:
             continue
-        # Try same line — strip the label and any leftover punctuation
-        same_line = re.sub(label_pattern, "", line, flags=re.IGNORECASE).strip(": \t-.")
+        # Try same line — extract the text after the matched label
+        # (Use m.end() so we only get text AFTER the label, avoiding
+        # bleed from previous labels on the same line, e.g.
+        # "Invoice No: INV-001 Invoice Date: 05/07/2026")
+        # Note: do NOT strip leading '-' or the minus sign on negative
+        # values (e.g. Discount: -5000) would be corrupted to "5000".
+        same_line = line[m.end() :].strip(": \t.")
         if same_line:
-            return same_line
+            # Truncate at the next known label on the same line
+            # (handles cases like "Invoice No: INV-001 Invoice Date: 05/07/2026"
+            # where the matched label is the FIRST one and the NEXT label
+            # follows the value)
+            m_next = _NEXT_LABEL_PATTERN.search(same_line)
+            if m_next and m_next.start() > 0:
+                same_line = same_line[: m_next.start()].strip(": \t. ")
+            if same_line:
+                return same_line
         # Try next line
         if i + 1 < len(lines):
             candidate = lines[i + 1].strip(": \t")
@@ -144,9 +166,19 @@ def _parse_amount(val: object) -> Optional[float]:
     s = str(val).strip()
     if not s:
         return None
-    # Remove currency symbols & common suffixes
+    # Remove Indian currency text prefixes BEFORE whitespace removal
+    # e.g. "Rs. 20,695.00", "Rs 1,250", "Rupees 500.00"
+    s = re.sub(r"(?i)^\s*(?:rs\.?\s*|rupees\s+)\s*", "", s)
+    # Remove currency symbols & thousand separators
     s = re.sub(r"[₹$€£¥,\s]", "", s)
+    # Remove parenthesised currency codes FIRST (e.g. (INR), (USD))
+    # This must happen before bare ISO code stripping so "(INR)" is
+    # removed as a unit rather than leaving empty "()".
+    s = re.sub(r"(?i)\s*\([a-z]{3}\)\s*", "", s)
+    # Remove ISO currency codes (case-insensitive)
     s = re.sub(r"(?i)\s*(inr|usd|eur|gbp|jpy)\s*", "", s)
+    # Strip any remaining non-numeric chars (e.g. stray colon from label residue)
+    s = re.sub(r"[^0-9.\-]", "", s)
     try:
         return float(s)
     except ValueError:
@@ -247,9 +279,14 @@ def _find_table_region(lines: list[str]) -> tuple[int, int] | None:
 def _parse_line_item_row(row: str) -> dict | None:
     """Parse a single OCR text row into a ``LineItem``-compatible dict.
 
-    Finds numeric values in the row (stripping currency symbols), treats the
-    right-most ones as ``qty / unit_price / line_total``, and the remaining
-    text as ``item_name``.
+    Strategy:
+      1. Detect tax percent values ("12%", "18%") and record them.
+      2. Keep numbers inside parentheses (e.g. "(500 sheets)") as part of
+         the item description — they are rarely the actual quantity.
+      3. Map remaining numeric values to qty / unit_price / line_total.
+      4. Post-process: if we have unit_price + tax_percent + line_total,
+         derive quantity mathematically and override an incorrect guess.
+      5. Clean up table-border artifacts ("|") from the item name.
 
     Returns ``None`` if the row doesn't contain enough data.
     """
@@ -261,25 +298,43 @@ def _parse_line_item_row(row: str) -> dict | None:
     if len(tokens) < 2:
         return None
 
-    # Collect number-like tokens and text tokens
-    parsed: list[tuple[str, float]] = []
+    tax_percent: float | None = None
+    values: list[float] = []
     text_parts: list[str] = []
+
     for tok in tokens:
-        cleaned = re.sub(r"[\u20b9$\u20ac\u00a3\u00a5,()\s]", "", tok)
+        # Detect explicit percent value (e.g. "12%", "18%")
+        pct_match = re.match(r"^(\d+(?:\.\d+)?)%$", tok)
+        if pct_match:
+            tax_percent = float(pct_match.group(1))
+            text_parts.append(tok)
+            continue
+
+        # Detect whether this token came from inside parentheses
+        # e.g. "(500" or "sheets)" — these are description, not data columns
+        was_in_parens = tok.startswith("(") or tok.endswith(")")
+
+        cleaned = re.sub(r"[\u20b9$\u20ac\u00a3\u00a5,%()\s]", "", tok)
         try:
             val = float(cleaned)
-            parsed.append((tok, val))
+            if was_in_parens:
+                text_parts.append(tok)
+            else:
+                values.append(val)
         except ValueError:
             text_parts.append(tok)
 
     # Need item text and at least one number
-    if not text_parts or len(parsed) < 1:
+    if not text_parts or len(values) < 1:
         return None
 
-    item_name = " ".join(text_parts).strip(":;-.,\t ")
+    # Build item name, removing table artifacts and normalising whitespace
+    item_name = " ".join(text_parts)
+    item_name = re.sub(r"[|]", " ", item_name)  # table borders → space
+    item_name = re.sub(r"\s+", " ", item_name).strip(":;-.,\t ")
 
     # Skip rows that are clearly labels, not data
-    if len(item_name) < 2 and len(parsed) < 2:
+    if len(item_name) < 2 and len(values) < 2:
         return None
 
     # Skip rows whose item name matches an end-of-table keyword (e.g.
@@ -287,33 +342,50 @@ def _parse_line_item_row(row: str) -> dict | None:
     if any(item_name.lower() == kw for kw in _TABLE_END_KEYWORDS):
         return None
 
-    values = [v for _, v in parsed]
     result: dict = {"item_name": item_name}
 
-    # Map numeric values based on count (right-to-left for financial columns)
+    # Map numeric values based on count
     if len(values) == 1:
-        # Single amount — simplified table
         result["line_total"] = values[0]
     elif len(values) == 2:
         # qty + amount  OR  rate + amount
-        # Heuristic: small integer → qty, otherwise rate
-        if values[0] == int(values[0]) and values[0] < 1000:
-            result["quantity"] = values[0]
+        # Heuristic: small integer (< 100) → qty, otherwise rate
+        if values[0] == int(values[0]) and values[0] < 100:
+            result["quantity"] = int(values[0])
             result["line_total"] = values[1]
         else:
             result["unit_price"] = values[0]
             result["line_total"] = values[1]
     elif len(values) == 3:
         # qty / rate / amount  (most common)
-        result["quantity"] = values[0]
+        result["quantity"] = int(values[0]) if values[0] == int(values[0]) else values[0]
         result["unit_price"] = values[1]
         result["line_total"] = values[2]
     elif len(values) >= 4:
         # qty / rate / tax% / amount
-        result["quantity"] = values[0]
+        result["quantity"] = int(values[0]) if values[0] == int(values[0]) else values[0]
         result["unit_price"] = values[1]
-        result["tax_percent"] = values[2]
         result["line_total"] = values[3]
+
+    if tax_percent is not None:
+        result["tax_percent"] = tax_percent
+
+    # -------------------------------------------------------------------
+    # Post-processing: derive quantity from unit_price, tax_percent, and
+    # line_total when available. The OCR often misses the qty column or
+    # confuses it with description numbers (e.g. capturing "500" from
+    # "(500 sheets)" as the quantity).
+    #
+    # We intentionally do NOT modify line_total here — the raw OCR value
+    # (which may or may not include tax) is preserved for downstream use.
+    # -------------------------------------------------------------------
+    if ("unit_price" in result and "line_total" in result
+            and tax_percent is not None):
+        pre_tax = result["line_total"] / (1 + tax_percent / 100.0)
+        derived = pre_tax / result["unit_price"]
+        rounded = round(derived)
+        if abs(derived - rounded) < 0.05 and rounded > 0:
+            result["quantity"] = rounded
 
     return result
 
@@ -407,13 +479,15 @@ def _rule_based_extract(raw_text: str, prefers_dmy: bool = False) -> dict:
             vendor_name = candidate
             break
 
-    subtotal = _find_value_after_label(lines, r"subtotal\s*:?")
-    discount = _find_value_after_label(lines, r"discount\s*:?")
-    tax_amount = _find_value_after_label(lines, r"tax\s*(?:\(gst\))?\s*:?")
-    # Use \\b (word boundary) to avoid matching 'subtotal' — match 'grand total' or standalone 'total'
-    grand_total = _find_value_after_label(lines, r"grand\s*total\s*:?")
+    # Use \b word boundaries and negative lookbehinds to avoid substring collisions
+    # (e.g. "total" matching inside "Subtotal")
+    subtotal = _find_value_after_label(lines, r"\bsubtotal\b\s*:?")
+    discount = _find_value_after_label(lines, r"\bdiscount\b\s*:?")
+    # Require `:` after tax label so "Tax %" in table headers doesn't match
+    tax_amount = _find_value_after_label(lines, r"\btax\b\s*(?:\(gst\))?\s*:")
+    grand_total = _find_value_after_label(lines, r"\bgrand\s*total\b\s*(?:\([a-z]+\))?\s*:?")
     if not grand_total:
-        grand_total = _find_value_after_label(lines, r"total\s*(?:due|amount)?\s*:?")
+        grand_total = _find_value_after_label(lines, r"(?<!sub)(?<!sub )\btotal\b\s*(?:\([a-z]+\))?\s*(?:due|amount)?\s*:?")
 
     # Currency detection
     currency = None
@@ -441,6 +515,47 @@ def _rule_based_extract(raw_text: str, prefers_dmy: bool = False) -> dict:
     }
 
 
+def _is_valid_gstin(value: str) -> bool:
+    """Validate a GSTIN (Goods and Services Tax Identification Number) format.
+
+    GSTIN is 15 characters:
+      - First 2 digits: State code
+      - Next 5 chars: PAN (letters)
+      - Next 4 digits: Entity number
+      - Next 1 char: Check digit (letter)
+      - Next 1 char: 'Z'
+      - Last 1 char: Either letter or digit (checksum)
+    """
+    if not value or not isinstance(value, str):
+        return False
+    pattern = r"^\d{2}[A-Z]{5}\d{4}[A-Z]{1}\d[Z]{1}[A-Z\d]{1}$"
+    return bool(re.match(pattern, value.strip(), re.IGNORECASE))
+
+
+def _confidence_for_field(field_name: str, value: Any, flags: list[str]) -> float:
+    """Compute a heuristic confidence score (0.0 – 1.0) for an extracted field.
+
+    Rules:
+      - 0.0 if field is absent/None
+      - 0.9 if field is present (basic extraction)
+      - Penalties applied for known quality signals
+    """
+    if value is None:
+        return 0.0
+
+    base = 0.9
+
+    if field_name == "grand_total" and "totals_mismatch" in flags:
+        base = 0.6
+
+    if field_name == "gst_or_tax_number":
+        if isinstance(value, str) and not _is_valid_gstin(value):
+            # Present but invalid format → lower confidence
+            base = 0.5
+
+    return base
+
+
 def _build_result(data: dict, raw_text: str) -> ExtractionResult:
     """Wrap extracted data into an ExtractionResult with confidence & flags."""
     flags: list[str] = []
@@ -449,17 +564,38 @@ def _build_result(data: dict, raw_text: str) -> ExtractionResult:
     flags.extend(_check_totals_match(data))
     flags.extend(_check_required_fields(data))
 
-    # Confidence scoring — rule-based fallback gets low confidence
-    def _confidence(field_name: str) -> float:
-        return 0.9 if data.get(field_name) is not None else 0.0
+    # Validate GSTIN format
+    gst_value = data.get("gst_or_tax_number")
+    if gst_value and isinstance(gst_value, str):
+        if not _is_valid_gstin(gst_value):
+            flags.append("invalid_gstin_format")
+
+    # Heuristic confidence scoring per field
+    parsed_values = {
+        "vendor_name": data.get("vendor_name"),
+        "invoice_number": data.get("invoice_number"),
+        "invoice_date": data.get("invoice_date"),
+        "grand_total": _parse_amount(data.get("grand_total")),
+        "gst_or_tax_number": data.get("gst_or_tax_number"),
+    }
+
+    scores = {
+        name: _confidence_for_field(name, val, flags)
+        for name, val in parsed_values.items()
+    }
+
+    # overall is the average of all per-field scores (not a hardcoded constant)
+    overall = sum(scores.values()) / len(scores) if scores else 0.0
 
     confidence = ConfidenceScores(
-        vendor_name=_confidence("vendor_name"),
-        invoice_number=_confidence("invoice_number"),
-        invoice_date=_confidence("invoice_date"),
-        grand_total=_confidence("grand_total"),
-        overall=0.3,  # rule-based fallback is low-confidence overall
+        vendor_name=scores["vendor_name"],
+        invoice_number=scores["invoice_number"],
+        invoice_date=scores["invoice_date"],
+        grand_total=scores["grand_total"],
+        overall=round(overall, 4),
     )
+
+    grand_total_parsed = _parse_amount(data.get("grand_total"))
 
     return ExtractionResult(
         vendor_name=data.get("vendor_name"),
@@ -471,7 +607,8 @@ def _build_result(data: dict, raw_text: str) -> ExtractionResult:
         subtotal=_parse_amount(data.get("subtotal")),
         tax_amount=_parse_amount(data.get("tax_amount")),
         discount=_parse_amount(data.get("discount")),
-        grand_total=_parse_amount(data.get("grand_total")),
+        grand_total=grand_total_parsed,
+        total_amount=grand_total_parsed,
         line_items=[LineItem(**li) for li in data.get("line_items", [])],
         confidence=confidence,
         flags=flags,

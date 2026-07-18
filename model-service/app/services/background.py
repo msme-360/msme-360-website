@@ -146,7 +146,7 @@ async def ocr_document_pipeline_orchestration(
 
         # 4. Run OCR
         if ext == ".pdf":
-            raw_text = ocr_pdf(tmp_path)
+            raw_text, page_count = ocr_pdf(tmp_path)
         else:
             raw_text = ocr_image(tmp_path)
 

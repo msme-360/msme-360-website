@@ -62,24 +62,25 @@ async def ocr_image_async(image_path: str | Path, lang: Optional[str] = None) ->
     return await asyncio.to_thread(ocr_image, image_path, lang)
 
 
-def _extract_pdf_text_direct(pdf_path: str | Path) -> Optional[str]:
+def _extract_pdf_text_direct(pdf_path: str | Path) -> tuple[Optional[str], int]:
     """Extract text from a PDF directly using PyMuPDF (no Poppler needed).
 
     Works for text-based PDFs (most digital invoices). For scanned PDFs
-    (image-only), returns None so the caller can fall back to OCR.
+    (image-only), returns (None, page_count) so the caller can fall back to OCR.
 
     Returns:
-        Concatenated text from all pages, or None if extraction fails.
+        ``(concatenated_text, page_count)`` or ``(None, page_count)`` if extraction fails.
     """
     try:
         import fitz  # PyMuPDF
     except ImportError:
         logger.debug("PyMuPDF not available, skipping direct PDF text extraction")
-        return None
+        return None, 0
 
     with fitz.open(str(pdf_path)) as doc:
+        page_count = doc.page_count
         parts: list[str] = []
-        for page_num in range(doc.page_count):
+        for page_num in range(page_count):
             page = doc[page_num]
             text = page.get_text().strip()
             if text:
@@ -87,17 +88,17 @@ def _extract_pdf_text_direct(pdf_path: str | Path) -> Optional[str]:
 
         if not parts:
             logger.info("PyMuPDF found no text in %s (likely a scanned PDF)", pdf_path)
-            return None
+            return None, page_count
 
         combined = "\n\n--- PAGE {} ---\n\n".format(len(parts)).join(parts).strip()
         logger.info(
             "Extracted %d chars from %d pages via PyMuPDF",
-            len(combined), doc.page_count,
+            len(combined), page_count,
         )
-        return combined
+        return combined, page_count
 
 
-def ocr_pdf(pdf_path: str | Path, lang: Optional[str] = None, dpi: int = 200) -> str:
+def ocr_pdf(pdf_path: str | Path, lang: Optional[str] = None, dpi: int = 200) -> tuple[str, int]:
     """Extract text from a PDF.
 
     Strategy:
@@ -112,15 +113,15 @@ def ocr_pdf(pdf_path: str | Path, lang: Optional[str] = None, dpi: int = 200) ->
         dpi: DPI for rendering PDF pages (only used by pdf2image fallback).
 
     Returns:
-        Concatenated raw text from all pages.
+        ``(concatenated_text, page_count)``.
     """
     lang = lang or settings.tesseract_lang
     logger.info("OCR on PDF %s (lang=%s, dpi=%d)", pdf_path, lang, dpi)
 
     # Step 1: Try PyMuPDF for direct text extraction
-    text = _extract_pdf_text_direct(pdf_path)
+    text, page_count = _extract_pdf_text_direct(pdf_path)
     if text:
-        return text
+        return text, page_count
 
     # Step 2: Fall back to pdf2image + Tesseract OCR for scanned PDFs
     try:
@@ -144,10 +145,11 @@ def ocr_pdf(pdf_path: str | Path, lang: Optional[str] = None, dpi: int = 200) ->
             "See: https://github.com/oschwartz10612/poppler-windows/releases"
         )
 
+    page_count = len(pages)
     all_text_parts: list[str] = []
     for i, page_img in enumerate(pages, start=1):
-        logger.debug("OCR PDF page %d/%d", i, len(pages))
+        logger.debug("OCR PDF page %d/%d", i, page_count)
         text = pytesseract.image_to_string(page_img, lang=lang)
         all_text_parts.append(text.strip())
 
-    return "\n\n--- PAGE {} ---\n\n".format(len(pages)).join(all_text_parts).strip()
+    return "\n\n--- PAGE {} ---\n\n".format(page_count).join(all_text_parts).strip(), page_count
