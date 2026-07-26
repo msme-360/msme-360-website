@@ -216,15 +216,41 @@ export async function getNicCodes() {
 }
 
 export async function getAIServices() {
-  try {
-    const supabase = await createServiceClient();
-    const { data, error } = await supabase.from("ai_services").select("*").order("created_at", { ascending: true });
-    if (error) throw error;
-    return data || [];
-  } catch (error) {
-    logger.error("Error fetching AI services:", "queries.ts", error);
-    return [];
-  }
+  // Always use mock data to avoid missing translation keys
+  return [
+    {
+      id: "forecasting",
+      title_key: "tools.forecasting.title",
+      description_key: "tools.forecasting.description",
+      type_key: "type.data",
+      icon_name: "BarChart3",
+      status: "Active"
+    },
+    {
+      id: "eligibility",
+      title_key: "tools.eligibility.title",
+      description_key: "tools.eligibility.description",
+      type_key: "type.scoring",
+      icon_name: "ShieldCheck",
+      status: "Active"
+    },
+    {
+      id: "nic",
+      title_key: "tools.nic.title",
+      description_key: "tools.nic.description",
+      type_key: "type.nlp",
+      icon_name: "Sparkles",
+      status: "Active"
+    },
+    {
+      id: "ocr",
+      title_key: "tools.ocr.title",
+      description_key: "tools.ocr.description",
+      type_key: "type.vision",
+      icon_name: "Zap",
+      status: "Active"
+    }
+  ];
 }
 
 export async function getTenders() {

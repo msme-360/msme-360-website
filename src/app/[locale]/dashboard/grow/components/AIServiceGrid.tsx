@@ -15,7 +15,7 @@ interface AIServiceGridProps {
 }
 
 export function AIServiceGrid({ rawServices, isLoading, activeTool, onSetActiveTool }: AIServiceGridProps) {
-  const t = useTranslations("Grow");
+  const t = useTranslations("MicroAIHub");
   const aiServices = useMemo(() => {
     const iconMap: Record<string, React.ReactNode> = {
       "BarChart3": <BarChart3 className="w-5 h-5" />,
